@@ -1,0 +1,12282 @@
+--
+-- PostgreSQL database dump
+--
+
+\restrict YhDIqhHcvFZL9ZWeWoZLwEJ1MJLzAi9YFrkx9VoRIuJvJl4GCRumqVgMtnG3mNR
+
+-- Dumped from database version 14.18 (Ubuntu 14.18-0ubuntu0.22.04.1)
+-- Dumped by pg_dump version 14.19 (Ubuntu 14.19-0ubuntu0.22.04.1)
+
+SET statement_timeout = 0;
+SET lock_timeout = 0;
+SET idle_in_transaction_session_timeout = 0;
+SET client_encoding = 'UTF8';
+SET standard_conforming_strings = on;
+SELECT pg_catalog.set_config('search_path', '', false);
+SET check_function_bodies = false;
+SET xmloption = content;
+SET client_min_messages = warning;
+SET row_security = off;
+
+--
+-- Name: ltree; Type: EXTENSION; Schema: -; Owner: -
+--
+
+CREATE EXTENSION IF NOT EXISTS ltree WITH SCHEMA public;
+
+
+--
+-- Name: EXTENSION ltree; Type: COMMENT; Schema: -; Owner: 
+--
+
+COMMENT ON EXTENSION ltree IS 'data type for hierarchical tree-like structures';
+
+
+--
+-- Name: pg_stat_statements; Type: EXTENSION; Schema: -; Owner: -
+--
+
+CREATE EXTENSION IF NOT EXISTS pg_stat_statements WITH SCHEMA public;
+
+
+--
+-- Name: EXTENSION pg_stat_statements; Type: COMMENT; Schema: -; Owner: 
+--
+
+COMMENT ON EXTENSION pg_stat_statements IS 'track planning and execution statistics of all SQL statements executed';
+
+
+--
+-- Name: uuid-ossp; Type: EXTENSION; Schema: -; Owner: -
+--
+
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp" WITH SCHEMA public;
+
+
+--
+-- Name: EXTENSION "uuid-ossp"; Type: COMMENT; Schema: -; Owner: 
+--
+
+COMMENT ON EXTENSION "uuid-ossp" IS 'generate universally unique identifiers (UUIDs)';
+
+
+--
+-- Name: is_valid_date(text); Type: FUNCTION; Schema: public; Owner: ellipsis_app
+--
+
+CREATE FUNCTION public.is_valid_date(text) RETURNS boolean
+    LANGUAGE plpgsql IMMUTABLE
+    AS $_$
+BEGIN
+  RETURN CASE WHEN $1::TIMESTAMP WITHOUT TIME ZONE IS NULL THEN FALSE ELSE TRUE END;
+EXCEPTION WHEN OTHERS THEN
+  RETURN FALSE;
+END;$_$;
+
+
+ALTER FUNCTION public.is_valid_date(text) OWNER TO ellipsis_app;
+
+--
+-- Name: is_valid_number(text); Type: FUNCTION; Schema: public; Owner: ellipsis_app
+--
+
+CREATE FUNCTION public.is_valid_number(text) RETURNS boolean
+    LANGUAGE plpgsql IMMUTABLE
+    AS $_$
+BEGIN
+  RETURN CASE WHEN $1::NUMERIC IS NULL THEN FALSE ELSE TRUE END;
+EXCEPTION WHEN OTHERS THEN
+  RETURN FALSE;
+END;$_$;
+
+
+ALTER FUNCTION public.is_valid_number(text) OWNER TO ellipsis_app;
+
+--
+-- Name: notify_invalidation_tasks(); Type: FUNCTION; Schema: public; Owner: ellipsis_app
+--
+
+CREATE FUNCTION public.notify_invalidation_tasks() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+DECLARE
+BEGIN
+  PERFORM pg_notify(CAST('aggregated_invalidation_tasks' AS text), CAST(NEW.id AS text));
+  RETURN NEW;
+END;
+$$;
+
+
+ALTER FUNCTION public.notify_invalidation_tasks() OWNER TO ellipsis_app;
+
+SET default_tablespace = '';
+
+SET default_table_access_method = heap;
+
+--
+-- Name: add_polygon_queue; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.add_polygon_queue (
+    id integer NOT NULL,
+    shape_layer_id integer,
+    x1 real,
+    x2 real,
+    y1 real,
+    y2 real,
+    metadata jsonb,
+    geometry jsonb,
+    type character varying(32),
+    user_id integer,
+    date timestamp without time zone,
+    added boolean DEFAULT false,
+    polygon_id integer,
+    uuid uuid,
+    size bigint
+);
+
+
+ALTER TABLE public.add_polygon_queue OWNER TO ellipsis_app;
+
+--
+-- Name: add_polygon_queue_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.add_polygon_queue_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.add_polygon_queue_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: add_polygon_queue_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.add_polygon_queue_id_seq OWNED BY public.add_polygon_queue.id;
+
+
+--
+-- Name: aggregated_invalidation_tasks; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.aggregated_invalidation_tasks (
+    id integer NOT NULL,
+    aggregated_info jsonb,
+    date timestamp without time zone
+);
+
+
+ALTER TABLE public.aggregated_invalidation_tasks OWNER TO ellipsis_app;
+
+--
+-- Name: aggregated_invalidation_tasks_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.aggregated_invalidation_tasks_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.aggregated_invalidation_tasks_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: aggregated_invalidation_tasks_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.aggregated_invalidation_tasks_id_seq OWNED BY public.aggregated_invalidation_tasks.id;
+
+
+--
+-- Name: aggregated_map_actions_day_history; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.aggregated_map_actions_day_history (
+    map_id integer,
+    date timestamp without time zone,
+    amount bigint,
+    public boolean,
+    id integer NOT NULL,
+    path_id integer
+);
+
+
+ALTER TABLE public.aggregated_map_actions_day_history OWNER TO ellipsis_app;
+
+--
+-- Name: aggregated_map_actions_day_history_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.aggregated_map_actions_day_history_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.aggregated_map_actions_day_history_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: aggregated_map_actions_day_history_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.aggregated_map_actions_day_history_id_seq OWNED BY public.aggregated_map_actions_day_history.id;
+
+
+--
+-- Name: aggregated_map_actions_history; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.aggregated_map_actions_history (
+    id integer NOT NULL,
+    map_id integer,
+    date timestamp without time zone,
+    amount integer,
+    public boolean
+);
+
+
+ALTER TABLE public.aggregated_map_actions_history OWNER TO ellipsis_app;
+
+--
+-- Name: aggregated_map_actions_history_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.aggregated_map_actions_history_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.aggregated_map_actions_history_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: aggregated_map_actions_history_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.aggregated_map_actions_history_id_seq OWNED BY public.aggregated_map_actions_history.id;
+
+
+--
+-- Name: api_calls; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.api_calls (
+    id integer NOT NULL,
+    name character varying(20)
+);
+
+
+ALTER TABLE public.api_calls OWNER TO ellipsis_app;
+
+--
+-- Name: api_calls_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.api_calls_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.api_calls_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: api_calls_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.api_calls_id_seq OWNED BY public.api_calls.id;
+
+
+--
+-- Name: atlases; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.atlases (
+    id integer NOT NULL,
+    name character varying(128),
+    user_id integer,
+    uuid uuid
+);
+
+
+ALTER TABLE public.atlases OWNER TO ellipsis_app;
+
+--
+-- Name: atlases_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.atlases_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.atlases_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: atlases_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.atlases_id_seq OWNED BY public.atlases.id;
+
+
+--
+-- Name: aws_marketplace_tokens; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.aws_marketplace_tokens (
+    id integer NOT NULL,
+    token character varying(255)
+);
+
+
+ALTER TABLE public.aws_marketplace_tokens OWNER TO ellipsis_app;
+
+--
+-- Name: aws_marketplace_tokens_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.aws_marketplace_tokens_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.aws_marketplace_tokens_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: aws_marketplace_tokens_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.aws_marketplace_tokens_id_seq OWNED BY public.aws_marketplace_tokens.id;
+
+
+--
+-- Name: backoffice_history; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.backoffice_history (
+    id integer NOT NULL,
+    user_id integer,
+    url character varying(2048),
+    parameters jsonb,
+    date timestamp without time zone
+);
+
+
+ALTER TABLE public.backoffice_history OWNER TO ellipsis_app;
+
+--
+-- Name: backoffice_history_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.backoffice_history_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.backoffice_history_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: backoffice_history_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.backoffice_history_id_seq OWNED BY public.backoffice_history.id;
+
+
+--
+-- Name: band_data_sources; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.band_data_sources (
+    data_source_id integer,
+    resolution double precision,
+    number integer,
+    band_id integer,
+    id integer NOT NULL
+);
+
+
+ALTER TABLE public.band_data_sources OWNER TO ellipsis_app;
+
+--
+-- Name: band_data_sources_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.band_data_sources_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.band_data_sources_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: band_data_sources_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.band_data_sources_id_seq OWNED BY public.band_data_sources.id;
+
+
+--
+-- Name: band_image_types; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.band_image_types (
+    image_type_id integer,
+    band_id integer,
+    id integer NOT NULL
+);
+
+
+ALTER TABLE public.band_image_types OWNER TO ellipsis_app;
+
+--
+-- Name: band_image_types_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.band_image_types_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.band_image_types_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: band_image_types_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.band_image_types_id_seq OWNED BY public.band_image_types.id;
+
+
+--
+-- Name: band_spectral_indices; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.band_spectral_indices (
+    spectral_index_id integer,
+    band_id integer
+);
+
+
+ALTER TABLE public.band_spectral_indices OWNER TO ellipsis_app;
+
+--
+-- Name: bands; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.bands (
+    id integer NOT NULL,
+    uuid uuid DEFAULT public.uuid_generate_v4(),
+    name character varying(150),
+    unit character varying(150),
+    display boolean DEFAULT false,
+    type character varying(150),
+    user_id integer
+);
+
+
+ALTER TABLE public.bands OWNER TO ellipsis_app;
+
+--
+-- Name: bands_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.bands_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.bands_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: bands_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.bands_id_seq OWNED BY public.bands.id;
+
+
+--
+-- Name: cloud_errors; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.cloud_errors (
+    id integer NOT NULL,
+    data_source_id integer,
+    user_id integer,
+    tile_x integer,
+    tile_y integer,
+    zoom integer,
+    date_from timestamp without time zone,
+    date_to timestamp without time zone,
+    processed boolean DEFAULT false
+);
+
+
+ALTER TABLE public.cloud_errors OWNER TO ellipsis_app;
+
+--
+-- Name: cloud_errors_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.cloud_errors_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.cloud_errors_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: cloud_errors_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.cloud_errors_id_seq OWNED BY public.cloud_errors.id;
+
+
+--
+-- Name: coins_history; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.coins_history (
+    id integer NOT NULL,
+    user_id integer,
+    action character varying(64),
+    date timestamp without time zone,
+    change numeric,
+    before numeric,
+    after numeric,
+    map_id integer,
+    message character varying(256),
+    metadata jsonb,
+    path_id integer,
+    from_user_id integer,
+    storage_limit numeric,
+    gross_amount numeric,
+    paid_till timestamp without time zone,
+    actions_min integer,
+    processing_units bigint,
+    vat_reference_id integer,
+    vat double precision,
+    uuid uuid,
+    type character varying(32),
+    CONSTRAINT coins_history_not_nan CHECK (((change <> 'NaN'::numeric) AND (before <> 'NaN'::numeric) AND (after <> 'NaN'::numeric) AND (vat <> 'NaN'::double precision)))
+);
+
+
+ALTER TABLE public.coins_history OWNER TO ellipsis_app;
+
+--
+-- Name: coins_history_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.coins_history_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.coins_history_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: coins_history_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.coins_history_id_seq OWNED BY public.coins_history.id;
+
+
+--
+-- Name: compute_tasks; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.compute_tasks (
+    id integer NOT NULL,
+    uuid uuid,
+    task_id uuid,
+    user_id integer,
+    status character varying(32),
+    message character varying(512),
+    requirements character varying(2048),
+    code bytea,
+    result text,
+    interpreter character varying(32),
+    nodes integer,
+    layers jsonb,
+    date timestamp without time zone,
+    start_date timestamp without time zone,
+    end_date timestamp without time zone,
+    large_result boolean,
+    size numeric DEFAULT 0,
+    files jsonb,
+    write_to_layer jsonb
+);
+
+
+ALTER TABLE public.compute_tasks OWNER TO ellipsis_app;
+
+--
+-- Name: compute_tasks_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.compute_tasks_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.compute_tasks_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: compute_tasks_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.compute_tasks_id_seq OWNED BY public.compute_tasks.id;
+
+
+--
+-- Name: conversion_requests; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.conversion_requests (
+    id integer NOT NULL,
+    user_id integer,
+    token uuid,
+    file_name character varying(64),
+    date timestamp without time zone,
+    status character varying(32),
+    message character varying(255),
+    parameters jsonb
+);
+
+
+ALTER TABLE public.conversion_requests OWNER TO ellipsis_app;
+
+--
+-- Name: conversion_requests_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.conversion_requests_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.conversion_requests_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: conversion_requests_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.conversion_requests_id_seq OWNED BY public.conversion_requests.id;
+
+
+--
+-- Name: correct_tile_queue; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.correct_tile_queue (
+    id integer NOT NULL,
+    label_array integer[],
+    data_array double precision[],
+    tile_x integer,
+    tile_y integer,
+    zoom integer,
+    "timestamp" integer,
+    store boolean,
+    measurement character varying(50),
+    user_id integer,
+    map_id integer,
+    processed boolean DEFAULT false,
+    date timestamp without time zone,
+    uuid uuid,
+    status character varying(20),
+    checked boolean DEFAULT false,
+    includes_clouds boolean DEFAULT false
+);
+
+
+ALTER TABLE public.correct_tile_queue OWNER TO ellipsis_app;
+
+--
+-- Name: correct_tiles_queue_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.correct_tiles_queue_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.correct_tiles_queue_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: correct_tiles_queue_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.correct_tiles_queue_id_seq OWNED BY public.correct_tile_queue.id;
+
+
+--
+-- Name: countries; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.countries (
+    id integer,
+    name character varying(200),
+    vat double precision,
+    company_vat double precision,
+    is_eu boolean
+);
+
+
+ALTER TABLE public.countries OWNER TO ellipsis_app;
+
+--
+-- Name: coupled_dems; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.coupled_dems (
+    id integer NOT NULL,
+    map_id integer,
+    coupled_map_id integer,
+    band_number integer,
+    selected boolean,
+    band_id integer,
+    share_link_id integer
+);
+
+
+ALTER TABLE public.coupled_dems OWNER TO ellipsis_app;
+
+--
+-- Name: coupled_dems_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.coupled_dems_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.coupled_dems_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: coupled_dems_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.coupled_dems_id_seq OWNED BY public.coupled_dems.id;
+
+
+--
+-- Name: coupled_maps; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.coupled_maps (
+    id integer NOT NULL,
+    map_id integer,
+    coupled_map_id integer,
+    shape_layer_id integer,
+    image_type_id integer,
+    layer_id integer,
+    type character varying(16),
+    selected boolean,
+    ordering integer,
+    share_link_id integer
+);
+
+
+ALTER TABLE public.coupled_maps OWNER TO ellipsis_app;
+
+--
+-- Name: coupled_maps_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.coupled_maps_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.coupled_maps_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: coupled_maps_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.coupled_maps_id_seq OWNED BY public.coupled_maps.id;
+
+
+--
+-- Name: custom_polygon_layer_properties; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.custom_polygon_layer_properties (
+    id integer NOT NULL,
+    uuid uuid,
+    custom_polygon_layer_id integer,
+    name character varying(256)
+);
+
+
+ALTER TABLE public.custom_polygon_layer_properties OWNER TO ellipsis_app;
+
+--
+-- Name: custom_polygon_layer_properties_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.custom_polygon_layer_properties_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.custom_polygon_layer_properties_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: custom_polygon_layer_properties_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.custom_polygon_layer_properties_id_seq OWNED BY public.custom_polygon_layer_properties.id;
+
+
+--
+-- Name: custom_polygon_layers; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.custom_polygon_layers (
+    id integer NOT NULL,
+    uuid uuid,
+    map_id integer,
+    name character varying(64),
+    color character varying(8),
+    delete_date timestamp without time zone
+);
+
+
+ALTER TABLE public.custom_polygon_layers OWNER TO ellipsis_app;
+
+--
+-- Name: custom_polygon_layers_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.custom_polygon_layers_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.custom_polygon_layers_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: custom_polygon_layers_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.custom_polygon_layers_id_seq OWNED BY public.custom_polygon_layers.id;
+
+
+--
+-- Name: custom_polygon_messages; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.custom_polygon_messages (
+    id integer NOT NULL,
+    uuid uuid,
+    map_timestamp_id integer,
+    user_id integer,
+    custom_polygon_id integer,
+    message character varying(3000),
+    date timestamp without time zone,
+    delete_date timestamp without time zone,
+    prevent_delete boolean DEFAULT false,
+    image character varying(256),
+    form jsonb,
+    is_private boolean,
+    reply_to uuid
+);
+
+
+ALTER TABLE public.custom_polygon_messages OWNER TO ellipsis_app;
+
+--
+-- Name: custom_polygon_messages_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.custom_polygon_messages_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.custom_polygon_messages_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: custom_polygon_messages_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.custom_polygon_messages_id_seq OWNED BY public.custom_polygon_messages.id;
+
+
+--
+-- Name: data_requests; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.data_requests (
+    id integer NOT NULL,
+    uuid uuid NOT NULL,
+    monitoring_project_id integer NOT NULL,
+    date timestamp without time zone,
+    finished boolean DEFAULT false,
+    timestamp_number integer,
+    data_source_id integer,
+    shape_id integer,
+    map_name character varying(128),
+    save_historic boolean,
+    mosaic_labels boolean,
+    per_class boolean,
+    use_mask boolean,
+    aggregation_zoom integer,
+    model_collection_id integer,
+    area jsonb,
+    user_id integer,
+    request_days integer,
+    jobs integer,
+    zoom integer,
+    resolution double precision,
+    fit_to_raster boolean DEFAULT false,
+    capture_uuid uuid,
+    project_schedule_uuid uuid,
+    paused boolean DEFAULT false
+);
+
+
+ALTER TABLE public.data_requests OWNER TO ellipsis_app;
+
+--
+-- Name: data_requests_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.data_requests_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.data_requests_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: data_requests_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.data_requests_id_seq OWNED BY public.data_requests.id;
+
+
+--
+-- Name: data_requests_monitoring_project_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.data_requests_monitoring_project_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.data_requests_monitoring_project_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: data_requests_monitoring_project_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.data_requests_monitoring_project_id_seq OWNED BY public.data_requests.monitoring_project_id;
+
+
+--
+-- Name: data_source_bands; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.data_source_bands (
+    id integer NOT NULL,
+    number integer,
+    name character varying(200),
+    data_source_id integer,
+    resolution double precision,
+    uuid uuid,
+    unit character varying(50)
+);
+
+
+ALTER TABLE public.data_source_bands OWNER TO ellipsis_app;
+
+--
+-- Name: data_source_bands_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.data_source_bands_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.data_source_bands_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: data_source_bands_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.data_source_bands_id_seq OWNED BY public.data_source_bands.id;
+
+
+--
+-- Name: data_source_image_types; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.data_source_image_types (
+    id integer NOT NULL,
+    data_source_id integer,
+    image_type_id integer,
+    a double precision,
+    b double precision,
+    c double precision,
+    d double precision,
+    legend jsonb
+);
+
+
+ALTER TABLE public.data_source_image_types OWNER TO ellipsis_app;
+
+--
+-- Name: data_source_image_types_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.data_source_image_types_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.data_source_image_types_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: data_source_image_types_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.data_source_image_types_id_seq OWNED BY public.data_source_image_types.id;
+
+
+--
+-- Name: data_source_model_collections; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.data_source_model_collections (
+    id integer NOT NULL,
+    data_source_id integer,
+    model_collection_id integer,
+    mask boolean
+);
+
+
+ALTER TABLE public.data_source_model_collections OWNER TO ellipsis_app;
+
+--
+-- Name: data_source_model_collections_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.data_source_model_collections_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.data_source_model_collections_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: data_source_model_collections_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.data_source_model_collections_id_seq OWNED BY public.data_source_model_collections.id;
+
+
+--
+-- Name: data_source_spectral_indices; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.data_source_spectral_indices (
+    id integer NOT NULL,
+    data_source_id integer,
+    spectral_index_id integer
+);
+
+
+ALTER TABLE public.data_source_spectral_indices OWNER TO ellipsis_app;
+
+--
+-- Name: data_source_spectral_indices_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.data_source_spectral_indices_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.data_source_spectral_indices_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: data_source_spectral_indices_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.data_source_spectral_indices_id_seq OWNED BY public.data_source_spectral_indices.id;
+
+
+--
+-- Name: data_sources; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.data_sources (
+    id integer NOT NULL,
+    uuid uuid NOT NULL,
+    name character varying(64),
+    max_downloads smallint,
+    per_ip boolean DEFAULT false,
+    coin_per_km2 double precision,
+    base_coin double precision,
+    wait boolean,
+    data_density double precision,
+    format character varying(10),
+    discount_2k double precision,
+    discount_15k double precision,
+    shape_id integer,
+    start_date timestamp with time zone,
+    end_date timestamp with time zone,
+    minimal_coin double precision,
+    wait_days integer DEFAULT 0,
+    raw_download boolean,
+    min_w double precision,
+    min_h double precision,
+    multi_polygon boolean,
+    a double precision,
+    b double precision,
+    custom boolean,
+    w integer DEFAULT 512,
+    info character varying(1000),
+    public boolean,
+    zoom integer,
+    depricated boolean,
+    max_servers integer,
+    user_id integer DEFAULT 10,
+    includes_transparent boolean,
+    includes_label boolean DEFAULT false,
+    includes_data boolean DEFAULT true,
+    bounds jsonb
+);
+
+
+ALTER TABLE public.data_sources OWNER TO ellipsis_app;
+
+--
+-- Name: database_check; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.database_check (
+    name character varying(32)
+);
+
+
+ALTER TABLE public.database_check OWNER TO ellipsis_app;
+
+--
+-- Name: drive_exports; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.drive_exports (
+    id integer NOT NULL,
+    uuid uuid,
+    user_id integer,
+    date timestamp without time zone,
+    path_ids jsonb,
+    worker_node character varying(32),
+    finished boolean,
+    status character varying(32),
+    message character varying(512)
+);
+
+
+ALTER TABLE public.drive_exports OWNER TO ellipsis_app;
+
+--
+-- Name: drive_exports_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.drive_exports_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.drive_exports_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: drive_exports_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.drive_exports_id_seq OWNED BY public.drive_exports.id;
+
+
+--
+-- Name: earth_define; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.earth_define (
+    id integer,
+    uuid uuid,
+    map_id integer,
+    timestamp_number smallint,
+    creation_date timestamp without time zone,
+    date_from timestamp without time zone,
+    date_to timestamp without time zone,
+    shape_id integer,
+    data_source_id integer,
+    brightness double precision,
+    shape_version_id integer,
+    deleted boolean,
+    delete_date timestamp without time zone,
+    bounds jsonb,
+    x1 real,
+    x2 real,
+    y1 real,
+    y2 real,
+    tiles integer,
+    number_of_tiles integer,
+    resolution double precision,
+    zoom integer,
+    active boolean,
+    finished boolean,
+    hard_deleted boolean,
+    interpolation_method character varying(20),
+    min_upload_zoom integer,
+    max_upload_zoom integer,
+    upload_zoom integer,
+    compressed boolean,
+    size numeric,
+    extra_uuid uuid,
+    add_timestamp_id integer,
+    phase character varying(100),
+    progress double precision,
+    total_jobs integer,
+    jobs_done integer,
+    has_alpha boolean,
+    tar_zoom integer
+);
+
+
+ALTER TABLE public.earth_define OWNER TO ellipsis_app;
+
+--
+-- Name: email_validation_tokens; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.email_validation_tokens (
+    token uuid,
+    user_id integer,
+    email character varying(128)
+);
+
+
+ALTER TABLE public.email_validation_tokens OWNER TO ellipsis_app;
+
+--
+-- Name: external_layers; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.external_layers (
+    id integer NOT NULL,
+    map_id integer,
+    name character varying(64),
+    url character varying(2000),
+    type character varying(16),
+    layer_name character varying(64),
+    max_zoom integer
+);
+
+
+ALTER TABLE public.external_layers OWNER TO ellipsis_app;
+
+--
+-- Name: external_layers_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.external_layers_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.external_layers_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: external_layers_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.external_layers_id_seq OWNED BY public.external_layers.id;
+
+
+--
+-- Name: file_system_backup_info; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.file_system_backup_info (
+    id integer NOT NULL,
+    date timestamp without time zone,
+    name character varying(128),
+    deleted boolean DEFAULT false
+);
+
+
+ALTER TABLE public.file_system_backup_info OWNER TO ellipsis_app;
+
+--
+-- Name: file_system_backup_info_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.file_system_backup_info_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.file_system_backup_info_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: file_system_backup_info_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.file_system_backup_info_id_seq OWNED BY public.file_system_backup_info.id;
+
+
+--
+-- Name: file_system_tasks; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.file_system_tasks (
+    id integer NOT NULL,
+    code character varying(64),
+    creation_date timestamp without time zone,
+    completion_date timestamp without time zone,
+    status character varying(32),
+    status_message character varying(256),
+    map_id integer,
+    parameters jsonb
+);
+
+
+ALTER TABLE public.file_system_tasks OWNER TO ellipsis_app;
+
+--
+-- Name: file_system_tasks_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.file_system_tasks_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.file_system_tasks_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: file_system_tasks_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.file_system_tasks_id_seq OWNED BY public.file_system_tasks.id;
+
+
+--
+-- Name: files; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.files (
+    id integer NOT NULL,
+    path_id integer,
+    uploaded_by_user_id integer,
+    number_of_downloads integer,
+    content_type character varying,
+    finished boolean,
+    receiving_api character varying(32),
+    size numeric,
+    path_uuid uuid,
+    cleaned boolean DEFAULT false,
+    cleaned_date timestamp without time zone DEFAULT '-infinity'::timestamp without time zone
+);
+
+
+ALTER TABLE public.files OWNER TO ellipsis_app;
+
+--
+-- Name: files_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.files_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.files_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: files_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.files_id_seq OWNED BY public.files.id;
+
+
+--
+-- Name: forms; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.forms (
+    id integer NOT NULL,
+    uuid uuid DEFAULT public.uuid_generate_v1(),
+    map_id integer,
+    form jsonb,
+    formname character varying(64)
+);
+
+
+ALTER TABLE public.forms OWNER TO ellipsis_app;
+
+--
+-- Name: forms_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.forms_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.forms_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: forms_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.forms_id_seq OWNED BY public.forms.id;
+
+
+--
+-- Name: geometry_cluster_tasks; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.geometry_cluster_tasks (
+    id integer NOT NULL,
+    shape_layer_id integer,
+    geometry_upload_id integer,
+    geometry_download_id integer,
+    task character varying(32),
+    worker_node character varying(32),
+    finished boolean DEFAULT false,
+    date timestamp without time zone,
+    server_id integer,
+    page integer,
+    max_slp_id integer,
+    max_slpt_id integer,
+    sub_type character varying(40),
+    number_pages integer,
+    series_upload_id integer,
+    projection_info jsonb,
+    parameters jsonb
+);
+
+
+ALTER TABLE public.geometry_cluster_tasks OWNER TO ellipsis_app;
+
+--
+-- Name: geometry_cluster_tasks_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.geometry_cluster_tasks_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.geometry_cluster_tasks_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: geometry_cluster_tasks_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.geometry_cluster_tasks_id_seq OWNED BY public.geometry_cluster_tasks.id;
+
+
+--
+-- Name: geometry_download_layers; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.geometry_download_layers (
+    id integer NOT NULL,
+    shape_layer_id integer,
+    geometry_download_id integer
+);
+
+
+ALTER TABLE public.geometry_download_layers OWNER TO ellipsis_app;
+
+--
+-- Name: geometry_download_layers_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.geometry_download_layers_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.geometry_download_layers_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: geometry_download_layers_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.geometry_download_layers_id_seq OWNED BY public.geometry_download_layers.id;
+
+
+--
+-- Name: geometry_downloads; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.geometry_downloads (
+    id integer NOT NULL,
+    uuid uuid DEFAULT public.uuid_generate_v4(),
+    user_id integer,
+    shape_layer_id integer,
+    message character varying(120),
+    date timestamp without time zone,
+    x1 double precision,
+    x2 double precision,
+    y1 double precision,
+    y2 double precision,
+    format character varying(10),
+    send_mail boolean,
+    status character varying(20),
+    worker_node character varying(32),
+    public_access_token_id integer,
+    geometry_upload_id integer,
+    personal_access_token_id integer,
+    extent_epsg integer
+);
+
+
+ALTER TABLE public.geometry_downloads OWNER TO ellipsis_app;
+
+--
+-- Name: geometry_downloads_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.geometry_downloads_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.geometry_downloads_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: geometry_downloads_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.geometry_downloads_id_seq OWNED BY public.geometry_downloads.id;
+
+
+--
+-- Name: geometry_uploads; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.geometry_uploads (
+    id integer NOT NULL,
+    uuid uuid DEFAULT public.uuid_generate_v4(),
+    user_id integer,
+    shape_layer_id integer,
+    message character varying(5000),
+    date timestamp without time zone,
+    file_name character varying(120),
+    status character varying(32),
+    map_id integer,
+    format character varying(20),
+    epsg integer,
+    worker_node character varying(32),
+    method character varying(20),
+    highest_zoom smallint,
+    date_columns text[],
+    date_patterns text[],
+    size numeric DEFAULT 0,
+    fast_upload boolean DEFAULT false,
+    reverted boolean DEFAULT false,
+    x1 double precision,
+    x2 double precision,
+    y1 double precision,
+    y2 double precision,
+    bounds jsonb,
+    crs character varying(500),
+    w integer,
+    h integer,
+    upload_id integer,
+    receiving_api character varying(32),
+    in_bucket boolean DEFAULT false,
+    legacy boolean DEFAULT false,
+    zoom_levels integer[],
+    need_transfer boolean DEFAULT false,
+    extension character varying(8),
+    cleaned boolean DEFAULT false,
+    cleaned_date timestamp without time zone DEFAULT '-infinity'::timestamp without time zone
+);
+
+
+ALTER TABLE public.geometry_uploads OWNER TO ellipsis_app;
+
+--
+-- Name: geometry_uploads_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.geometry_uploads_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.geometry_uploads_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: geometry_uploads_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.geometry_uploads_id_seq OWNED BY public.geometry_uploads.id;
+
+
+--
+-- Name: group_api_call_costs; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.group_api_call_costs (
+    id integer NOT NULL,
+    group_id integer,
+    api_call_id integer,
+    coins numeric
+);
+
+
+ALTER TABLE public.group_api_call_costs OWNER TO ellipsis_app;
+
+--
+-- Name: group_api_calls_cost_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.group_api_calls_cost_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.group_api_calls_cost_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: group_api_calls_cost_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.group_api_calls_cost_id_seq OWNED BY public.group_api_call_costs.id;
+
+
+--
+-- Name: group_invites; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.group_invites (
+    id integer NOT NULL,
+    user_id integer,
+    invited_user_id integer,
+    group_id integer,
+    token uuid,
+    date timestamp without time zone,
+    uuid uuid
+);
+
+
+ALTER TABLE public.group_invites OWNER TO ellipsis_app;
+
+--
+-- Name: group_invites_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.group_invites_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.group_invites_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: group_invites_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.group_invites_id_seq OWNED BY public.group_invites.id;
+
+
+--
+-- Name: groups; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.groups (
+    id integer NOT NULL,
+    uuid uuid NOT NULL,
+    name character varying(255),
+    map_id integer,
+    access_level integer,
+    actions_min integer,
+    subscription_fee numeric DEFAULT 0,
+    self_service boolean DEFAULT false
+);
+
+
+ALTER TABLE public.groups OWNER TO ellipsis_app;
+
+--
+-- Name: groups_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.groups_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.groups_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: groups_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.groups_id_seq OWNED BY public.groups.id;
+
+
+--
+-- Name: gs_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.gs_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e (
+    id bigint NOT NULL,
+    shape_layer_polygon_id bigint,
+    user_id integer,
+    uuid uuid,
+    add_date timestamp without time zone,
+    date timestamp without time zone,
+    property character varying(40),
+    value double precision,
+    deleted boolean
+);
+
+
+ALTER TABLE public.gs_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e OWNER TO ellipsis_app;
+
+--
+-- Name: gs_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.gs_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.gs_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: gs_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.gs_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e_id_seq OWNED BY public.gs_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e.id;
+
+
+--
+-- Name: gsh_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.gsh_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e (
+    id bigint NOT NULL,
+    geometry_series_id bigint,
+    shape_layer_polygon_id bigint,
+    user_id integer,
+    uuid uuid,
+    date timestamp without time zone,
+    action character varying(10),
+    value double precision
+);
+
+
+ALTER TABLE public.gsh_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e OWNER TO ellipsis_app;
+
+--
+-- Name: gsh_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.gsh_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.gsh_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: gsh_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.gsh_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e_id_seq OWNED BY public.gsh_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e.id;
+
+
+--
+-- Name: hard_delete_tasks; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.hard_delete_tasks (
+    id integer NOT NULL,
+    path_id bigint,
+    date timestamp without time zone,
+    finished boolean DEFAULT false
+);
+
+
+ALTER TABLE public.hard_delete_tasks OWNER TO ellipsis_app;
+
+--
+-- Name: hard_delete_tasks_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.hard_delete_tasks_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.hard_delete_tasks_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: hard_delete_tasks_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.hard_delete_tasks_id_seq OWNED BY public.hard_delete_tasks.id;
+
+
+--
+-- Name: hashtags; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.hashtags (
+    id integer NOT NULL,
+    uuid uuid,
+    name character varying(50)
+);
+
+
+ALTER TABLE public.hashtags OWNER TO ellipsis_app;
+
+--
+-- Name: hashtags_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.hashtags_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.hashtags_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: hashtags_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.hashtags_id_seq OWNED BY public.hashtags.id;
+
+
+--
+-- Name: icons; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.icons (
+    id integer NOT NULL,
+    image bytea,
+    name character varying(32)
+);
+
+
+ALTER TABLE public.icons OWNER TO ellipsis_app;
+
+--
+-- Name: icons_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.icons_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.icons_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: icons_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.icons_id_seq OWNED BY public.icons.id;
+
+
+--
+-- Name: image_types; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.image_types (
+    id integer NOT NULL,
+    uuid uuid NOT NULL,
+    name character varying(64),
+    type character varying(20),
+    base_coin double precision,
+    coin_per_km2 double precision,
+    user_id integer,
+    public boolean,
+    a character varying(150),
+    b character varying(150),
+    c character varying(150),
+    d character varying(150),
+    a_meaning character varying(150),
+    b_meaning character varying(150),
+    a_default double precision,
+    b_default double precision,
+    c_default double precision,
+    d_default double precision
+);
+
+
+ALTER TABLE public.image_types OWNER TO ellipsis_app;
+
+--
+-- Name: image_types_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.image_types_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.image_types_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: image_types_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.image_types_id_seq OWNED BY public.image_types.id;
+
+
+--
+-- Name: invalidation_tasks; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.invalidation_tasks (
+    id integer NOT NULL,
+    updated_row_id integer,
+    date timestamp without time zone,
+    type character varying(20),
+    updated_row_uuid uuid NOT NULL
+);
+
+
+ALTER TABLE public.invalidation_tasks OWNER TO ellipsis_app;
+
+--
+-- Name: invalidation_tasks_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.invalidation_tasks_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.invalidation_tasks_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: invalidation_tasks_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.invalidation_tasks_id_seq OWNED BY public.invalidation_tasks.id;
+
+
+--
+-- Name: invite_validation_tokens; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.invite_validation_tokens (
+    id integer NOT NULL,
+    user_id integer,
+    email character varying(128),
+    date timestamp without time zone,
+    token uuid
+);
+
+
+ALTER TABLE public.invite_validation_tokens OWNER TO ellipsis_app;
+
+--
+-- Name: invite_validation_tokens_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.invite_validation_tokens_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.invite_validation_tokens_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: invite_validation_tokens_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.invite_validation_tokens_id_seq OWNED BY public.invite_validation_tokens.id;
+
+
+--
+-- Name: jobs; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.jobs (
+    id integer NOT NULL,
+    map_timestamp_id integer,
+    uuid uuid DEFAULT public.uuid_generate_v4(),
+    number integer,
+    phase character varying(30),
+    worker_node character varying(40),
+    start_node character varying(40),
+    end_node character varying(40),
+    epsg integer
+);
+
+
+ALTER TABLE public.jobs OWNER TO ellipsis_app;
+
+--
+-- Name: jobs_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.jobs_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.jobs_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: jobs_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.jobs_id_seq OWNED BY public.jobs.id;
+
+
+--
+-- Name: locations; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.locations (
+    id integer NOT NULL,
+    uuid uuid,
+    country character varying(50),
+    city character varying(50),
+    gcloud_zone character varying(50),
+    x double precision,
+    y double precision,
+    availability_zone character varying(50)
+);
+
+
+ALTER TABLE public.locations OWNER TO ellipsis_app;
+
+--
+-- Name: locations_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.locations_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.locations_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: locations_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.locations_id_seq OWNED BY public.locations.id;
+
+
+--
+-- Name: login_attempts; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.login_attempts (
+    id integer NOT NULL,
+    ip inet,
+    username character varying(128),
+    date timestamp without time zone,
+    result character varying(32)
+);
+
+
+ALTER TABLE public.login_attempts OWNER TO ellipsis_app;
+
+--
+-- Name: login_attempts_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.login_attempts_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.login_attempts_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: login_attempts_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.login_attempts_id_seq OWNED BY public.login_attempts.id;
+
+
+--
+-- Name: map_actions_log; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.map_actions_log (
+    id bigint NOT NULL,
+    map_id integer,
+    user_id integer,
+    group_id integer,
+    ip inet,
+    amount integer,
+    date timestamp without time zone
+);
+
+
+ALTER TABLE public.map_actions_log OWNER TO ellipsis_app;
+
+--
+-- Name: map_action_credits_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.map_action_credits_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.map_action_credits_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: map_action_credits_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.map_action_credits_id_seq OWNED BY public.map_actions_log.id;
+
+
+--
+-- Name: map_actions_day_history; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.map_actions_day_history (
+    date timestamp without time zone,
+    user_id integer,
+    map_id integer,
+    amount bigint,
+    id integer NOT NULL,
+    ip inet,
+    path_id integer
+);
+
+
+ALTER TABLE public.map_actions_day_history OWNER TO ellipsis_app;
+
+--
+-- Name: map_actions_day_history_old; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.map_actions_day_history_old (
+    id integer NOT NULL,
+    map_id integer,
+    date timestamp without time zone,
+    group_id integer,
+    amount integer,
+    user_id integer,
+    ip inet
+);
+
+
+ALTER TABLE public.map_actions_day_history_old OWNER TO ellipsis_app;
+
+--
+-- Name: map_actions_day_history_r_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.map_actions_day_history_r_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.map_actions_day_history_r_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: map_actions_day_history_r_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.map_actions_day_history_r_id_seq OWNED BY public.map_actions_day_history.id;
+
+
+--
+-- Name: map_actions_history; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.map_actions_history (
+    id integer NOT NULL,
+    map_id integer,
+    date timestamp without time zone,
+    group_id integer,
+    amount integer,
+    user_id integer
+);
+
+
+ALTER TABLE public.map_actions_history OWNER TO ellipsis_app;
+
+--
+-- Name: map_api_call_costs; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.map_api_call_costs (
+    id integer NOT NULL,
+    map_id integer,
+    api_call_id integer,
+    coins numeric
+);
+
+
+ALTER TABLE public.map_api_call_costs OWNER TO ellipsis_app;
+
+--
+-- Name: map_api_calls_cost_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.map_api_calls_cost_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.map_api_calls_cost_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: map_api_calls_cost_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.map_api_calls_cost_id_seq OWNED BY public.map_api_call_costs.id;
+
+
+--
+-- Name: map_atlases; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.map_atlases (
+    id integer NOT NULL,
+    map_id integer,
+    atlas_id integer
+);
+
+
+ALTER TABLE public.map_atlases OWNER TO ellipsis_app;
+
+--
+-- Name: map_atlases_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.map_atlases_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.map_atlases_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: map_atlases_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.map_atlases_id_seq OWNED BY public.map_atlases.id;
+
+
+--
+-- Name: map_bands; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.map_bands (
+    id integer NOT NULL,
+    map_id integer,
+    band_id integer,
+    number integer,
+    name character varying(50),
+    uuid uuid DEFAULT public.uuid_generate_v4()
+);
+
+
+ALTER TABLE public.map_bands OWNER TO ellipsis_app;
+
+--
+-- Name: map_bands_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.map_bands_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.map_bands_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: map_bands_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.map_bands_id_seq OWNED BY public.map_bands.id;
+
+
+--
+-- Name: map_calls_history; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.map_calls_history (
+    id integer NOT NULL,
+    date timestamp without time zone,
+    map_id integer,
+    call_id integer,
+    user_id integer,
+    coin double precision
+);
+
+
+ALTER TABLE public.map_calls_history OWNER TO ellipsis_app;
+
+--
+-- Name: map_calls_history_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.map_calls_history_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.map_calls_history_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: map_calls_history_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.map_calls_history_id_seq OWNED BY public.map_calls_history.id;
+
+
+--
+-- Name: map_coin_day_history; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.map_coin_day_history (
+    id integer NOT NULL,
+    date timestamp without time zone,
+    group_id integer,
+    coin double precision
+);
+
+
+ALTER TABLE public.map_coin_day_history OWNER TO ellipsis_app;
+
+--
+-- Name: map_coin_day_history_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.map_coin_day_history_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.map_coin_day_history_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: map_coin_day_history_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.map_coin_day_history_id_seq OWNED BY public.map_coin_day_history.id;
+
+
+--
+-- Name: map_credits_day_history_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.map_credits_day_history_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.map_credits_day_history_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: map_credits_day_history_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.map_credits_day_history_id_seq OWNED BY public.map_actions_day_history_old.id;
+
+
+--
+-- Name: map_credits_history_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.map_credits_history_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.map_credits_history_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: map_credits_history_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.map_credits_history_id_seq OWNED BY public.map_actions_history.id;
+
+
+--
+-- Name: map_error_feedback_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.map_error_feedback_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.map_error_feedback_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: tiles_feedback; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.tiles_feedback (
+    id integer NOT NULL,
+    date timestamp without time zone,
+    map_timestamp_id integer,
+    tile_x smallint,
+    tile_y smallint,
+    zoom smallint,
+    is_mask boolean,
+    user_id integer,
+    message character varying(3000),
+    retracted boolean,
+    retract_date timestamp without time zone,
+    processed boolean DEFAULT false
+);
+
+
+ALTER TABLE public.tiles_feedback OWNER TO ellipsis_app;
+
+--
+-- Name: map_error_feedback_id_seq1; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.map_error_feedback_id_seq1
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.map_error_feedback_id_seq1 OWNER TO ellipsis_app;
+
+--
+-- Name: map_error_feedback_id_seq1; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.map_error_feedback_id_seq1 OWNED BY public.tiles_feedback.id;
+
+
+--
+-- Name: map_external_layers; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.map_external_layers (
+    id integer NOT NULL,
+    map_id integer,
+    uuid uuid,
+    name character varying(64),
+    type character varying(4),
+    layer character varying(128),
+    zoom integer,
+    url character varying(2000),
+    crs integer,
+    tile_matrix_set character varying(128)
+);
+
+
+ALTER TABLE public.map_external_layers OWNER TO ellipsis_app;
+
+--
+-- Name: map_external_layers_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.map_external_layers_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.map_external_layers_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: map_external_layers_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.map_external_layers_id_seq OWNED BY public.map_external_layers.id;
+
+
+--
+-- Name: map_hashtags; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.map_hashtags (
+    id integer NOT NULL,
+    map_id integer,
+    hashtag_id integer
+);
+
+
+ALTER TABLE public.map_hashtags OWNER TO ellipsis_app;
+
+--
+-- Name: map_hashtags_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.map_hashtags_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.map_hashtags_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: map_hashtags_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.map_hashtags_id_seq OWNED BY public.map_hashtags.id;
+
+
+--
+-- Name: map_layer_bands; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.map_layer_bands (
+    id integer NOT NULL,
+    band_id integer,
+    map_layer_id integer,
+    number integer,
+    map_band_number integer,
+    map_band_id integer
+);
+
+
+ALTER TABLE public.map_layer_bands OWNER TO ellipsis_app;
+
+--
+-- Name: map_layer_bands_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.map_layer_bands_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.map_layer_bands_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: map_layer_bands_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.map_layer_bands_id_seq OWNED BY public.map_layer_bands.id;
+
+
+--
+-- Name: map_layers; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.map_layers (
+    id integer NOT NULL,
+    map_id integer,
+    uuid uuid,
+    name character varying(100),
+    method character varying(40),
+    type character varying(20),
+    parameters json,
+    legend json,
+    description character varying(255),
+    is_default boolean,
+    version integer DEFAULT 0
+);
+
+
+ALTER TABLE public.map_layers OWNER TO ellipsis_app;
+
+--
+-- Name: map_layers_id_seq1; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.map_layers_id_seq1
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.map_layers_id_seq1 OWNER TO ellipsis_app;
+
+--
+-- Name: map_layers_id_seq1; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.map_layers_id_seq1 OWNED BY public.map_layers.id;
+
+
+--
+-- Name: map_projections; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.map_projections (
+    id integer NOT NULL,
+    uuid uuid,
+    map_id integer,
+    epsg integer
+);
+
+
+ALTER TABLE public.map_projections OWNER TO ellipsis_app;
+
+--
+-- Name: map_projections_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.map_projections_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.map_projections_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: map_projections_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.map_projections_id_seq OWNED BY public.map_projections.id;
+
+
+--
+-- Name: map_public_credits; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.map_public_credits (
+    id integer NOT NULL,
+    map_id integer,
+    ip inet,
+    credits_min integer
+);
+
+
+ALTER TABLE public.map_public_credits OWNER TO ellipsis_app;
+
+--
+-- Name: map_public_credits_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.map_public_credits_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.map_public_credits_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: map_public_credits_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.map_public_credits_id_seq OWNED BY public.map_public_credits.id;
+
+
+--
+-- Name: map_timestamp_layers; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.map_timestamp_layers (
+    id integer NOT NULL,
+    uuid uuid,
+    map_timestamp_id integer,
+    map_layer_id integer,
+    location character varying(64),
+    is_data boolean,
+    size numeric DEFAULT 0
+);
+
+
+ALTER TABLE public.map_timestamp_layers OWNER TO ellipsis_app;
+
+--
+-- Name: map_timestamp_layers_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.map_timestamp_layers_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.map_timestamp_layers_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: map_timestamp_layers_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.map_timestamp_layers_id_seq OWNED BY public.map_timestamp_layers.id;
+
+
+--
+-- Name: map_timestamps; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.map_timestamps (
+    id integer NOT NULL,
+    uuid uuid NOT NULL,
+    map_id integer NOT NULL,
+    timestamp_number integer,
+    creation_date timestamp without time zone,
+    date_from timestamp without time zone,
+    date_to timestamp without time zone,
+    shape_id integer,
+    data_source_id integer,
+    brightness double precision DEFAULT 1,
+    shape_version_id integer,
+    deleted boolean DEFAULT false,
+    delete_date timestamp without time zone,
+    bounds jsonb,
+    x1 real,
+    x2 real,
+    y1 real,
+    y2 real,
+    tiles integer,
+    number_of_tiles integer,
+    resolution double precision,
+    zoom integer,
+    active boolean,
+    finished boolean,
+    hard_deleted boolean DEFAULT false,
+    interpolation_method character varying(20),
+    min_upload_zoom integer,
+    max_upload_zoom integer,
+    upload_zoom integer,
+    compressed boolean DEFAULT true,
+    size numeric DEFAULT 0,
+    extra_uuid uuid DEFAULT public.uuid_generate_v4(),
+    add_timestamp_id integer,
+    phase character varying(100),
+    progress double precision,
+    total_jobs integer,
+    jobs_done integer,
+    has_alpha boolean DEFAULT true,
+    tar_zoom integer,
+    as_zfs boolean,
+    description character varying(255),
+    server_id integer,
+    moving_server boolean DEFAULT false,
+    new_server_id integer,
+    worker_node character varying(32),
+    moving_date timestamp without time zone,
+    status character varying(32),
+    update_bounds boolean DEFAULT false,
+    reprojection_status character varying(32) DEFAULT 'completed'::character varying,
+    reprojection_worker_node character varying(32),
+    projection_zoom jsonb DEFAULT '{}'::jsonb,
+    finish_run_copying boolean DEFAULT false,
+    cleaned boolean DEFAULT false,
+    version smallint DEFAULT 1
+);
+
+
+ALTER TABLE public.map_timestamps OWNER TO ellipsis_app;
+
+--
+-- Name: map_timestamps_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.map_timestamps_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.map_timestamps_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: map_timestamps_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.map_timestamps_id_seq OWNED BY public.map_timestamps.id;
+
+
+--
+-- Name: map_user_history; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.map_user_history (
+    id integer NOT NULL,
+    map_id integer,
+    user_id integer,
+    uuid uuid,
+    last_use timestamp without time zone,
+    path_id integer
+);
+
+
+ALTER TABLE public.map_user_history OWNER TO ellipsis_app;
+
+--
+-- Name: map_user_history_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.map_user_history_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.map_user_history_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: map_user_history_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.map_user_history_id_seq OWNED BY public.map_user_history.id;
+
+
+--
+-- Name: map_view_settings; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.map_view_settings (
+    id integer NOT NULL,
+    map_id integer,
+    line_width numeric,
+    point_width numeric,
+    bbox_width numeric,
+    z_default numeric,
+    is_panorama boolean,
+    elevation_factor numeric,
+    max_precision numeric
+);
+
+
+ALTER TABLE public.map_view_settings OWNER TO ellipsis_app;
+
+--
+-- Name: map_view_settings_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.map_view_settings_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.map_view_settings_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: map_view_settings_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.map_view_settings_id_seq OWNED BY public.map_view_settings.id;
+
+
+--
+-- Name: maps; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.maps (
+    id integer NOT NULL,
+    uuid uuid NOT NULL,
+    name character varying(64),
+    folder_name character varying(256),
+    public_access_level smallint DEFAULT 0,
+    per_class boolean,
+    actions_min integer DEFAULT 1000,
+    public_actions_min integer DEFAULT 1000,
+    save_historic boolean,
+    shape_id integer,
+    mosaic_labels boolean DEFAULT true,
+    aggregation_zoom integer,
+    info json,
+    shape_version integer,
+    user_id integer,
+    deleted boolean DEFAULT false,
+    is_area boolean DEFAULT false,
+    inactive_since timestamp without time zone,
+    hidden boolean DEFAULT true,
+    shape_version_id integer,
+    model_collection_id integer,
+    use_mask boolean,
+    bounds jsonb,
+    zoom integer,
+    resolution real,
+    bounds_updated boolean,
+    fit_to_raster boolean,
+    x1 real,
+    x2 real,
+    y1 real,
+    y2 real,
+    allow_shareable_link boolean DEFAULT false,
+    number_of_tiles integer,
+    actions_paid_till timestamp without time zone,
+    actions_fee numeric DEFAULT 0,
+    description character varying(100),
+    properties jsonb,
+    attribution character varying(100),
+    format character varying(40),
+    data_source_name character varying(100),
+    is_order boolean,
+    internal_access_level smallint DEFAULT 100,
+    internal_actions_min integer DEFAULT 1000,
+    includes_transparent boolean,
+    created_by integer,
+    type character varying(10),
+    initial_bounds boolean DEFAULT true,
+    attribution_file bytea,
+    transfer_user_id integer,
+    interpolation_method character varying(32) DEFAULT 'linear'::character varying,
+    compression character varying(10) DEFAULT 'lzma'::character varying,
+    as_jpg boolean DEFAULT false,
+    transparency_value double precision,
+    geometrytypes jsonb,
+    shape_layers jsonb,
+    location_id integer,
+    old_location_id integer,
+    license character varying(50),
+    reindexing boolean DEFAULT false,
+    has_actions_bounds boolean DEFAULT false,
+    has_series_history boolean DEFAULT true,
+    render_options jsonb,
+    transfer_by_email boolean,
+    compression_quality integer,
+    link character varying(100),
+    thumbnail bytea,
+    has_thumbnail boolean DEFAULT false,
+    thumbnail_invalidation_date timestamp without time zone DEFAULT now(),
+    domains jsonb
+);
+
+
+ALTER TABLE public.maps OWNER TO ellipsis_app;
+
+--
+-- Name: maps_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.maps_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.maps_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: maps_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.maps_id_seq OWNED BY public.maps.id;
+
+
+--
+-- Name: model_classes; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.model_classes (
+    id integer NOT NULL,
+    uuid uuid NOT NULL,
+    model_id integer NOT NULL,
+    name character varying(64),
+    class_number smallint,
+    color character varying(8)
+);
+
+
+ALTER TABLE public.model_classes OWNER TO ellipsis_app;
+
+--
+-- Name: model_classes_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.model_classes_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.model_classes_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: model_classes_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.model_classes_id_seq OWNED BY public.model_classes.id;
+
+
+--
+-- Name: model_collection_classes; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.model_collection_classes (
+    id integer NOT NULL,
+    uuid uuid DEFAULT public.uuid_generate_v4(),
+    model_collection_id integer,
+    name character varying(100),
+    class_number integer,
+    color character varying(25)
+);
+
+
+ALTER TABLE public.model_collection_classes OWNER TO ellipsis_app;
+
+--
+-- Name: model_collection_classes_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.model_collection_classes_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.model_collection_classes_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: model_collection_classes_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.model_collection_classes_id_seq OWNED BY public.model_collection_classes.id;
+
+
+--
+-- Name: model_collections; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.model_collections (
+    id integer NOT NULL,
+    name character varying(40),
+    base_coin double precision,
+    coin_per_km2 double precision,
+    use_polygon_mask boolean,
+    change_detection boolean,
+    image_type_id integer,
+    user_id integer,
+    uuid uuid,
+    polygon_layer_name character varying(50),
+    shape_layer_name character varying(50)
+);
+
+
+ALTER TABLE public.model_collections OWNER TO ellipsis_app;
+
+--
+-- Name: model_collections_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.model_collections_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.model_collections_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: model_collections_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.model_collections_id_seq OWNED BY public.model_collections.id;
+
+
+--
+-- Name: models; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.models (
+    id integer NOT NULL,
+    uuid uuid NOT NULL,
+    name character varying(100),
+    version smallint,
+    base_coin double precision,
+    coin_per_km2 double precision,
+    model_collection_id integer
+);
+
+
+ALTER TABLE public.models OWNER TO ellipsis_app;
+
+--
+-- Name: models_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.models_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.models_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: models_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.models_id_seq OWNED BY public.models.id;
+
+
+--
+-- Name: monitoring_projects; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.monitoring_projects (
+    id integer NOT NULL,
+    uuid uuid NOT NULL,
+    data_source_id integer NOT NULL,
+    shape_id integer,
+    start_date timestamp without time zone,
+    request_days integer,
+    every_x integer,
+    on_days character varying(256),
+    frequency_mode smallint,
+    map_name character varying(128),
+    end_date timestamp without time zone,
+    active boolean DEFAULT true,
+    per_class boolean,
+    run_model boolean,
+    save_historic boolean,
+    mosaic_labels boolean,
+    the_new_way boolean DEFAULT false,
+    jobs integer,
+    aggregation_zoom integer,
+    shape_version integer,
+    user_id integer,
+    zoom integer,
+    resolution double precision,
+    model_name character varying(40),
+    mask_name character varying(40),
+    model_collection_id integer,
+    mask_model_collection_id integer,
+    use_mask boolean,
+    status character varying(32),
+    status_message character varying(512),
+    fit_to_raster boolean DEFAULT false,
+    resolution_from_raster boolean
+);
+
+
+ALTER TABLE public.monitoring_projects OWNER TO ellipsis_app;
+
+--
+-- Name: monitoring_projects_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.monitoring_projects_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.monitoring_projects_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: monitoring_projects_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.monitoring_projects_id_seq OWNED BY public.monitoring_projects.id;
+
+
+--
+-- Name: monitoring_projects_satellite_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.monitoring_projects_satellite_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.monitoring_projects_satellite_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: monitoring_projects_satellite_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.monitoring_projects_satellite_id_seq OWNED BY public.monitoring_projects.data_source_id;
+
+
+--
+-- Name: notifications; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.notifications (
+    id integer NOT NULL,
+    uuid uuid DEFAULT public.uuid_generate_v4(),
+    datetime timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+    user_id integer,
+    about_user_id integer,
+    about_path_id integer,
+    type character varying(20),
+    read boolean DEFAULT false
+);
+
+
+ALTER TABLE public.notifications OWNER TO ellipsis_app;
+
+--
+-- Name: notifications_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.notifications_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.notifications_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: notifications_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.notifications_id_seq OWNED BY public.notifications.id;
+
+
+--
+-- Name: oauth_attempts; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.oauth_attempts (
+    id integer NOT NULL,
+    client_id character varying(50),
+    ip inet,
+    date timestamp without time zone,
+    result character varying(10)
+);
+
+
+ALTER TABLE public.oauth_attempts OWNER TO ellipsis_app;
+
+--
+-- Name: oauth_attempts_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.oauth_attempts_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.oauth_attempts_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: oauth_attempts_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.oauth_attempts_id_seq OWNED BY public.oauth_attempts.id;
+
+
+--
+-- Name: oauth_clients; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.oauth_clients (
+    id integer NOT NULL,
+    user_id integer,
+    client_id character varying(50),
+    client_secret character varying(100),
+    redirect_uri jsonb
+);
+
+
+ALTER TABLE public.oauth_clients OWNER TO ellipsis_app;
+
+--
+-- Name: oauth_clients_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.oauth_clients_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.oauth_clients_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: oauth_clients_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.oauth_clients_id_seq OWNED BY public.oauth_clients.id;
+
+
+--
+-- Name: oauth_temp; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.oauth_temp (
+    id integer NOT NULL,
+    user_id integer,
+    uuid uuid,
+    client_id character varying(50),
+    state character varying(50),
+    scope jsonb,
+    redirect_uri character varying(100),
+    code_challenge character varying(50),
+    code_challenge_method character varying(10),
+    authorization_id uuid,
+    used boolean,
+    creation_date timestamp without time zone
+);
+
+
+ALTER TABLE public.oauth_temp OWNER TO ellipsis_app;
+
+--
+-- Name: oauth_temp_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.oauth_temp_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.oauth_temp_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: oauth_temp_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.oauth_temp_id_seq OWNED BY public.oauth_temp.id;
+
+
+--
+-- Name: oauth_tokens; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.oauth_tokens (
+    id integer NOT NULL,
+    user_id integer,
+    client_id character varying(50),
+    refresh_token character varying(256),
+    scope jsonb,
+    last_use timestamp without time zone
+);
+
+
+ALTER TABLE public.oauth_tokens OWNER TO ellipsis_app;
+
+--
+-- Name: oauth_tokens_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.oauth_tokens_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.oauth_tokens_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: oauth_tokens_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.oauth_tokens_id_seq OWNED BY public.oauth_tokens.id;
+
+
+--
+-- Name: openid_sessions; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.openid_sessions (
+    session_id character varying NOT NULL,
+    session json NOT NULL,
+    date timestamp without time zone NOT NULL
+);
+
+
+ALTER TABLE public.openid_sessions OWNER TO ellipsis_app;
+
+--
+-- Name: organization_group_users; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.organization_group_users (
+    id integer NOT NULL,
+    organization_group_id integer,
+    user_id integer,
+    is_group_admin boolean DEFAULT false
+);
+
+
+ALTER TABLE public.organization_group_users OWNER TO ellipsis_app;
+
+--
+-- Name: organization_group_users_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.organization_group_users_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.organization_group_users_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: organization_group_users_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.organization_group_users_id_seq OWNED BY public.organization_group_users.id;
+
+
+--
+-- Name: organization_groups; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.organization_groups (
+    id integer NOT NULL,
+    uuid uuid,
+    user_id integer,
+    name character varying(64),
+    is_admin boolean DEFAULT false,
+    profile_picture bytea
+);
+
+
+ALTER TABLE public.organization_groups OWNER TO ellipsis_app;
+
+--
+-- Name: organization_groups_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.organization_groups_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.organization_groups_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: organization_groups_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.organization_groups_id_seq OWNED BY public.organization_groups.id;
+
+
+--
+-- Name: pa_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.pa_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e (
+    id bigint NOT NULL,
+    shape_layer_polygon_id bigint,
+    moved_from_shape_layer_id integer,
+    user_id integer,
+    uuid uuid,
+    date timestamp without time zone,
+    type character varying(30)
+);
+
+
+ALTER TABLE public.pa_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e OWNER TO ellipsis_app;
+
+--
+-- Name: pa_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.pa_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.pa_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: pa_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.pa_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e_id_seq OWNED BY public.pa_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e.id;
+
+
+--
+-- Name: path_data_search; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.path_data_search (
+    id integer NOT NULL,
+    path_id integer,
+    extent box,
+    date_range tstzrange
+);
+
+
+ALTER TABLE public.path_data_search OWNER TO ellipsis_app;
+
+--
+-- Name: path_data_search_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.path_data_search_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.path_data_search_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: path_data_search_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.path_data_search_id_seq OWNED BY public.path_data_search.id;
+
+
+--
+-- Name: path_hashtags; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.path_hashtags (
+    id integer NOT NULL,
+    path_id integer,
+    hashtag_id integer
+);
+
+
+ALTER TABLE public.path_hashtags OWNER TO ellipsis_app;
+
+--
+-- Name: path_hashtags_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.path_hashtags_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.path_hashtags_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: path_hashtags_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.path_hashtags_id_seq OWNED BY public.path_hashtags.id;
+
+
+--
+-- Name: path_public_extents; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.path_public_extents (
+    id integer NOT NULL,
+    path_id integer,
+    tile_x integer,
+    tile_y integer,
+    zoom integer
+);
+
+
+ALTER TABLE public.path_public_extents OWNER TO ellipsis_app;
+
+--
+-- Name: path_public_extents_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.path_public_extents_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.path_public_extents_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: path_public_extents_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.path_public_extents_id_seq OWNED BY public.path_public_extents.id;
+
+
+--
+-- Name: path_roots_search; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.path_roots_search (
+    id integer NOT NULL,
+    path_id integer,
+    user_id integer,
+    root character varying(32)
+);
+
+
+ALTER TABLE public.path_roots_search OWNER TO ellipsis_app;
+
+--
+-- Name: path_roots_search_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.path_roots_search_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.path_roots_search_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: path_roots_search_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.path_roots_search_id_seq OWNED BY public.path_roots_search.id;
+
+
+--
+-- Name: path_setup_tasks; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.path_setup_tasks (
+    id integer NOT NULL,
+    uuid uuid,
+    user_id integer,
+    reference_path_uuid uuid,
+    date timestamp without time zone,
+    type character varying(32),
+    parameters jsonb,
+    status character varying(32),
+    message character varying(255),
+    worker_node character varying(32),
+    need_transfer boolean DEFAULT false,
+    receiving_api character varying(32)
+);
+
+
+ALTER TABLE public.path_setup_tasks OWNER TO ellipsis_app;
+
+--
+-- Name: path_setup_tasks_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.path_setup_tasks_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.path_setup_tasks_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: path_setup_tasks_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.path_setup_tasks_id_seq OWNED BY public.path_setup_tasks.id;
+
+
+--
+-- Name: path_subscribe; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.path_subscribe (
+    id integer NOT NULL,
+    uuid uuid DEFAULT public.uuid_generate_v4(),
+    path_id integer,
+    subscription_fee numeric,
+    access_level integer,
+    actions_min integer,
+    actions_month bigint,
+    CONSTRAINT path_subscribe_fee_two_decimals CHECK ((subscription_fee = round(subscription_fee, 2)))
+);
+
+
+ALTER TABLE public.path_subscribe OWNER TO ellipsis_app;
+
+--
+-- Name: path_subscribe_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.path_subscribe_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.path_subscribe_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: path_subscribe_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.path_subscribe_id_seq OWNED BY public.path_subscribe.id;
+
+
+--
+-- Name: path_user_extents; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.path_user_extents (
+    id integer NOT NULL,
+    path_user_id integer,
+    tile_x integer,
+    tile_y integer,
+    zoom integer
+);
+
+
+ALTER TABLE public.path_user_extents OWNER TO ellipsis_app;
+
+--
+-- Name: path_user_extents_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.path_user_extents_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.path_user_extents_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: path_user_extents_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.path_user_extents_id_seq OWNED BY public.path_user_extents.id;
+
+
+--
+-- Name: path_users; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.path_users (
+    id integer NOT NULL,
+    uuid uuid DEFAULT public.uuid_generate_v4(),
+    path_type character varying(10),
+    path_id integer,
+    user_id integer,
+    access_level integer,
+    actions_min integer,
+    fee numeric,
+    member_since timestamp without time zone,
+    paid_till timestamp without time zone,
+    invited_by_user integer,
+    can_share boolean,
+    accepted boolean,
+    max_zoom integer,
+    actions_month bigint,
+    invited_by_email character varying(128),
+    path_name character varying(100),
+    organization_group_id integer,
+    is_organization_group boolean DEFAULT false,
+    property_fence text[],
+    CONSTRAINT path_users_fee_two_decimals CHECK ((fee = round(fee, 2)))
+);
+
+
+ALTER TABLE public.path_users OWNER TO ellipsis_app;
+
+--
+-- Name: path_users_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.path_users_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.path_users_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: path_users_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.path_users_id_seq OWNED BY public.path_users.id;
+
+
+--
+-- Name: paths; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.paths (
+    id integer NOT NULL,
+    uuid uuid DEFAULT public.uuid_generate_v4(),
+    deleted boolean,
+    hidden boolean,
+    hard_deleted boolean,
+    user_id integer,
+    parent_id integer,
+    name character varying(250),
+    public_actions_min integer,
+    public_access_level integer,
+    map_id integer,
+    path_type character varying(10),
+    delete_date timestamp without time zone,
+    creation_date timestamp without time zone,
+    max_zoom integer,
+    public_actions_month bigint,
+    description character varying(2500),
+    size numeric DEFAULT 0,
+    size_change_date timestamp without time zone DEFAULT now(),
+    property_fence text[]
+);
+
+
+ALTER TABLE public.paths OWNER TO ellipsis_app;
+
+--
+-- Name: paths_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.paths_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.paths_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: paths_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.paths_id_seq OWNED BY public.paths.id;
+
+
+--
+-- Name: paths_search; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.paths_search (
+    id integer NOT NULL,
+    path_id integer,
+    user_id integer,
+    text tsvector,
+    path_type character varying(10),
+    active boolean,
+    resolution numeric,
+    path public.ltree,
+    deleted boolean,
+    public boolean
+);
+
+
+ALTER TABLE public.paths_search OWNER TO ellipsis_app;
+
+--
+-- Name: paths_search_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.paths_search_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.paths_search_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: paths_search_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.paths_search_id_seq OWNED BY public.paths_search.id;
+
+
+--
+-- Name: patp_extents; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.patp_extents (
+    id integer NOT NULL,
+    personal_access_token_path_id integer,
+    tile_x integer,
+    tile_y integer,
+    zoom smallint
+);
+
+
+ALTER TABLE public.patp_extents OWNER TO ellipsis_app;
+
+--
+-- Name: patp_extents_old; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.patp_extents_old (
+    id integer NOT NULL,
+    public_access_token_path_id integer,
+    tile_x integer,
+    tile_y integer,
+    zoom smallint
+);
+
+
+ALTER TABLE public.patp_extents_old OWNER TO ellipsis_app;
+
+--
+-- Name: patp_extents_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.patp_extents_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.patp_extents_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: patp_extents_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.patp_extents_id_seq OWNED BY public.patp_extents_old.id;
+
+
+--
+-- Name: patp_extents_id_seq1; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.patp_extents_id_seq1
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.patp_extents_id_seq1 OWNER TO ellipsis_app;
+
+--
+-- Name: patp_extents_id_seq1; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.patp_extents_id_seq1 OWNED BY public.patp_extents.id;
+
+
+--
+-- Name: paypal_transactions; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.paypal_transactions (
+    id integer NOT NULL,
+    paypal_id character varying(128),
+    user_id integer,
+    date timestamp without time zone,
+    amount real
+);
+
+
+ALTER TABLE public.paypal_transactions OWNER TO ellipsis_app;
+
+--
+-- Name: paypal_transactions_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.paypal_transactions_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.paypal_transactions_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: paypal_transactions_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.paypal_transactions_id_seq OWNED BY public.paypal_transactions.id;
+
+
+--
+-- Name: personal_access_token_paths; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.personal_access_token_paths (
+    id integer NOT NULL,
+    uuid uuid,
+    personal_access_token_id integer,
+    path_id integer,
+    access_level integer NOT NULL,
+    max_zoom integer,
+    property_fence text[]
+);
+
+
+ALTER TABLE public.personal_access_token_paths OWNER TO ellipsis_app;
+
+--
+-- Name: personal_access_token_paths_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.personal_access_token_paths_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.personal_access_token_paths_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: personal_access_token_paths_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.personal_access_token_paths_id_seq OWNED BY public.personal_access_token_paths.id;
+
+
+--
+-- Name: personal_access_tokens; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.personal_access_tokens (
+    id integer NOT NULL,
+    uuid uuid,
+    user_id integer,
+    secret character varying,
+    description character varying(100),
+    scope character varying(20),
+    creation_date timestamp without time zone,
+    expiry_date timestamp without time zone,
+    compute_task_id integer
+);
+
+
+ALTER TABLE public.personal_access_tokens OWNER TO ellipsis_app;
+
+--
+-- Name: personal_access_tokens_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.personal_access_tokens_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.personal_access_tokens_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: personal_access_tokens_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.personal_access_tokens_id_seq OWNED BY public.personal_access_tokens.id;
+
+
+--
+-- Name: pm_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.pm_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e (
+    id bigint NOT NULL,
+    shape_layer_polygon_id bigint,
+    user_id integer,
+    uuid uuid,
+    message character varying(10000),
+    version integer,
+    is_private boolean,
+    date timestamp without time zone,
+    thumbnail_file bytea,
+    image_file bytea,
+    deleted boolean,
+    delete_date timestamp without time zone,
+    reply_to uuid,
+    x double precision,
+    y double precision
+);
+
+
+ALTER TABLE public.pm_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e OWNER TO ellipsis_app;
+
+--
+-- Name: pm_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.pm_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.pm_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: pm_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.pm_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e_id_seq OWNED BY public.pm_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e.id;
+
+
+--
+-- Name: pmh_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.pmh_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e (
+    id bigint NOT NULL,
+    polygon_message_id bigint,
+    shape_layer_polygon_id bigint,
+    user_id integer,
+    uuid uuid,
+    date timestamp without time zone,
+    action character varying(20)
+);
+
+
+ALTER TABLE public.pmh_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e OWNER TO ellipsis_app;
+
+--
+-- Name: pmh_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.pmh_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.pmh_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: pmh_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.pmh_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e_id_seq OWNED BY public.pmh_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e.id;
+
+
+--
+-- Name: pmt_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.pmt_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e (
+    id bigint NOT NULL,
+    shape_layer_polygon_id bigint,
+    user_id integer,
+    polygon_message_id bigint,
+    polygon_message_uuid uuid,
+    deleted boolean,
+    date timestamp without time zone,
+    tile_x integer,
+    tile_y integer,
+    zoom integer
+);
+
+
+ALTER TABLE public.pmt_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e OWNER TO ellipsis_app;
+
+--
+-- Name: pmt_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.pmt_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.pmt_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: pmt_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.pmt_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e_id_seq OWNED BY public.pmt_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e.id;
+
+
+--
+-- Name: point_cloud_downloads; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.point_cloud_downloads (
+    id integer NOT NULL,
+    point_cloud_timestamp_id integer,
+    user_id integer,
+    uuid uuid,
+    status character varying(20),
+    message character varying(200),
+    format character varying(20),
+    date timestamp without time zone,
+    x1 double precision,
+    x2 double precision,
+    y1 double precision,
+    y2 double precision,
+    send_mail boolean,
+    worker_node character varying(32),
+    extent_epsg integer,
+    personal_access_token_id integer
+);
+
+
+ALTER TABLE public.point_cloud_downloads OWNER TO ellipsis_app;
+
+--
+-- Name: point_cloud_downloads_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.point_cloud_downloads_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.point_cloud_downloads_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: point_cloud_downloads_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.point_cloud_downloads_id_seq OWNED BY public.point_cloud_downloads.id;
+
+
+--
+-- Name: point_cloud_jobs; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.point_cloud_jobs (
+    id integer NOT NULL,
+    point_cloud_timestamp_id integer,
+    number integer,
+    phase character varying(30),
+    start_node character varying(40),
+    worker_node character varying(40),
+    end_node character varying(40),
+    type character varying(40),
+    is_mesh boolean DEFAULT false
+);
+
+
+ALTER TABLE public.point_cloud_jobs OWNER TO ellipsis_app;
+
+--
+-- Name: point_cloud_jobs_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.point_cloud_jobs_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.point_cloud_jobs_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: point_cloud_jobs_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.point_cloud_jobs_id_seq OWNED BY public.point_cloud_jobs.id;
+
+
+--
+-- Name: point_cloud_properties; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.point_cloud_properties (
+    id integer NOT NULL,
+    path_id integer,
+    uuid uuid DEFAULT public.uuid_generate_v4(),
+    name character varying(128),
+    type character varying(128)
+);
+
+
+ALTER TABLE public.point_cloud_properties OWNER TO ellipsis_app;
+
+--
+-- Name: point_cloud_properties_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.point_cloud_properties_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.point_cloud_properties_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: point_cloud_properties_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.point_cloud_properties_id_seq OWNED BY public.point_cloud_properties.id;
+
+
+--
+-- Name: point_cloud_styles; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.point_cloud_styles (
+    id integer NOT NULL,
+    path_id integer,
+    uuid uuid DEFAULT public.uuid_generate_v4(),
+    name character varying(128),
+    description character varying(1024),
+    method character varying(64),
+    parameters jsonb,
+    is_default boolean,
+    version integer DEFAULT 0
+);
+
+
+ALTER TABLE public.point_cloud_styles OWNER TO ellipsis_app;
+
+--
+-- Name: point_cloud_styles_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.point_cloud_styles_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.point_cloud_styles_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: point_cloud_styles_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.point_cloud_styles_id_seq OWNED BY public.point_cloud_styles.id;
+
+
+--
+-- Name: point_cloud_timestamps; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.point_cloud_timestamps (
+    id integer NOT NULL,
+    uuid uuid,
+    map_id integer,
+    date_from timestamp without time zone,
+    date_to timestamp without time zone,
+    deleted boolean DEFAULT false,
+    delete_date timestamp without time zone,
+    hard_deleted boolean DEFAULT false,
+    bounds jsonb,
+    x1 double precision,
+    x2 double precision,
+    y1 double precision,
+    y2 double precision,
+    resolution double precision,
+    size double precision DEFAULT 0,
+    phase character varying(100),
+    zoom smallint,
+    tar_zoom smallint,
+    jobs_done integer,
+    total_jobs integer,
+    server_id integer,
+    new_server_id integer,
+    worker_node character varying(32),
+    moving_server boolean DEFAULT false,
+    moving_date timestamp without time zone,
+    as_zfs boolean,
+    creation_date timestamp without time zone,
+    description character varying(255),
+    status character varying(32),
+    update_bounds boolean,
+    z1 double precision DEFAULT 0,
+    z2 double precision DEFAULT 100,
+    is_zipped boolean DEFAULT true,
+    finish_run_copying boolean DEFAULT false,
+    cleaned boolean DEFAULT false
+);
+
+
+ALTER TABLE public.point_cloud_timestamps OWNER TO ellipsis_app;
+
+--
+-- Name: point_cloud_timestamps_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.point_cloud_timestamps_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.point_cloud_timestamps_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: point_cloud_timestamps_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.point_cloud_timestamps_id_seq OWNED BY public.point_cloud_timestamps.id;
+
+
+--
+-- Name: point_cloud_uploads; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.point_cloud_uploads (
+    id integer NOT NULL,
+    uuid uuid,
+    point_cloud_timestamp_id integer,
+    user_id integer,
+    deleted boolean DEFAULT false,
+    hard_deleted boolean DEFAULT false,
+    file_name character varying(256),
+    status character varying(32),
+    message character varying(512),
+    date timestamp without time zone,
+    size double precision DEFAULT 0,
+    format character varying(16),
+    resolution double precision,
+    x1 double precision,
+    x2 double precision,
+    y1 double precision,
+    y2 double precision,
+    x1_native double precision,
+    x2_native double precision,
+    y1_native double precision,
+    y2_native double precision,
+    crs character varying(1000),
+    bounds jsonb,
+    epsg integer,
+    native_bounds jsonb,
+    in_bucket boolean DEFAULT false,
+    receiving_api character varying(32),
+    converted boolean DEFAULT false,
+    converting boolean DEFAULT false,
+    z1 double precision DEFAULT 0,
+    z2 double precision DEFAULT 100,
+    is_mesh boolean DEFAULT false,
+    need_transfer boolean DEFAULT false,
+    cleaned boolean DEFAULT false,
+    cleaned_date timestamp without time zone DEFAULT '-infinity'::timestamp without time zone
+);
+
+
+ALTER TABLE public.point_cloud_uploads OWNER TO ellipsis_app;
+
+--
+-- Name: point_cloud_uploads_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.point_cloud_uploads_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.point_cloud_uploads_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: point_cloud_uploads_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.point_cloud_uploads_id_seq OWNED BY public.point_cloud_uploads.id;
+
+
+--
+-- Name: polygon_sensor; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.polygon_sensor (
+    id integer NOT NULL,
+    shape_layer_polygon_id integer,
+    user_id integer,
+    date timestamp without time zone,
+    property character varying(50),
+    value double precision,
+    deleted boolean DEFAULT false
+);
+
+
+ALTER TABLE public.polygon_sensor OWNER TO ellipsis_app;
+
+--
+-- Name: polygon_timeseries_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.polygon_timeseries_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.polygon_timeseries_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: polygon_timeseries_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.polygon_timeseries_id_seq OWNED BY public.polygon_sensor.id;
+
+
+--
+-- Name: processed_payments; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.processed_payments (
+    id integer NOT NULL,
+    order_id character varying(128)
+);
+
+
+ALTER TABLE public.processed_payments OWNER TO ellipsis_app;
+
+--
+-- Name: processed_payments_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.processed_payments_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.processed_payments_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: processed_payments_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.processed_payments_id_seq OWNED BY public.processed_payments.id;
+
+
+--
+-- Name: processed_stripe_events; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.processed_stripe_events (
+    id integer NOT NULL,
+    stripe_event_id character varying(64),
+    date timestamp without time zone
+);
+
+
+ALTER TABLE public.processed_stripe_events OWNER TO ellipsis_app;
+
+--
+-- Name: processed_stripe_events_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.processed_stripe_events_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.processed_stripe_events_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: processed_stripe_events_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.processed_stripe_events_id_seq OWNED BY public.processed_stripe_events.id;
+
+
+--
+-- Name: project_change_types; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.project_change_types (
+    id integer NOT NULL,
+    monitoring_project_id integer NOT NULL,
+    change_type_id integer NOT NULL
+);
+
+
+ALTER TABLE public.project_change_types OWNER TO ellipsis_app;
+
+--
+-- Name: project_change_types_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.project_change_types_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.project_change_types_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: project_change_types_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.project_change_types_id_seq OWNED BY public.project_change_types.id;
+
+
+--
+-- Name: project_image_types; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.project_image_types (
+    id integer NOT NULL,
+    monitoring_project_id integer NOT NULL,
+    image_type_id integer NOT NULL,
+    brightness double precision,
+    b double precision,
+    a double precision
+);
+
+
+ALTER TABLE public.project_image_types OWNER TO ellipsis_app;
+
+--
+-- Name: project_image_types_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.project_image_types_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.project_image_types_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: project_image_types_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.project_image_types_id_seq OWNED BY public.project_image_types.id;
+
+
+--
+-- Name: project_models; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.project_models (
+    id integer NOT NULL,
+    monitoring_project_id integer NOT NULL,
+    model_id integer NOT NULL,
+    is_mask boolean
+);
+
+
+ALTER TABLE public.project_models OWNER TO ellipsis_app;
+
+--
+-- Name: project_models_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.project_models_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.project_models_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: project_models_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.project_models_id_seq OWNED BY public.project_models.id;
+
+
+--
+-- Name: project_schedules; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.project_schedules (
+    id integer NOT NULL,
+    project_id integer,
+    number integer,
+    start_date timestamp without time zone,
+    end_date timestamp without time zone,
+    processed boolean,
+    uuid uuid,
+    finished boolean DEFAULT false
+);
+
+
+ALTER TABLE public.project_schedules OWNER TO ellipsis_app;
+
+--
+-- Name: project_spectral_indices; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.project_spectral_indices (
+    id integer NOT NULL,
+    monitoring_project_id integer NOT NULL,
+    spectral_index_id integer NOT NULL
+);
+
+
+ALTER TABLE public.project_spectral_indices OWNER TO ellipsis_app;
+
+--
+-- Name: project_spectral_indices_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.project_spectral_indices_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.project_spectral_indices_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: project_spectral_indices_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.project_spectral_indices_id_seq OWNED BY public.project_spectral_indices.id;
+
+
+--
+-- Name: public_access_token_paths; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.public_access_token_paths (
+    id integer NOT NULL,
+    uuid uuid,
+    public_access_token_id integer,
+    path_id integer,
+    access_level integer,
+    max_zoom integer
+);
+
+
+ALTER TABLE public.public_access_token_paths OWNER TO ellipsis_app;
+
+--
+-- Name: public_access_token_paths_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.public_access_token_paths_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.public_access_token_paths_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: public_access_token_paths_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.public_access_token_paths_id_seq OWNED BY public.public_access_token_paths.id;
+
+
+--
+-- Name: public_access_tokens; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.public_access_tokens (
+    id integer NOT NULL,
+    uuid uuid,
+    user_id integer,
+    hash character varying(256),
+    name character varying(64),
+    creation_date timestamp without time zone,
+    expiry_date timestamp without time zone
+);
+
+
+ALTER TABLE public.public_access_tokens OWNER TO ellipsis_app;
+
+--
+-- Name: public_access_tokens_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.public_access_tokens_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.public_access_tokens_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: public_access_tokens_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.public_access_tokens_id_seq OWNED BY public.public_access_tokens.id;
+
+
+--
+-- Name: raster_downloads; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.raster_downloads (
+    id integer NOT NULL,
+    uuid uuid DEFAULT public.uuid_generate_v4(),
+    user_id integer,
+    message character varying(200),
+    date timestamp without time zone,
+    x1 double precision,
+    x2 double precision,
+    y1 double precision,
+    y2 double precision,
+    send_mail boolean,
+    layer_name character varying(255),
+    map_timestamp_id integer,
+    status character varying(20),
+    map_layer_id integer,
+    is_raw boolean,
+    worker_node character varying(32),
+    format character varying(20),
+    extent_epsg integer,
+    interpolation character varying(10),
+    w integer,
+    h integer,
+    upload_id integer,
+    epsg integer,
+    public_access_token_id integer,
+    personal_access_token_id integer
+);
+
+
+ALTER TABLE public.raster_downloads OWNER TO ellipsis_app;
+
+--
+-- Name: raster_downloads_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.raster_downloads_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.raster_downloads_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: raster_downloads_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.raster_downloads_id_seq OWNED BY public.raster_downloads.id;
+
+
+--
+-- Name: raster_uploads; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.raster_uploads (
+    id integer NOT NULL,
+    uuid uuid DEFAULT public.uuid_generate_v4(),
+    project_id integer,
+    project_schedule_id integer,
+    user_id integer,
+    file_name character varying(256),
+    checksum character varying(32),
+    status character varying(32),
+    message character varying(512),
+    date timestamp without time zone,
+    epsg integer,
+    format character varying(16),
+    map_timestamp_id integer,
+    info jsonb,
+    interpolation_method character varying(30),
+    interpolation character varying(10) DEFAULT 'near'::character varying,
+    statistics jsonb,
+    num_bands integer,
+    zoom integer,
+    resolution double precision,
+    x1 double precision,
+    x2 double precision,
+    y1 double precision,
+    y2 double precision,
+    too_large boolean,
+    bounds jsonb,
+    large boolean,
+    width integer,
+    height integer,
+    no_data jsonb,
+    crs character varying(1000),
+    compression character varying(30),
+    dtype character varying(30),
+    size numeric DEFAULT 0,
+    generation integer DEFAULT 0,
+    x1_native double precision,
+    x2_native double precision,
+    y1_native double precision,
+    y2_native double precision,
+    x_res double precision,
+    y_res double precision,
+    no_data_value double precision,
+    transform double precision[],
+    native_bounds jsonb,
+    receiving_api character varying(32),
+    deleted boolean DEFAULT false,
+    in_bucket boolean DEFAULT false,
+    hard_deleted boolean DEFAULT false,
+    legacy boolean DEFAULT false,
+    upload_priority integer DEFAULT 0,
+    mosaic_priority integer DEFAULT 0,
+    adated_file_name character varying(200),
+    extra_info character varying(200),
+    converted boolean DEFAULT false,
+    converting boolean DEFAULT false,
+    need_transfer boolean DEFAULT false,
+    scale_factor real,
+    cleaned boolean DEFAULT false,
+    cleaned_date timestamp without time zone DEFAULT '-infinity'::timestamp without time zone
+);
+
+
+ALTER TABLE public.raster_uploads OWNER TO ellipsis_app;
+
+--
+-- Name: raster_uploads_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.raster_uploads_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.raster_uploads_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: raster_uploads_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.raster_uploads_id_seq OWNED BY public.raster_uploads.id;
+
+
+--
+-- Name: rename_tasks; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.rename_tasks (
+    id integer NOT NULL,
+    path_id bigint,
+    date timestamp without time zone,
+    finished boolean DEFAULT false
+);
+
+
+ALTER TABLE public.rename_tasks OWNER TO ellipsis_app;
+
+--
+-- Name: rename_tasks_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.rename_tasks_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.rename_tasks_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: rename_tasks_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.rename_tasks_id_seq OWNED BY public.rename_tasks.id;
+
+
+--
+-- Name: representatives; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.representatives (
+    id integer NOT NULL,
+    user_id integer,
+    representative_user_id integer
+);
+
+
+ALTER TABLE public.representatives OWNER TO ellipsis_app;
+
+--
+-- Name: representatives_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.representatives_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.representatives_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: representatives_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.representatives_id_seq OWNED BY public.representatives.id;
+
+
+--
+-- Name: request_image_types; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.request_image_types (
+    id integer NOT NULL,
+    data_request_id integer,
+    image_type_id integer,
+    a double precision,
+    b double precision
+);
+
+
+ALTER TABLE public.request_image_types OWNER TO ellipsis_app;
+
+--
+-- Name: request_image_types_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.request_image_types_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.request_image_types_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: request_image_types_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.request_image_types_id_seq OWNED BY public.request_image_types.id;
+
+
+--
+-- Name: request_jobs; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.request_jobs (
+    id integer NOT NULL,
+    data_request_id integer,
+    number integer,
+    phase character varying(32),
+    prepare_node character varying(64),
+    download_node character varying(64),
+    process_node character varying(64),
+    end_node character varying(64),
+    is_rerun boolean,
+    timestamp_rerun_id integer
+);
+
+
+ALTER TABLE public.request_jobs OWNER TO ellipsis_app;
+
+--
+-- Name: request_jobs_old; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.request_jobs_old (
+    id integer NOT NULL,
+    uuid uuid NOT NULL,
+    data_request_id integer NOT NULL,
+    gpu_node character varying(16),
+    cpu_node character varying(16),
+    status smallint,
+    creation_date timestamp without time zone,
+    number integer,
+    gpu_finish_date timestamp without time zone,
+    cpu_finish_date timestamp without time zone,
+    end_node character varying(32),
+    end_finish_date timestamp without time zone
+);
+
+
+ALTER TABLE public.request_jobs_old OWNER TO ellipsis_app;
+
+--
+-- Name: request_jobs_data_request_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.request_jobs_data_request_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.request_jobs_data_request_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: request_jobs_data_request_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.request_jobs_data_request_id_seq OWNED BY public.request_jobs_old.data_request_id;
+
+
+--
+-- Name: request_jobs_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.request_jobs_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.request_jobs_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: request_jobs_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.request_jobs_id_seq OWNED BY public.request_jobs_old.id;
+
+
+--
+-- Name: request_jobs_id_seq1; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.request_jobs_id_seq1
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.request_jobs_id_seq1 OWNER TO ellipsis_app;
+
+--
+-- Name: request_jobs_id_seq1; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.request_jobs_id_seq1 OWNED BY public.request_jobs.id;
+
+
+--
+-- Name: request_spectral_indices; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.request_spectral_indices (
+    id integer NOT NULL,
+    data_request_id integer,
+    spectral_index_id integer
+);
+
+
+ALTER TABLE public.request_spectral_indices OWNER TO ellipsis_app;
+
+--
+-- Name: request_spectral_indices_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.request_spectral_indices_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.request_spectral_indices_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: request_spectral_indices_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.request_spectral_indices_id_seq OWNED BY public.request_spectral_indices.id;
+
+
+--
+-- Name: reset_password_attempts; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.reset_password_attempts (
+    id integer NOT NULL,
+    email character varying(128),
+    ip inet,
+    date timestamp without time zone,
+    result character varying(32)
+);
+
+
+ALTER TABLE public.reset_password_attempts OWNER TO ellipsis_app;
+
+--
+-- Name: reset_password_attempts_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.reset_password_attempts_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.reset_password_attempts_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: reset_password_attempts_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.reset_password_attempts_id_seq OWNED BY public.reset_password_attempts.id;
+
+
+--
+-- Name: reset_password_tokens; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.reset_password_tokens (
+    token uuid,
+    user_id integer,
+    generated_password character varying(100),
+    date timestamp without time zone
+);
+
+
+ALTER TABLE public.reset_password_tokens OWNER TO ellipsis_app;
+
+--
+-- Name: runs; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.runs (
+    id integer NOT NULL,
+    map_layer_id integer,
+    uuid uuid,
+    map_timestamp_id integer,
+    type character varying(50),
+    creation_date timestamp without time zone,
+    finished boolean,
+    paused boolean DEFAULT false
+);
+
+
+ALTER TABLE public.runs OWNER TO ellipsis_app;
+
+--
+-- Name: runs_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.runs_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.runs_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: runs_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.runs_id_seq OWNED BY public.runs.id;
+
+
+--
+-- Name: satellites_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.satellites_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.satellites_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: satellites_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.satellites_id_seq OWNED BY public.data_sources.id;
+
+
+--
+-- Name: schedule_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.schedule_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.schedule_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: schedule_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.schedule_id_seq OWNED BY public.project_schedules.id;
+
+
+--
+-- Name: search_checkpoints; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.search_checkpoints (
+    id integer NOT NULL,
+    aggregated_invalidation_task_id integer,
+    type character varying(32)
+);
+
+
+ALTER TABLE public.search_checkpoints OWNER TO ellipsis_app;
+
+--
+-- Name: search_checkpoints_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.search_checkpoints_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.search_checkpoints_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: search_checkpoints_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.search_checkpoints_id_seq OWNED BY public.search_checkpoints.id;
+
+
+--
+-- Name: send_email_queue; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.send_email_queue (
+    id integer NOT NULL,
+    type character varying(32),
+    user_id integer,
+    send_to_email character varying(128),
+    parameters jsonb,
+    creation_date timestamp without time zone DEFAULT now(),
+    sent_date timestamp without time zone,
+    sent boolean DEFAULT false,
+    successfully_sent boolean
+);
+
+
+ALTER TABLE public.send_email_queue OWNER TO ellipsis_app;
+
+--
+-- Name: send_email_queue_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.send_email_queue_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.send_email_queue_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: send_email_queue_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.send_email_queue_id_seq OWNED BY public.send_email_queue.id;
+
+
+--
+-- Name: sent_user_emails; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.sent_user_emails (
+    id integer NOT NULL,
+    user_id integer,
+    to_email character varying(128),
+    date timestamp without time zone
+);
+
+
+ALTER TABLE public.sent_user_emails OWNER TO ellipsis_app;
+
+--
+-- Name: sent_user_emails_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.sent_user_emails_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.sent_user_emails_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: sent_user_emails_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.sent_user_emails_id_seq OWNED BY public.sent_user_emails.id;
+
+
+--
+-- Name: series_uploads; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.series_uploads (
+    id integer NOT NULL,
+    shape_layer_id integer,
+    map_id integer,
+    user_id integer,
+    uuid uuid,
+    status character varying(32),
+    message character varying(5000),
+    date timestamp without time zone,
+    size numeric,
+    file_name character varying(120),
+    receiving_api character varying(32)
+);
+
+
+ALTER TABLE public.series_uploads OWNER TO ellipsis_app;
+
+--
+-- Name: series_uploads_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.series_uploads_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.series_uploads_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: series_uploads_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.series_uploads_id_seq OWNED BY public.series_uploads.id;
+
+
+--
+-- Name: servers; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.servers (
+    id integer NOT NULL,
+    location_id integer,
+    name character varying(20),
+    type character varying(20),
+    ip inet,
+    api_url character varying(64)
+);
+
+
+ALTER TABLE public.servers OWNER TO ellipsis_app;
+
+--
+-- Name: servers_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.servers_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.servers_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: servers_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.servers_id_seq OWNED BY public.servers.id;
+
+
+--
+-- Name: shape_download_tokens; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.shape_download_tokens (
+    token uuid,
+    path character varying(512)
+);
+
+
+ALTER TABLE public.shape_download_tokens OWNER TO ellipsis_app;
+
+--
+-- Name: shape_layer_graphs; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.shape_layer_graphs (
+    id integer NOT NULL,
+    uuid uuid DEFAULT public.uuid_generate_v4(),
+    shape_layer_id integer,
+    pattern character varying(30),
+    color character varying(20)
+);
+
+
+ALTER TABLE public.shape_layer_graphs OWNER TO ellipsis_app;
+
+--
+-- Name: shape_layer_graphs_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.shape_layer_graphs_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.shape_layer_graphs_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: shape_layer_graphs_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.shape_layer_graphs_id_seq OWNED BY public.shape_layer_graphs.id;
+
+
+--
+-- Name: shape_layer_properties; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.shape_layer_properties (
+    id integer NOT NULL,
+    uuid uuid,
+    shape_layer_id integer,
+    name character varying(200),
+    required boolean,
+    type character varying(16),
+    deleted boolean DEFAULT false,
+    delete_date timestamp without time zone,
+    private boolean DEFAULT false,
+    filtering character varying(8),
+    levels jsonb,
+    map_id integer,
+    CONSTRAINT shape_layer_properties_filtering_check CHECK ((((filtering)::text = NULL::text) OR ((filtering)::text ~ '^idd+$'::text) OR ((filtering)::text ~ '^valued+$'::text) OR ((filtering)::text ~ '^dated+$'::text) OR ((filtering)::text ~ '^stringd+$'::text)))
+);
+
+
+ALTER TABLE public.shape_layer_properties OWNER TO ellipsis_app;
+
+--
+-- Name: shape_layer_properties_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.shape_layer_properties_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.shape_layer_properties_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: shape_layer_properties_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.shape_layer_properties_id_seq OWNED BY public.shape_layer_properties.id;
+
+
+--
+-- Name: shape_layer_style_rules; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.shape_layer_style_rules (
+    id bigint NOT NULL,
+    shape_layer_property_id integer,
+    number integer,
+    shape_layer_style_id integer,
+    color character varying(20),
+    operator character varying(20),
+    value character varying(250)
+);
+
+
+ALTER TABLE public.shape_layer_style_rules OWNER TO ellipsis_app;
+
+--
+-- Name: shape_layer_styles; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.shape_layer_styles (
+    id integer NOT NULL,
+    uuid uuid,
+    shape_layer_id integer,
+    name character varying(100),
+    is_default boolean,
+    method character varying,
+    parameters jsonb,
+    map_id integer
+);
+
+
+ALTER TABLE public.shape_layer_styles OWNER TO ellipsis_app;
+
+--
+-- Name: shape_layer_styles_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.shape_layer_styles_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.shape_layer_styles_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: shape_layer_styles_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.shape_layer_styles_id_seq OWNED BY public.shape_layer_style_rules.id;
+
+
+--
+-- Name: shape_layer_styles_id_seq1; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.shape_layer_styles_id_seq1
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.shape_layer_styles_id_seq1 OWNER TO ellipsis_app;
+
+--
+-- Name: shape_layer_styles_id_seq1; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.shape_layer_styles_id_seq1 OWNED BY public.shape_layer_styles.id;
+
+
+--
+-- Name: shape_layers; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.shape_layers (
+    id integer NOT NULL,
+    uuid uuid,
+    shape_id_depricated integer,
+    name character varying(64),
+    color character varying(8),
+    has_aggregated_data boolean DEFAULT true,
+    restricted boolean DEFAULT true,
+    private boolean DEFAULT true,
+    max_size integer,
+    deleted boolean DEFAULT false,
+    delete_date timestamp without time zone,
+    shape_id integer,
+    reindexing boolean DEFAULT false,
+    worker_node character varying(32),
+    hard_deleted boolean DEFAULT false,
+    temp boolean DEFAULT true,
+    bounds jsonb DEFAULT '{"type": "Polygon", "coordinates": [[[-180.0, -85.0], [180.0, -85.0], [180.0, 85.0], [-180.0, 85.0], [-180.0, -85.0]]]}'::jsonb,
+    x1 double precision DEFAULT '-180'::integer,
+    x2 double precision DEFAULT 180,
+    y1 double precision DEFAULT '-85'::integer,
+    y2 double precision DEFAULT 85,
+    update_bounds boolean DEFAULT false,
+    max_zoom integer,
+    is_big boolean DEFAULT false,
+    creation_date timestamp without time zone,
+    slp_size real DEFAULT 0,
+    slpt_size real DEFAULT 0,
+    slpv_size real DEFAULT 0,
+    pa_size real DEFAULT 0,
+    pm_size real DEFAULT 0,
+    pmh_size real DEFAULT 0,
+    gs_size real DEFAULT 0,
+    gsh_size real DEFAULT 0,
+    file_size numeric DEFAULT 0,
+    has_series_history boolean DEFAULT true,
+    fast_uploading boolean DEFAULT false,
+    pat_size numeric DEFAULT 0,
+    pmt_size numeric DEFAULT 0,
+    has_actions_bounds boolean DEFAULT false,
+    changing_actions_bounds boolean DEFAULT false,
+    changing_series_history boolean DEFAULT false,
+    description character varying(255),
+    geometry_types jsonb,
+    server_id integer,
+    moving_server boolean DEFAULT false,
+    statistics jsonb,
+    date_from timestamp without time zone,
+    date_to timestamp without time zone,
+    status character varying(32),
+    protobuf_size double precision DEFAULT 0,
+    precomputed boolean DEFAULT false,
+    has_compressed_list boolean DEFAULT false,
+    precompute_zoom smallint,
+    activation_date timestamp without time zone,
+    new_max_slp_id integer,
+    new_max_slpt_id integer,
+    reprojection_status character varying(32) DEFAULT 'completed'::character varying,
+    projection_version integer DEFAULT 0,
+    projection_checkpoint timestamp without time zone,
+    complete_precompute_zoom smallint,
+    complete_vector_tile boolean DEFAULT false,
+    compression_status character varying(32) DEFAULT 'completed'::character varying,
+    compression_method character varying(32),
+    as_small_int boolean DEFAULT true,
+    cleaned boolean DEFAULT false,
+    cold_data_cleaned boolean DEFAULT false,
+    cold_data_cleaned_date timestamp without time zone DEFAULT '-infinity'::timestamp without time zone
+);
+
+
+ALTER TABLE public.shape_layers OWNER TO ellipsis_app;
+
+--
+-- Name: shape_layers_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.shape_layers_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.shape_layers_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: shape_layers_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.shape_layers_id_seq OWNED BY public.shape_layers.id;
+
+
+--
+-- Name: shape_versions; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.shape_versions (
+    id integer NOT NULL,
+    shape_id integer,
+    zoom integer,
+    resolution numeric,
+    version integer,
+    tiles integer,
+    updated boolean DEFAULT false
+);
+
+
+ALTER TABLE public.shape_versions OWNER TO ellipsis_app;
+
+--
+-- Name: shape_versions_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.shape_versions_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.shape_versions_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: shape_versions_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.shape_versions_id_seq OWNED BY public.shape_versions.id;
+
+
+--
+-- Name: shapes_depricated; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.shapes_depricated (
+    id integer NOT NULL,
+    uuid uuid NOT NULL,
+    chapter character varying(64),
+    name character varying(64),
+    x1 real,
+    x2 real,
+    y1 real,
+    y2 real,
+    zoom integer,
+    max_polygons integer DEFAULT 10000,
+    max_coordinates_private integer DEFAULT 1000,
+    max_coordinates_public integer DEFAULT 1000,
+    version integer DEFAULT 0,
+    area jsonb,
+    user_id integer,
+    use_region boolean DEFAULT false,
+    fit_to_raster boolean DEFAULT false
+);
+
+
+ALTER TABLE public.shapes_depricated OWNER TO ellipsis_app;
+
+--
+-- Name: shapes_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.shapes_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.shapes_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: shapes_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.shapes_id_seq OWNED BY public.shapes_depricated.id;
+
+
+--
+-- Name: share_link_dems; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.share_link_dems (
+    id integer NOT NULL,
+    share_link_id integer,
+    map_id integer,
+    selected boolean,
+    ordering integer
+);
+
+
+ALTER TABLE public.share_link_dems OWNER TO ellipsis_app;
+
+--
+-- Name: share_link_dems_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.share_link_dems_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.share_link_dems_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: share_link_dems_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.share_link_dems_id_seq OWNED BY public.share_link_dems.id;
+
+
+--
+-- Name: share_link_maps; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.share_link_maps (
+    id integer NOT NULL,
+    share_link_id integer,
+    map_id integer,
+    user_external_layer_id integer,
+    base_map_number smallint,
+    selected boolean,
+    ordering integer,
+    type character varying(32)
+);
+
+
+ALTER TABLE public.share_link_maps OWNER TO ellipsis_app;
+
+--
+-- Name: share_link_maps_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.share_link_maps_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.share_link_maps_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: share_link_maps_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.share_link_maps_id_seq OWNED BY public.share_link_maps.id;
+
+
+--
+-- Name: share_links; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.share_links (
+    id integer NOT NULL,
+    uuid uuid,
+    user_id integer,
+    map_id integer,
+    type character varying(32),
+    ip inet,
+    date timestamp without time zone,
+    json jsonb,
+    persistent boolean,
+    name character varying(256),
+    main_path_id integer,
+    thumbnail bytea,
+    description character varying(255),
+    path_id integer
+);
+
+
+ALTER TABLE public.share_links OWNER TO ellipsis_app;
+
+--
+-- Name: share_links_old; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.share_links_old (
+    id integer NOT NULL,
+    user_id integer,
+    uuid uuid,
+    json jsonb,
+    ip inet,
+    date timestamp without time zone
+);
+
+
+ALTER TABLE public.share_links_old OWNER TO ellipsis_app;
+
+--
+-- Name: share_links_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.share_links_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.share_links_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: share_links_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.share_links_id_seq OWNED BY public.share_links_old.id;
+
+
+--
+-- Name: share_links_id_seq1; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.share_links_id_seq1
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.share_links_id_seq1 OWNER TO ellipsis_app;
+
+--
+-- Name: share_links_id_seq1; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.share_links_id_seq1 OWNED BY public.share_links.id;
+
+
+--
+-- Name: slp_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.slp_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e (
+    id bigint NOT NULL,
+    user_id integer,
+    edit_user_id integer,
+    uuid uuid,
+    metadata jsonb,
+    geometry jsonb,
+    type character varying(20),
+    date timestamp without time zone,
+    properties_size integer,
+    geometry_size integer,
+    deleted boolean,
+    x double precision,
+    y double precision,
+    lod1 jsonb,
+    lod1_size numeric,
+    lod2 jsonb,
+    lod2_size numeric,
+    lod3 jsonb,
+    lod3_size numeric,
+    lod4 jsonb,
+    lod4_size numeric,
+    lod5 jsonb,
+    lod5_size numeric,
+    version integer,
+    edit_date timestamp without time zone,
+    geometry_upload_id integer
+);
+
+
+ALTER TABLE public.slp_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e OWNER TO ellipsis_app;
+
+--
+-- Name: slp_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.slp_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.slp_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: slp_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.slp_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e_id_seq OWNED BY public.slp_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e.id;
+
+
+--
+-- Name: slpt_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.slpt_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e (
+    id bigint NOT NULL,
+    shape_layer_polygon_id bigint,
+    shape_layer_polygon_uuid uuid,
+    deleted boolean,
+    tile_x integer,
+    tile_y integer,
+    zoom integer
+);
+
+
+ALTER TABLE public.slpt_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e OWNER TO ellipsis_app;
+
+--
+-- Name: slpt_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.slpt_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.slpt_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: slpt_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.slpt_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e_id_seq OWNED BY public.slpt_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e.id;
+
+
+--
+-- Name: slpv_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.slpv_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e (
+    id bigint NOT NULL,
+    geometry_size integer,
+    properties_size integer,
+    shape_layer_polygon_id bigint,
+    edit_user_id integer,
+    uuid uuid,
+    x double precision,
+    y double precision,
+    metadata jsonb,
+    geometry jsonb,
+    type character varying(30),
+    version integer,
+    edit_date timestamp without time zone
+);
+
+
+ALTER TABLE public.slpv_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e OWNER TO ellipsis_app;
+
+--
+-- Name: slpv_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.slpv_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.slpv_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: slpv_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.slpv_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e_id_seq OWNED BY public.slpv_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e.id;
+
+
+--
+-- Name: spectral_indices; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.spectral_indices (
+    id integer NOT NULL,
+    uuid uuid NOT NULL,
+    name character varying(64),
+    color character varying(8),
+    coin_per_km2 double precision,
+    coin_base double precision,
+    unit character varying(50),
+    public boolean
+);
+
+
+ALTER TABLE public.spectral_indices OWNER TO ellipsis_app;
+
+--
+-- Name: spectral_indices_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.spectral_indices_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.spectral_indices_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: spectral_indices_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.spectral_indices_id_seq OWNED BY public.spectral_indices.id;
+
+
+--
+-- Name: starred_root_paths; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.starred_root_paths (
+    id integer NOT NULL,
+    uuid uuid DEFAULT public.uuid_generate_v4(),
+    starred_folder_id integer
+);
+
+
+ALTER TABLE public.starred_root_paths OWNER TO ellipsis_app;
+
+--
+-- Name: starred_root_paths_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.starred_root_paths_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.starred_root_paths_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: starred_root_paths_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.starred_root_paths_id_seq OWNED BY public.starred_root_paths.id;
+
+
+--
+-- Name: starred_roots; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.starred_roots (
+    id integer NOT NULL,
+    uuid uuid DEFAULT public.uuid_generate_v4(),
+    user_id integer,
+    name character varying(100)
+);
+
+
+ALTER TABLE public.starred_roots OWNER TO ellipsis_app;
+
+--
+-- Name: starred_roots_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.starred_roots_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.starred_roots_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: starred_roots_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.starred_roots_id_seq OWNED BY public.starred_roots.id;
+
+
+--
+-- Name: storage_changelog; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.storage_changelog (
+    id integer NOT NULL,
+    user_id integer,
+    change numeric,
+    date timestamp without time zone,
+    type character varying(255),
+    message character varying
+);
+
+
+ALTER TABLE public.storage_changelog OWNER TO ellipsis_app;
+
+--
+-- Name: storage_changelog_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.storage_changelog_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.storage_changelog_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: storage_changelog_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.storage_changelog_id_seq OWNED BY public.storage_changelog.id;
+
+
+--
+-- Name: storage_sizes; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.storage_sizes (
+    id bigint NOT NULL,
+    map_id integer,
+    user_id integer,
+    type character varying(64),
+    size numeric,
+    date timestamp without time zone,
+    shape_layer_id integer
+);
+
+
+ALTER TABLE public.storage_sizes OWNER TO ellipsis_app;
+
+--
+-- Name: storage_sizes_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.storage_sizes_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.storage_sizes_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: storage_sizes_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.storage_sizes_id_seq OWNED BY public.storage_sizes.id;
+
+
+--
+-- Name: stripe_tasks; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.stripe_tasks (
+    id integer NOT NULL,
+    uuid uuid,
+    type character varying(64),
+    user_id integer,
+    card_id character varying(64),
+    amount numeric,
+    creation_date timestamp without time zone,
+    status character varying(32),
+    status_message character varying(256),
+    stripe_payment_id character varying(64),
+    payment_resolved boolean DEFAULT false
+);
+
+
+ALTER TABLE public.stripe_tasks OWNER TO ellipsis_app;
+
+--
+-- Name: stripe_tasks_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.stripe_tasks_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.stripe_tasks_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: stripe_tasks_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.stripe_tasks_id_seq OWNED BY public.stripe_tasks.id;
+
+
+--
+-- Name: temporary; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.temporary (
+    id integer NOT NULL,
+    area json
+);
+
+
+ALTER TABLE public.temporary OWNER TO ellipsis_app;
+
+--
+-- Name: temporary_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.temporary_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.temporary_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: temporary_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.temporary_id_seq OWNED BY public.temporary.id;
+
+
+--
+-- Name: tile_messages; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.tile_messages (
+    id integer NOT NULL,
+    uuid uuid,
+    map_timestamp_id integer,
+    user_id integer NOT NULL,
+    tile_x integer,
+    tile_y integer,
+    zoom smallint,
+    message character varying(3000),
+    date timestamp without time zone,
+    delete_date timestamp without time zone,
+    image character varying(256),
+    form jsonb,
+    is_private boolean,
+    reply_to uuid,
+    y real,
+    x real,
+    attachment uuid,
+    attachment_name character varying(64)
+);
+
+
+ALTER TABLE public.tile_messages OWNER TO ellipsis_app;
+
+--
+-- Name: tile_messages_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.tile_messages_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.tile_messages_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: tile_messages_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.tile_messages_id_seq OWNED BY public.tile_messages.id;
+
+
+--
+-- Name: timestamp_image_types; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.timestamp_image_types (
+    id integer NOT NULL,
+    map_timestamp_id integer NOT NULL,
+    image_type_id integer NOT NULL,
+    a double precision,
+    b double precision,
+    brightness double precision DEFAULT 1
+);
+
+
+ALTER TABLE public.timestamp_image_types OWNER TO ellipsis_app;
+
+--
+-- Name: timestamp_image_types_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.timestamp_image_types_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.timestamp_image_types_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: timestamp_image_types_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.timestamp_image_types_id_seq OWNED BY public.timestamp_image_types.id;
+
+
+--
+-- Name: timestamp_models; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.timestamp_models (
+    id integer NOT NULL,
+    map_timestamp_id integer NOT NULL,
+    model_id integer NOT NULL,
+    is_mask boolean
+);
+
+
+ALTER TABLE public.timestamp_models OWNER TO ellipsis_app;
+
+--
+-- Name: timestamp_models_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.timestamp_models_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.timestamp_models_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: timestamp_models_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.timestamp_models_id_seq OWNED BY public.timestamp_models.id;
+
+
+--
+-- Name: timestamp_reruns; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.timestamp_reruns (
+    id integer NOT NULL,
+    uuid uuid,
+    type character varying(32),
+    user_id integer,
+    date timestamp without time zone,
+    finished boolean,
+    map_timestamp_id integer,
+    image_type_id integer
+);
+
+
+ALTER TABLE public.timestamp_reruns OWNER TO ellipsis_app;
+
+--
+-- Name: timestamp_reruns_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.timestamp_reruns_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.timestamp_reruns_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: timestamp_reruns_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.timestamp_reruns_id_seq OWNED BY public.timestamp_reruns.id;
+
+
+--
+-- Name: timestamp_spectral_indices; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.timestamp_spectral_indices (
+    id integer NOT NULL,
+    map_timestamp_id integer NOT NULL,
+    spectral_index_id integer NOT NULL
+);
+
+
+ALTER TABLE public.timestamp_spectral_indices OWNER TO ellipsis_app;
+
+--
+-- Name: timestamp_spectral_indices_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.timestamp_spectral_indices_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.timestamp_spectral_indices_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: timestamp_spectral_indices_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.timestamp_spectral_indices_id_seq OWNED BY public.timestamp_spectral_indices.id;
+
+
+--
+-- Name: transfer_project_tokens; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.transfer_project_tokens (
+    id integer NOT NULL,
+    map_id integer,
+    user_id integer,
+    to_user_id integer,
+    token uuid,
+    date timestamp without time zone,
+    owner_user_id integer
+);
+
+
+ALTER TABLE public.transfer_project_tokens OWNER TO ellipsis_app;
+
+--
+-- Name: transfer_project_tokens_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.transfer_project_tokens_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.transfer_project_tokens_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: transfer_project_tokens_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.transfer_project_tokens_id_seq OWNED BY public.transfer_project_tokens.id;
+
+
+--
+-- Name: ui_theme; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.ui_theme (
+    type character varying(32),
+    value character varying
+);
+
+
+ALTER TABLE public.ui_theme OWNER TO ellipsis_app;
+
+--
+-- Name: user_external_keys; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.user_external_keys (
+    id integer NOT NULL,
+    user_id integer,
+    type character varying(20),
+    key jsonb
+);
+
+
+ALTER TABLE public.user_external_keys OWNER TO ellipsis_app;
+
+--
+-- Name: user_external_keys_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.user_external_keys_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.user_external_keys_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: user_external_keys_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.user_external_keys_id_seq OWNED BY public.user_external_keys.id;
+
+
+--
+-- Name: user_external_layers; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.user_external_layers (
+    id integer NOT NULL,
+    user_id integer,
+    uuid uuid,
+    name character varying(64),
+    type character varying(32),
+    layer character varying(128),
+    zoom integer,
+    url character varying(2000),
+    crs integer,
+    tile_matrix_set character varying(128)
+);
+
+
+ALTER TABLE public.user_external_layers OWNER TO ellipsis_app;
+
+--
+-- Name: user_external_layers_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.user_external_layers_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.user_external_layers_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: user_external_layers_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.user_external_layers_id_seq OWNED BY public.user_external_layers.id;
+
+
+--
+-- Name: user_favorite_paths; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.user_favorite_paths (
+    id integer NOT NULL,
+    uuid uuid DEFAULT public.uuid_generate_v4(),
+    user_id integer,
+    path_id integer,
+    path_name character varying(100)
+);
+
+
+ALTER TABLE public.user_favorite_paths OWNER TO ellipsis_app;
+
+--
+-- Name: user_favorite_paths_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.user_favorite_paths_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.user_favorite_paths_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: user_favorite_paths_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.user_favorite_paths_id_seq OWNED BY public.user_favorite_paths.id;
+
+
+--
+-- Name: user_groups; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.user_groups (
+    id integer NOT NULL,
+    user_id integer,
+    group_id integer,
+    credits_min integer DEFAULT 0,
+    member_since timestamp without time zone,
+    paid_till timestamp without time zone
+);
+
+
+ALTER TABLE public.user_groups OWNER TO ellipsis_app;
+
+--
+-- Name: user_groups_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.user_groups_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.user_groups_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: user_groups_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.user_groups_id_seq OWNED BY public.user_groups.id;
+
+
+--
+-- Name: user_history; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.user_history (
+    id integer NOT NULL,
+    user_id integer,
+    date timestamp without time zone,
+    actions bigint,
+    storage numeric,
+    max_storage numeric,
+    cluster_usage bigint,
+    map_usage bigint,
+    max_processing_units bigint,
+    created_maps integer,
+    upload_usage bigint,
+    created_files integer,
+    CONSTRAINT actions_not_nan CHECK ((((actions)::numeric <> 'NaN'::numeric) AND (actions IS NOT NULL))),
+    CONSTRAINT cu_not_nan CHECK ((((cluster_usage)::numeric <> 'NaN'::numeric) AND (cluster_usage IS NOT NULL))),
+    CONSTRAINT mpu_not_nan CHECK ((((max_processing_units)::numeric <> 'NaN'::numeric) AND (max_processing_units IS NOT NULL))),
+    CONSTRAINT ms_not_nan CHECK (((max_storage <> 'NaN'::numeric) AND (max_storage IS NOT NULL))),
+    CONSTRAINT mu_not_nan CHECK ((((map_usage)::numeric <> 'NaN'::numeric) AND (map_usage IS NOT NULL))),
+    CONSTRAINT storage_not_nan CHECK (((storage <> 'NaN'::numeric) AND (storage IS NOT NULL)))
+);
+
+
+ALTER TABLE public.user_history OWNER TO ellipsis_app;
+
+--
+-- Name: user_history_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.user_history_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.user_history_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: user_history_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.user_history_id_seq OWNED BY public.user_history.id;
+
+
+--
+-- Name: user_map_favorites; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.user_map_favorites (
+    id integer NOT NULL,
+    user_id integer,
+    map_id integer
+);
+
+
+ALTER TABLE public.user_map_favorites OWNER TO ellipsis_app;
+
+--
+-- Name: user_map_favorites_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.user_map_favorites_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.user_map_favorites_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: user_map_favorites_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.user_map_favorites_id_seq OWNED BY public.user_map_favorites.id;
+
+
+--
+-- Name: user_maps; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.user_maps (
+    id integer NOT NULL,
+    user_id integer,
+    map_id integer,
+    requested_access boolean DEFAULT false,
+    liked boolean DEFAULT false,
+    message character varying(500)
+);
+
+
+ALTER TABLE public.user_maps OWNER TO ellipsis_app;
+
+--
+-- Name: user_maps_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.user_maps_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.user_maps_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: user_maps_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.user_maps_id_seq OWNED BY public.user_maps.id;
+
+
+--
+-- Name: user_plans; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.user_plans (
+    id integer NOT NULL,
+    user_id integer,
+    storage_limit numeric,
+    storage_fee numeric,
+    service_fee numeric,
+    max_negative numeric,
+    storage_discount_factor real,
+    last_changed timestamp without time zone,
+    exceeded_notification timestamp without time zone,
+    paid_till timestamp without time zone,
+    next_service_fee numeric,
+    processing_units_fee numeric,
+    previous_payment_vat double precision,
+    processing_units bigint,
+    cold_storage_factor double precision DEFAULT 1,
+    max_compute_nodes integer DEFAULT 0,
+    CONSTRAINT max_negative_check CHECK ((max_negative <= (0)::numeric)),
+    CONSTRAINT service_fee_not_nan CHECK (((service_fee <> 'NaN'::numeric) AND (service_fee IS NOT NULL) AND (next_service_fee <> 'NaN'::numeric) AND (next_service_fee IS NOT NULL))),
+    CONSTRAINT user_plans_two_decimals CHECK (((storage_fee = round(storage_fee, 2)) AND (service_fee = round(service_fee, 2)) AND (processing_units_fee = round(processing_units_fee, 2)) AND (next_service_fee = round(next_service_fee, 2))))
+);
+
+
+ALTER TABLE public.user_plans OWNER TO ellipsis_app;
+
+--
+-- Name: user_plans_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.user_plans_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.user_plans_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: user_plans_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.user_plans_id_seq OWNED BY public.user_plans.id;
+
+
+--
+-- Name: users; Type: TABLE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TABLE public.users (
+    id integer NOT NULL,
+    uuid uuid NOT NULL,
+    username character varying(255),
+    password character varying(100),
+    email character varying(128),
+    coins numeric DEFAULT 0,
+    commercial boolean DEFAULT false,
+    about character varying(1500),
+    registration_date timestamp without time zone,
+    allow_contact boolean DEFAULT true,
+    homepage character varying(255),
+    avatar_file bytea,
+    hubspot_info jsonb,
+    stripe_customer_id character varying(64),
+    active_card_id character varying(64),
+    active_card_status character varying(32),
+    last_billing_date timestamp without time zone DEFAULT to_timestamp((0)::double precision),
+    disabled boolean DEFAULT false,
+    went_negative_date timestamp without time zone,
+    unvalidated_email character varying(128),
+    email_validation_token uuid,
+    email_validation_token_date timestamp without time zone,
+    invited_by_user_id integer,
+    location_id integer DEFAULT 1,
+    contact_name character varying(100),
+    country_id integer,
+    vat_number character varying(200),
+    address_number character varying(200),
+    address_street character varying(200),
+    address_zip character varying(50),
+    address_city character varying(200),
+    company_name character varying(200),
+    name character varying(200),
+    added_billing_information boolean DEFAULT false,
+    is_company boolean DEFAULT false,
+    stripe_3dsecure_info jsonb,
+    google_id character varying(64),
+    delete_date timestamp without time zone,
+    recalculating_storage boolean DEFAULT false,
+    is_organization boolean DEFAULT false,
+    CONSTRAINT coins_not_nan CHECK (((coins <> 'NaN'::numeric) AND (coins IS NOT NULL)))
+);
+
+
+ALTER TABLE public.users OWNER TO ellipsis_app;
+
+--
+-- Name: users_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+--
+
+CREATE SEQUENCE public.users_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.users_id_seq OWNER TO ellipsis_app;
+
+--
+-- Name: users_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+--
+
+ALTER SEQUENCE public.users_id_seq OWNED BY public.users.id;
+
+
+--
+-- Name: add_polygon_queue id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.add_polygon_queue ALTER COLUMN id SET DEFAULT nextval('public.add_polygon_queue_id_seq'::regclass);
+
+
+--
+-- Name: aggregated_invalidation_tasks id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.aggregated_invalidation_tasks ALTER COLUMN id SET DEFAULT nextval('public.aggregated_invalidation_tasks_id_seq'::regclass);
+
+
+--
+-- Name: aggregated_map_actions_day_history id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.aggregated_map_actions_day_history ALTER COLUMN id SET DEFAULT nextval('public.aggregated_map_actions_day_history_id_seq'::regclass);
+
+
+--
+-- Name: aggregated_map_actions_history id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.aggregated_map_actions_history ALTER COLUMN id SET DEFAULT nextval('public.aggregated_map_actions_history_id_seq'::regclass);
+
+
+--
+-- Name: api_calls id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.api_calls ALTER COLUMN id SET DEFAULT nextval('public.api_calls_id_seq'::regclass);
+
+
+--
+-- Name: atlases id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.atlases ALTER COLUMN id SET DEFAULT nextval('public.atlases_id_seq'::regclass);
+
+
+--
+-- Name: aws_marketplace_tokens id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.aws_marketplace_tokens ALTER COLUMN id SET DEFAULT nextval('public.aws_marketplace_tokens_id_seq'::regclass);
+
+
+--
+-- Name: backoffice_history id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.backoffice_history ALTER COLUMN id SET DEFAULT nextval('public.backoffice_history_id_seq'::regclass);
+
+
+--
+-- Name: band_data_sources id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.band_data_sources ALTER COLUMN id SET DEFAULT nextval('public.band_data_sources_id_seq'::regclass);
+
+
+--
+-- Name: band_image_types id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.band_image_types ALTER COLUMN id SET DEFAULT nextval('public.band_image_types_id_seq'::regclass);
+
+
+--
+-- Name: bands id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.bands ALTER COLUMN id SET DEFAULT nextval('public.bands_id_seq'::regclass);
+
+
+--
+-- Name: cloud_errors id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.cloud_errors ALTER COLUMN id SET DEFAULT nextval('public.cloud_errors_id_seq'::regclass);
+
+
+--
+-- Name: coins_history id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.coins_history ALTER COLUMN id SET DEFAULT nextval('public.coins_history_id_seq'::regclass);
+
+
+--
+-- Name: compute_tasks id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.compute_tasks ALTER COLUMN id SET DEFAULT nextval('public.compute_tasks_id_seq'::regclass);
+
+
+--
+-- Name: conversion_requests id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.conversion_requests ALTER COLUMN id SET DEFAULT nextval('public.conversion_requests_id_seq'::regclass);
+
+
+--
+-- Name: correct_tile_queue id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.correct_tile_queue ALTER COLUMN id SET DEFAULT nextval('public.correct_tiles_queue_id_seq'::regclass);
+
+
+--
+-- Name: coupled_dems id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.coupled_dems ALTER COLUMN id SET DEFAULT nextval('public.coupled_dems_id_seq'::regclass);
+
+
+--
+-- Name: coupled_maps id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.coupled_maps ALTER COLUMN id SET DEFAULT nextval('public.coupled_maps_id_seq'::regclass);
+
+
+--
+-- Name: custom_polygon_layer_properties id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.custom_polygon_layer_properties ALTER COLUMN id SET DEFAULT nextval('public.custom_polygon_layer_properties_id_seq'::regclass);
+
+
+--
+-- Name: custom_polygon_layers id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.custom_polygon_layers ALTER COLUMN id SET DEFAULT nextval('public.custom_polygon_layers_id_seq'::regclass);
+
+
+--
+-- Name: custom_polygon_messages id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.custom_polygon_messages ALTER COLUMN id SET DEFAULT nextval('public.custom_polygon_messages_id_seq'::regclass);
+
+
+--
+-- Name: data_requests id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.data_requests ALTER COLUMN id SET DEFAULT nextval('public.data_requests_id_seq'::regclass);
+
+
+--
+-- Name: data_requests monitoring_project_id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.data_requests ALTER COLUMN monitoring_project_id SET DEFAULT nextval('public.data_requests_monitoring_project_id_seq'::regclass);
+
+
+--
+-- Name: data_source_bands id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.data_source_bands ALTER COLUMN id SET DEFAULT nextval('public.data_source_bands_id_seq'::regclass);
+
+
+--
+-- Name: data_source_image_types id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.data_source_image_types ALTER COLUMN id SET DEFAULT nextval('public.data_source_image_types_id_seq'::regclass);
+
+
+--
+-- Name: data_source_model_collections id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.data_source_model_collections ALTER COLUMN id SET DEFAULT nextval('public.data_source_model_collections_id_seq'::regclass);
+
+
+--
+-- Name: data_source_spectral_indices id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.data_source_spectral_indices ALTER COLUMN id SET DEFAULT nextval('public.data_source_spectral_indices_id_seq'::regclass);
+
+
+--
+-- Name: data_sources id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.data_sources ALTER COLUMN id SET DEFAULT nextval('public.satellites_id_seq'::regclass);
+
+
+--
+-- Name: drive_exports id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.drive_exports ALTER COLUMN id SET DEFAULT nextval('public.drive_exports_id_seq'::regclass);
+
+
+--
+-- Name: external_layers id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.external_layers ALTER COLUMN id SET DEFAULT nextval('public.external_layers_id_seq'::regclass);
+
+
+--
+-- Name: file_system_backup_info id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.file_system_backup_info ALTER COLUMN id SET DEFAULT nextval('public.file_system_backup_info_id_seq'::regclass);
+
+
+--
+-- Name: file_system_tasks id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.file_system_tasks ALTER COLUMN id SET DEFAULT nextval('public.file_system_tasks_id_seq'::regclass);
+
+
+--
+-- Name: files id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.files ALTER COLUMN id SET DEFAULT nextval('public.files_id_seq'::regclass);
+
+
+--
+-- Name: forms id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.forms ALTER COLUMN id SET DEFAULT nextval('public.forms_id_seq'::regclass);
+
+
+--
+-- Name: geometry_cluster_tasks id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.geometry_cluster_tasks ALTER COLUMN id SET DEFAULT nextval('public.geometry_cluster_tasks_id_seq'::regclass);
+
+
+--
+-- Name: geometry_download_layers id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.geometry_download_layers ALTER COLUMN id SET DEFAULT nextval('public.geometry_download_layers_id_seq'::regclass);
+
+
+--
+-- Name: geometry_downloads id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.geometry_downloads ALTER COLUMN id SET DEFAULT nextval('public.geometry_downloads_id_seq'::regclass);
+
+
+--
+-- Name: geometry_uploads id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.geometry_uploads ALTER COLUMN id SET DEFAULT nextval('public.geometry_uploads_id_seq'::regclass);
+
+
+--
+-- Name: group_api_call_costs id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.group_api_call_costs ALTER COLUMN id SET DEFAULT nextval('public.group_api_calls_cost_id_seq'::regclass);
+
+
+--
+-- Name: group_invites id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.group_invites ALTER COLUMN id SET DEFAULT nextval('public.group_invites_id_seq'::regclass);
+
+
+--
+-- Name: groups id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.groups ALTER COLUMN id SET DEFAULT nextval('public.groups_id_seq'::regclass);
+
+
+--
+-- Name: gs_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.gs_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e ALTER COLUMN id SET DEFAULT nextval('public.gs_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e_id_seq'::regclass);
+
+
+--
+-- Name: gsh_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.gsh_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e ALTER COLUMN id SET DEFAULT nextval('public.gsh_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e_id_seq'::regclass);
+
+
+--
+-- Name: hard_delete_tasks id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.hard_delete_tasks ALTER COLUMN id SET DEFAULT nextval('public.hard_delete_tasks_id_seq'::regclass);
+
+
+--
+-- Name: hashtags id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.hashtags ALTER COLUMN id SET DEFAULT nextval('public.hashtags_id_seq'::regclass);
+
+
+--
+-- Name: icons id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.icons ALTER COLUMN id SET DEFAULT nextval('public.icons_id_seq'::regclass);
+
+
+--
+-- Name: image_types id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.image_types ALTER COLUMN id SET DEFAULT nextval('public.image_types_id_seq'::regclass);
+
+
+--
+-- Name: invalidation_tasks id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.invalidation_tasks ALTER COLUMN id SET DEFAULT nextval('public.invalidation_tasks_id_seq'::regclass);
+
+
+--
+-- Name: invite_validation_tokens id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.invite_validation_tokens ALTER COLUMN id SET DEFAULT nextval('public.invite_validation_tokens_id_seq'::regclass);
+
+
+--
+-- Name: jobs id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.jobs ALTER COLUMN id SET DEFAULT nextval('public.jobs_id_seq'::regclass);
+
+
+--
+-- Name: locations id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.locations ALTER COLUMN id SET DEFAULT nextval('public.locations_id_seq'::regclass);
+
+
+--
+-- Name: login_attempts id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.login_attempts ALTER COLUMN id SET DEFAULT nextval('public.login_attempts_id_seq'::regclass);
+
+
+--
+-- Name: map_actions_day_history id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.map_actions_day_history ALTER COLUMN id SET DEFAULT nextval('public.map_actions_day_history_r_id_seq'::regclass);
+
+
+--
+-- Name: map_actions_day_history_old id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.map_actions_day_history_old ALTER COLUMN id SET DEFAULT nextval('public.map_credits_day_history_id_seq'::regclass);
+
+
+--
+-- Name: map_actions_history id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.map_actions_history ALTER COLUMN id SET DEFAULT nextval('public.map_credits_history_id_seq'::regclass);
+
+
+--
+-- Name: map_actions_log id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.map_actions_log ALTER COLUMN id SET DEFAULT nextval('public.map_action_credits_id_seq'::regclass);
+
+
+--
+-- Name: map_api_call_costs id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.map_api_call_costs ALTER COLUMN id SET DEFAULT nextval('public.map_api_calls_cost_id_seq'::regclass);
+
+
+--
+-- Name: map_atlases id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.map_atlases ALTER COLUMN id SET DEFAULT nextval('public.map_atlases_id_seq'::regclass);
+
+
+--
+-- Name: map_bands id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.map_bands ALTER COLUMN id SET DEFAULT nextval('public.map_bands_id_seq'::regclass);
+
+
+--
+-- Name: map_calls_history id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.map_calls_history ALTER COLUMN id SET DEFAULT nextval('public.map_calls_history_id_seq'::regclass);
+
+
+--
+-- Name: map_coin_day_history id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.map_coin_day_history ALTER COLUMN id SET DEFAULT nextval('public.map_coin_day_history_id_seq'::regclass);
+
+
+--
+-- Name: map_external_layers id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.map_external_layers ALTER COLUMN id SET DEFAULT nextval('public.map_external_layers_id_seq'::regclass);
+
+
+--
+-- Name: map_hashtags id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.map_hashtags ALTER COLUMN id SET DEFAULT nextval('public.map_hashtags_id_seq'::regclass);
+
+
+--
+-- Name: map_layer_bands id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.map_layer_bands ALTER COLUMN id SET DEFAULT nextval('public.map_layer_bands_id_seq'::regclass);
+
+
+--
+-- Name: map_layers id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.map_layers ALTER COLUMN id SET DEFAULT nextval('public.map_layers_id_seq1'::regclass);
+
+
+--
+-- Name: map_projections id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.map_projections ALTER COLUMN id SET DEFAULT nextval('public.map_projections_id_seq'::regclass);
+
+
+--
+-- Name: map_public_credits id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.map_public_credits ALTER COLUMN id SET DEFAULT nextval('public.map_public_credits_id_seq'::regclass);
+
+
+--
+-- Name: map_timestamp_layers id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.map_timestamp_layers ALTER COLUMN id SET DEFAULT nextval('public.map_timestamp_layers_id_seq'::regclass);
+
+
+--
+-- Name: map_timestamps id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.map_timestamps ALTER COLUMN id SET DEFAULT nextval('public.map_timestamps_id_seq'::regclass);
+
+
+--
+-- Name: map_user_history id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.map_user_history ALTER COLUMN id SET DEFAULT nextval('public.map_user_history_id_seq'::regclass);
+
+
+--
+-- Name: map_view_settings id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.map_view_settings ALTER COLUMN id SET DEFAULT nextval('public.map_view_settings_id_seq'::regclass);
+
+
+--
+-- Name: maps id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.maps ALTER COLUMN id SET DEFAULT nextval('public.maps_id_seq'::regclass);
+
+
+--
+-- Name: model_classes id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.model_classes ALTER COLUMN id SET DEFAULT nextval('public.model_classes_id_seq'::regclass);
+
+
+--
+-- Name: model_collection_classes id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.model_collection_classes ALTER COLUMN id SET DEFAULT nextval('public.model_collection_classes_id_seq'::regclass);
+
+
+--
+-- Name: model_collections id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.model_collections ALTER COLUMN id SET DEFAULT nextval('public.model_collections_id_seq'::regclass);
+
+
+--
+-- Name: models id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.models ALTER COLUMN id SET DEFAULT nextval('public.models_id_seq'::regclass);
+
+
+--
+-- Name: monitoring_projects id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.monitoring_projects ALTER COLUMN id SET DEFAULT nextval('public.monitoring_projects_id_seq'::regclass);
+
+
+--
+-- Name: monitoring_projects data_source_id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.monitoring_projects ALTER COLUMN data_source_id SET DEFAULT nextval('public.monitoring_projects_satellite_id_seq'::regclass);
+
+
+--
+-- Name: notifications id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.notifications ALTER COLUMN id SET DEFAULT nextval('public.notifications_id_seq'::regclass);
+
+
+--
+-- Name: oauth_attempts id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.oauth_attempts ALTER COLUMN id SET DEFAULT nextval('public.oauth_attempts_id_seq'::regclass);
+
+
+--
+-- Name: oauth_clients id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.oauth_clients ALTER COLUMN id SET DEFAULT nextval('public.oauth_clients_id_seq'::regclass);
+
+
+--
+-- Name: oauth_temp id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.oauth_temp ALTER COLUMN id SET DEFAULT nextval('public.oauth_temp_id_seq'::regclass);
+
+
+--
+-- Name: oauth_tokens id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.oauth_tokens ALTER COLUMN id SET DEFAULT nextval('public.oauth_tokens_id_seq'::regclass);
+
+
+--
+-- Name: organization_group_users id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.organization_group_users ALTER COLUMN id SET DEFAULT nextval('public.organization_group_users_id_seq'::regclass);
+
+
+--
+-- Name: organization_groups id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.organization_groups ALTER COLUMN id SET DEFAULT nextval('public.organization_groups_id_seq'::regclass);
+
+
+--
+-- Name: pa_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.pa_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e ALTER COLUMN id SET DEFAULT nextval('public.pa_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e_id_seq'::regclass);
+
+
+--
+-- Name: path_data_search id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.path_data_search ALTER COLUMN id SET DEFAULT nextval('public.path_data_search_id_seq'::regclass);
+
+
+--
+-- Name: path_hashtags id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.path_hashtags ALTER COLUMN id SET DEFAULT nextval('public.path_hashtags_id_seq'::regclass);
+
+
+--
+-- Name: path_public_extents id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.path_public_extents ALTER COLUMN id SET DEFAULT nextval('public.path_public_extents_id_seq'::regclass);
+
+
+--
+-- Name: path_roots_search id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.path_roots_search ALTER COLUMN id SET DEFAULT nextval('public.path_roots_search_id_seq'::regclass);
+
+
+--
+-- Name: path_setup_tasks id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.path_setup_tasks ALTER COLUMN id SET DEFAULT nextval('public.path_setup_tasks_id_seq'::regclass);
+
+
+--
+-- Name: path_subscribe id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.path_subscribe ALTER COLUMN id SET DEFAULT nextval('public.path_subscribe_id_seq'::regclass);
+
+
+--
+-- Name: path_user_extents id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.path_user_extents ALTER COLUMN id SET DEFAULT nextval('public.path_user_extents_id_seq'::regclass);
+
+
+--
+-- Name: path_users id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.path_users ALTER COLUMN id SET DEFAULT nextval('public.path_users_id_seq'::regclass);
+
+
+--
+-- Name: paths id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.paths ALTER COLUMN id SET DEFAULT nextval('public.paths_id_seq'::regclass);
+
+
+--
+-- Name: paths_search id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.paths_search ALTER COLUMN id SET DEFAULT nextval('public.paths_search_id_seq'::regclass);
+
+
+--
+-- Name: patp_extents id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.patp_extents ALTER COLUMN id SET DEFAULT nextval('public.patp_extents_id_seq1'::regclass);
+
+
+--
+-- Name: patp_extents_old id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.patp_extents_old ALTER COLUMN id SET DEFAULT nextval('public.patp_extents_id_seq'::regclass);
+
+
+--
+-- Name: paypal_transactions id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.paypal_transactions ALTER COLUMN id SET DEFAULT nextval('public.paypal_transactions_id_seq'::regclass);
+
+
+--
+-- Name: personal_access_token_paths id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.personal_access_token_paths ALTER COLUMN id SET DEFAULT nextval('public.personal_access_token_paths_id_seq'::regclass);
+
+
+--
+-- Name: personal_access_tokens id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.personal_access_tokens ALTER COLUMN id SET DEFAULT nextval('public.personal_access_tokens_id_seq'::regclass);
+
+
+--
+-- Name: pm_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.pm_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e ALTER COLUMN id SET DEFAULT nextval('public.pm_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e_id_seq'::regclass);
+
+
+--
+-- Name: pmh_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.pmh_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e ALTER COLUMN id SET DEFAULT nextval('public.pmh_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e_id_seq'::regclass);
+
+
+--
+-- Name: pmt_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.pmt_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e ALTER COLUMN id SET DEFAULT nextval('public.pmt_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e_id_seq'::regclass);
+
+
+--
+-- Name: point_cloud_downloads id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.point_cloud_downloads ALTER COLUMN id SET DEFAULT nextval('public.point_cloud_downloads_id_seq'::regclass);
+
+
+--
+-- Name: point_cloud_jobs id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.point_cloud_jobs ALTER COLUMN id SET DEFAULT nextval('public.point_cloud_jobs_id_seq'::regclass);
+
+
+--
+-- Name: point_cloud_properties id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.point_cloud_properties ALTER COLUMN id SET DEFAULT nextval('public.point_cloud_properties_id_seq'::regclass);
+
+
+--
+-- Name: point_cloud_styles id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.point_cloud_styles ALTER COLUMN id SET DEFAULT nextval('public.point_cloud_styles_id_seq'::regclass);
+
+
+--
+-- Name: point_cloud_timestamps id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.point_cloud_timestamps ALTER COLUMN id SET DEFAULT nextval('public.point_cloud_timestamps_id_seq'::regclass);
+
+
+--
+-- Name: point_cloud_uploads id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.point_cloud_uploads ALTER COLUMN id SET DEFAULT nextval('public.point_cloud_uploads_id_seq'::regclass);
+
+
+--
+-- Name: polygon_sensor id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.polygon_sensor ALTER COLUMN id SET DEFAULT nextval('public.polygon_timeseries_id_seq'::regclass);
+
+
+--
+-- Name: processed_payments id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.processed_payments ALTER COLUMN id SET DEFAULT nextval('public.processed_payments_id_seq'::regclass);
+
+
+--
+-- Name: processed_stripe_events id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.processed_stripe_events ALTER COLUMN id SET DEFAULT nextval('public.processed_stripe_events_id_seq'::regclass);
+
+
+--
+-- Name: project_change_types id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.project_change_types ALTER COLUMN id SET DEFAULT nextval('public.project_change_types_id_seq'::regclass);
+
+
+--
+-- Name: project_image_types id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.project_image_types ALTER COLUMN id SET DEFAULT nextval('public.project_image_types_id_seq'::regclass);
+
+
+--
+-- Name: project_models id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.project_models ALTER COLUMN id SET DEFAULT nextval('public.project_models_id_seq'::regclass);
+
+
+--
+-- Name: project_schedules id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.project_schedules ALTER COLUMN id SET DEFAULT nextval('public.schedule_id_seq'::regclass);
+
+
+--
+-- Name: project_spectral_indices id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.project_spectral_indices ALTER COLUMN id SET DEFAULT nextval('public.project_spectral_indices_id_seq'::regclass);
+
+
+--
+-- Name: public_access_token_paths id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.public_access_token_paths ALTER COLUMN id SET DEFAULT nextval('public.public_access_token_paths_id_seq'::regclass);
+
+
+--
+-- Name: public_access_tokens id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.public_access_tokens ALTER COLUMN id SET DEFAULT nextval('public.public_access_tokens_id_seq'::regclass);
+
+
+--
+-- Name: raster_downloads id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.raster_downloads ALTER COLUMN id SET DEFAULT nextval('public.raster_downloads_id_seq'::regclass);
+
+
+--
+-- Name: raster_uploads id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.raster_uploads ALTER COLUMN id SET DEFAULT nextval('public.raster_uploads_id_seq'::regclass);
+
+
+--
+-- Name: rename_tasks id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.rename_tasks ALTER COLUMN id SET DEFAULT nextval('public.rename_tasks_id_seq'::regclass);
+
+
+--
+-- Name: representatives id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.representatives ALTER COLUMN id SET DEFAULT nextval('public.representatives_id_seq'::regclass);
+
+
+--
+-- Name: request_image_types id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.request_image_types ALTER COLUMN id SET DEFAULT nextval('public.request_image_types_id_seq'::regclass);
+
+
+--
+-- Name: request_jobs id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.request_jobs ALTER COLUMN id SET DEFAULT nextval('public.request_jobs_id_seq1'::regclass);
+
+
+--
+-- Name: request_jobs_old id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.request_jobs_old ALTER COLUMN id SET DEFAULT nextval('public.request_jobs_id_seq'::regclass);
+
+
+--
+-- Name: request_jobs_old data_request_id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.request_jobs_old ALTER COLUMN data_request_id SET DEFAULT nextval('public.request_jobs_data_request_id_seq'::regclass);
+
+
+--
+-- Name: request_spectral_indices id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.request_spectral_indices ALTER COLUMN id SET DEFAULT nextval('public.request_spectral_indices_id_seq'::regclass);
+
+
+--
+-- Name: reset_password_attempts id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.reset_password_attempts ALTER COLUMN id SET DEFAULT nextval('public.reset_password_attempts_id_seq'::regclass);
+
+
+--
+-- Name: runs id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.runs ALTER COLUMN id SET DEFAULT nextval('public.runs_id_seq'::regclass);
+
+
+--
+-- Name: search_checkpoints id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.search_checkpoints ALTER COLUMN id SET DEFAULT nextval('public.search_checkpoints_id_seq'::regclass);
+
+
+--
+-- Name: send_email_queue id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.send_email_queue ALTER COLUMN id SET DEFAULT nextval('public.send_email_queue_id_seq'::regclass);
+
+
+--
+-- Name: sent_user_emails id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.sent_user_emails ALTER COLUMN id SET DEFAULT nextval('public.sent_user_emails_id_seq'::regclass);
+
+
+--
+-- Name: series_uploads id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.series_uploads ALTER COLUMN id SET DEFAULT nextval('public.series_uploads_id_seq'::regclass);
+
+
+--
+-- Name: servers id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.servers ALTER COLUMN id SET DEFAULT nextval('public.servers_id_seq'::regclass);
+
+
+--
+-- Name: shape_layer_graphs id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.shape_layer_graphs ALTER COLUMN id SET DEFAULT nextval('public.shape_layer_graphs_id_seq'::regclass);
+
+
+--
+-- Name: shape_layer_properties id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.shape_layer_properties ALTER COLUMN id SET DEFAULT nextval('public.shape_layer_properties_id_seq'::regclass);
+
+
+--
+-- Name: shape_layer_style_rules id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.shape_layer_style_rules ALTER COLUMN id SET DEFAULT nextval('public.shape_layer_styles_id_seq'::regclass);
+
+
+--
+-- Name: shape_layer_styles id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.shape_layer_styles ALTER COLUMN id SET DEFAULT nextval('public.shape_layer_styles_id_seq1'::regclass);
+
+
+--
+-- Name: shape_layers id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.shape_layers ALTER COLUMN id SET DEFAULT nextval('public.shape_layers_id_seq'::regclass);
+
+
+--
+-- Name: shape_versions id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.shape_versions ALTER COLUMN id SET DEFAULT nextval('public.shape_versions_id_seq'::regclass);
+
+
+--
+-- Name: shapes_depricated id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.shapes_depricated ALTER COLUMN id SET DEFAULT nextval('public.shapes_id_seq'::regclass);
+
+
+--
+-- Name: share_link_dems id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.share_link_dems ALTER COLUMN id SET DEFAULT nextval('public.share_link_dems_id_seq'::regclass);
+
+
+--
+-- Name: share_link_maps id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.share_link_maps ALTER COLUMN id SET DEFAULT nextval('public.share_link_maps_id_seq'::regclass);
+
+
+--
+-- Name: share_links id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.share_links ALTER COLUMN id SET DEFAULT nextval('public.share_links_id_seq1'::regclass);
+
+
+--
+-- Name: share_links_old id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.share_links_old ALTER COLUMN id SET DEFAULT nextval('public.share_links_id_seq'::regclass);
+
+
+--
+-- Name: slp_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.slp_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e ALTER COLUMN id SET DEFAULT nextval('public.slp_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e_id_seq'::regclass);
+
+
+--
+-- Name: slpt_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.slpt_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e ALTER COLUMN id SET DEFAULT nextval('public.slpt_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e_id_seq'::regclass);
+
+
+--
+-- Name: slpv_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.slpv_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e ALTER COLUMN id SET DEFAULT nextval('public.slpv_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e_id_seq'::regclass);
+
+
+--
+-- Name: spectral_indices id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.spectral_indices ALTER COLUMN id SET DEFAULT nextval('public.spectral_indices_id_seq'::regclass);
+
+
+--
+-- Name: starred_root_paths id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.starred_root_paths ALTER COLUMN id SET DEFAULT nextval('public.starred_root_paths_id_seq'::regclass);
+
+
+--
+-- Name: starred_roots id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.starred_roots ALTER COLUMN id SET DEFAULT nextval('public.starred_roots_id_seq'::regclass);
+
+
+--
+-- Name: storage_changelog id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.storage_changelog ALTER COLUMN id SET DEFAULT nextval('public.storage_changelog_id_seq'::regclass);
+
+
+--
+-- Name: storage_sizes id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.storage_sizes ALTER COLUMN id SET DEFAULT nextval('public.storage_sizes_id_seq'::regclass);
+
+
+--
+-- Name: stripe_tasks id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.stripe_tasks ALTER COLUMN id SET DEFAULT nextval('public.stripe_tasks_id_seq'::regclass);
+
+
+--
+-- Name: temporary id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.temporary ALTER COLUMN id SET DEFAULT nextval('public.temporary_id_seq'::regclass);
+
+
+--
+-- Name: tile_messages id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.tile_messages ALTER COLUMN id SET DEFAULT nextval('public.tile_messages_id_seq'::regclass);
+
+
+--
+-- Name: tiles_feedback id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.tiles_feedback ALTER COLUMN id SET DEFAULT nextval('public.map_error_feedback_id_seq1'::regclass);
+
+
+--
+-- Name: timestamp_image_types id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.timestamp_image_types ALTER COLUMN id SET DEFAULT nextval('public.timestamp_image_types_id_seq'::regclass);
+
+
+--
+-- Name: timestamp_models id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.timestamp_models ALTER COLUMN id SET DEFAULT nextval('public.timestamp_models_id_seq'::regclass);
+
+
+--
+-- Name: timestamp_reruns id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.timestamp_reruns ALTER COLUMN id SET DEFAULT nextval('public.timestamp_reruns_id_seq'::regclass);
+
+
+--
+-- Name: timestamp_spectral_indices id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.timestamp_spectral_indices ALTER COLUMN id SET DEFAULT nextval('public.timestamp_spectral_indices_id_seq'::regclass);
+
+
+--
+-- Name: transfer_project_tokens id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.transfer_project_tokens ALTER COLUMN id SET DEFAULT nextval('public.transfer_project_tokens_id_seq'::regclass);
+
+
+--
+-- Name: user_external_keys id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.user_external_keys ALTER COLUMN id SET DEFAULT nextval('public.user_external_keys_id_seq'::regclass);
+
+
+--
+-- Name: user_external_layers id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.user_external_layers ALTER COLUMN id SET DEFAULT nextval('public.user_external_layers_id_seq'::regclass);
+
+
+--
+-- Name: user_favorite_paths id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.user_favorite_paths ALTER COLUMN id SET DEFAULT nextval('public.user_favorite_paths_id_seq'::regclass);
+
+
+--
+-- Name: user_groups id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.user_groups ALTER COLUMN id SET DEFAULT nextval('public.user_groups_id_seq'::regclass);
+
+
+--
+-- Name: user_history id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.user_history ALTER COLUMN id SET DEFAULT nextval('public.user_history_id_seq'::regclass);
+
+
+--
+-- Name: user_map_favorites id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.user_map_favorites ALTER COLUMN id SET DEFAULT nextval('public.user_map_favorites_id_seq'::regclass);
+
+
+--
+-- Name: user_maps id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.user_maps ALTER COLUMN id SET DEFAULT nextval('public.user_maps_id_seq'::regclass);
+
+
+--
+-- Name: user_plans id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.user_plans ALTER COLUMN id SET DEFAULT nextval('public.user_plans_id_seq'::regclass);
+
+
+--
+-- Name: users id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.users ALTER COLUMN id SET DEFAULT nextval('public.users_id_seq'::regclass);
+
+
+--
+-- Name: aggregated_invalidation_tasks aggregated_invalidation_tasks_pkey; Type: CONSTRAINT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.aggregated_invalidation_tasks
+    ADD CONSTRAINT aggregated_invalidation_tasks_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: aggregated_map_actions_day_history aggregated_map_actions_day_history_pkey; Type: CONSTRAINT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.aggregated_map_actions_day_history
+    ADD CONSTRAINT aggregated_map_actions_day_history_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: aggregated_map_actions_history aggregated_map_actions_history_pkey; Type: CONSTRAINT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.aggregated_map_actions_history
+    ADD CONSTRAINT aggregated_map_actions_history_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: aws_marketplace_tokens aws_marketplace_tokens_pkey; Type: CONSTRAINT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.aws_marketplace_tokens
+    ADD CONSTRAINT aws_marketplace_tokens_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: backoffice_history backoffice_history_pkey; Type: CONSTRAINT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.backoffice_history
+    ADD CONSTRAINT backoffice_history_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: coins_history coins_history_pkey; Type: CONSTRAINT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.coins_history
+    ADD CONSTRAINT coins_history_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: compute_tasks compute_tasks_pkey; Type: CONSTRAINT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.compute_tasks
+    ADD CONSTRAINT compute_tasks_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: conversion_requests conversion_requests_pkey; Type: CONSTRAINT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.conversion_requests
+    ADD CONSTRAINT conversion_requests_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: coupled_dems coupled_dems_pkey; Type: CONSTRAINT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.coupled_dems
+    ADD CONSTRAINT coupled_dems_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: coupled_maps coupled_maps_pkey; Type: CONSTRAINT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.coupled_maps
+    ADD CONSTRAINT coupled_maps_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: custom_polygon_layer_properties custom_polygon_layer_properties_pkey; Type: CONSTRAINT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.custom_polygon_layer_properties
+    ADD CONSTRAINT custom_polygon_layer_properties_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: custom_polygon_layers custom_polygon_layers_pkey; Type: CONSTRAINT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.custom_polygon_layers
+    ADD CONSTRAINT custom_polygon_layers_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: data_requests data_requests_pkey; Type: CONSTRAINT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.data_requests
+    ADD CONSTRAINT data_requests_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: data_requests data_requests_uuid_key; Type: CONSTRAINT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.data_requests
+    ADD CONSTRAINT data_requests_uuid_key UNIQUE (uuid);
+
+
+--
+-- Name: drive_exports drive_exports_pkey; Type: CONSTRAINT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.drive_exports
+    ADD CONSTRAINT drive_exports_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: external_layers external_layers_pkey; Type: CONSTRAINT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.external_layers
+    ADD CONSTRAINT external_layers_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: file_system_tasks file_system_tasks_pkey; Type: CONSTRAINT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.file_system_tasks
+    ADD CONSTRAINT file_system_tasks_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: files files_pkey; Type: CONSTRAINT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.files
+    ADD CONSTRAINT files_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: forms forms_pkey; Type: CONSTRAINT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.forms
+    ADD CONSTRAINT forms_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: geometry_cluster_tasks geometry_cluster_tasks_pkey; Type: CONSTRAINT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.geometry_cluster_tasks
+    ADD CONSTRAINT geometry_cluster_tasks_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: group_invites group_invites_pkey; Type: CONSTRAINT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.group_invites
+    ADD CONSTRAINT group_invites_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: groups groups_pkey; Type: CONSTRAINT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.groups
+    ADD CONSTRAINT groups_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: groups groups_uuid_key; Type: CONSTRAINT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.groups
+    ADD CONSTRAINT groups_uuid_key UNIQUE (uuid);
+
+
+--
+-- Name: gs_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e gs_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e_pkey; Type: CONSTRAINT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.gs_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e
+    ADD CONSTRAINT gs_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: gsh_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e gsh_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e_pkey; Type: CONSTRAINT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.gsh_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e
+    ADD CONSTRAINT gsh_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hard_delete_tasks hard_delete_tasks_pkey; Type: CONSTRAINT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.hard_delete_tasks
+    ADD CONSTRAINT hard_delete_tasks_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: hashtags hashtags_pkey; Type: CONSTRAINT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.hashtags
+    ADD CONSTRAINT hashtags_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: image_types image_types_pkey; Type: CONSTRAINT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.image_types
+    ADD CONSTRAINT image_types_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: image_types image_types_uuid_key; Type: CONSTRAINT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.image_types
+    ADD CONSTRAINT image_types_uuid_key UNIQUE (uuid);
+
+
+--
+-- Name: invalidation_tasks invalidation_tasks_pkey; Type: CONSTRAINT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.invalidation_tasks
+    ADD CONSTRAINT invalidation_tasks_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: locations locations_pkey; Type: CONSTRAINT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.locations
+    ADD CONSTRAINT locations_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: login_attempts login_attempts_pkey; Type: CONSTRAINT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.login_attempts
+    ADD CONSTRAINT login_attempts_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: map_actions_log map_action_credits_pkey; Type: CONSTRAINT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.map_actions_log
+    ADD CONSTRAINT map_action_credits_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: map_actions_day_history map_actions_day_history_r_pkey; Type: CONSTRAINT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.map_actions_day_history
+    ADD CONSTRAINT map_actions_day_history_r_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: map_actions_history map_credits_history_pkey; Type: CONSTRAINT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.map_actions_history
+    ADD CONSTRAINT map_credits_history_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: tiles_feedback map_error_feedback_pkey; Type: CONSTRAINT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.tiles_feedback
+    ADD CONSTRAINT map_error_feedback_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: map_external_layers map_external_layers_pkey; Type: CONSTRAINT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.map_external_layers
+    ADD CONSTRAINT map_external_layers_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: map_hashtags map_hashtags_pkey; Type: CONSTRAINT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.map_hashtags
+    ADD CONSTRAINT map_hashtags_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: map_projections map_projections_pkey; Type: CONSTRAINT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.map_projections
+    ADD CONSTRAINT map_projections_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: map_timestamp_layers map_timestamp_layers_pkey; Type: CONSTRAINT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.map_timestamp_layers
+    ADD CONSTRAINT map_timestamp_layers_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: map_timestamps map_timestamps_pkey; Type: CONSTRAINT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.map_timestamps
+    ADD CONSTRAINT map_timestamps_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: map_user_history map_user_history_pkey; Type: CONSTRAINT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.map_user_history
+    ADD CONSTRAINT map_user_history_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: map_view_settings map_view_settings_pkey; Type: CONSTRAINT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.map_view_settings
+    ADD CONSTRAINT map_view_settings_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: maps maps_pkey; Type: CONSTRAINT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.maps
+    ADD CONSTRAINT maps_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: model_classes model_classes_pkey; Type: CONSTRAINT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.model_classes
+    ADD CONSTRAINT model_classes_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: models models_pkey; Type: CONSTRAINT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.models
+    ADD CONSTRAINT models_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: models models_uuid_key; Type: CONSTRAINT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.models
+    ADD CONSTRAINT models_uuid_key UNIQUE (uuid);
+
+
+--
+-- Name: monitoring_projects monitoring_projects_pkey; Type: CONSTRAINT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.monitoring_projects
+    ADD CONSTRAINT monitoring_projects_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: monitoring_projects monitoring_projects_unique_map_name; Type: CONSTRAINT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.monitoring_projects
+    ADD CONSTRAINT monitoring_projects_unique_map_name UNIQUE (map_name);
+
+
+--
+-- Name: monitoring_projects monitoring_projects_uuid_key; Type: CONSTRAINT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.monitoring_projects
+    ADD CONSTRAINT monitoring_projects_uuid_key UNIQUE (uuid);
+
+
+--
+-- Name: notifications notifications_pkey; Type: CONSTRAINT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.notifications
+    ADD CONSTRAINT notifications_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: oauth_attempts oauth_attempts_pkey; Type: CONSTRAINT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.oauth_attempts
+    ADD CONSTRAINT oauth_attempts_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: oauth_clients oauth_clients_pkey; Type: CONSTRAINT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.oauth_clients
+    ADD CONSTRAINT oauth_clients_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: oauth_temp oauth_temp_pkey; Type: CONSTRAINT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.oauth_temp
+    ADD CONSTRAINT oauth_temp_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: oauth_tokens oauth_tokens_pkey; Type: CONSTRAINT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.oauth_tokens
+    ADD CONSTRAINT oauth_tokens_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: organization_group_users organization_group_users_pkey; Type: CONSTRAINT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.organization_group_users
+    ADD CONSTRAINT organization_group_users_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: organization_groups organization_groups_pkey; Type: CONSTRAINT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.organization_groups
+    ADD CONSTRAINT organization_groups_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: pa_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e pa_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e_pkey; Type: CONSTRAINT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.pa_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e
+    ADD CONSTRAINT pa_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: path_data_search path_data_search_pkey; Type: CONSTRAINT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.path_data_search
+    ADD CONSTRAINT path_data_search_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: path_hashtags path_hashtags_pkey; Type: CONSTRAINT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.path_hashtags
+    ADD CONSTRAINT path_hashtags_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: path_public_extents path_public_extents_pkey; Type: CONSTRAINT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.path_public_extents
+    ADD CONSTRAINT path_public_extents_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: path_roots_search path_roots_search_pkey; Type: CONSTRAINT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.path_roots_search
+    ADD CONSTRAINT path_roots_search_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: path_setup_tasks path_setup_tasks_pkey; Type: CONSTRAINT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.path_setup_tasks
+    ADD CONSTRAINT path_setup_tasks_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: path_subscribe path_subscribe_pkey; Type: CONSTRAINT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.path_subscribe
+    ADD CONSTRAINT path_subscribe_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: path_user_extents path_user_extents_pkey; Type: CONSTRAINT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.path_user_extents
+    ADD CONSTRAINT path_user_extents_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: path_users path_users_pkey; Type: CONSTRAINT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.path_users
+    ADD CONSTRAINT path_users_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: paths paths_pkey; Type: CONSTRAINT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.paths
+    ADD CONSTRAINT paths_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: paths_search paths_search_pkey; Type: CONSTRAINT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.paths_search
+    ADD CONSTRAINT paths_search_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: patp_extents_old patp_extents_pkey; Type: CONSTRAINT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.patp_extents_old
+    ADD CONSTRAINT patp_extents_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: patp_extents patp_extents_pkey1; Type: CONSTRAINT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.patp_extents
+    ADD CONSTRAINT patp_extents_pkey1 PRIMARY KEY (id);
+
+
+--
+-- Name: personal_access_token_paths personal_access_token_paths_pkey; Type: CONSTRAINT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.personal_access_token_paths
+    ADD CONSTRAINT personal_access_token_paths_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: personal_access_tokens personal_access_tokens_pkey; Type: CONSTRAINT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.personal_access_tokens
+    ADD CONSTRAINT personal_access_tokens_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: pm_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e pm_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e_pkey; Type: CONSTRAINT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.pm_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e
+    ADD CONSTRAINT pm_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: custom_polygon_messages pm_ssag_pkey; Type: CONSTRAINT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.custom_polygon_messages
+    ADD CONSTRAINT pm_ssag_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: pmh_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e pmh_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e_pkey; Type: CONSTRAINT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.pmh_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e
+    ADD CONSTRAINT pmh_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: pmt_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e pmt_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e_pkey; Type: CONSTRAINT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.pmt_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e
+    ADD CONSTRAINT pmt_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: point_cloud_downloads point_cloud_downloads_pkey; Type: CONSTRAINT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.point_cloud_downloads
+    ADD CONSTRAINT point_cloud_downloads_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: point_cloud_jobs point_cloud_jobs_pkey; Type: CONSTRAINT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.point_cloud_jobs
+    ADD CONSTRAINT point_cloud_jobs_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: point_cloud_properties point_cloud_properties_pkey; Type: CONSTRAINT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.point_cloud_properties
+    ADD CONSTRAINT point_cloud_properties_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: point_cloud_styles point_cloud_styles_pkey; Type: CONSTRAINT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.point_cloud_styles
+    ADD CONSTRAINT point_cloud_styles_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: point_cloud_timestamps point_cloud_timestamps_pkey; Type: CONSTRAINT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.point_cloud_timestamps
+    ADD CONSTRAINT point_cloud_timestamps_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: point_cloud_uploads point_cloud_uploads_pkey; Type: CONSTRAINT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.point_cloud_uploads
+    ADD CONSTRAINT point_cloud_uploads_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: processed_payments processed_payments_pkey; Type: CONSTRAINT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.processed_payments
+    ADD CONSTRAINT processed_payments_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: processed_stripe_events processed_stripe_events_pkey; Type: CONSTRAINT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.processed_stripe_events
+    ADD CONSTRAINT processed_stripe_events_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: project_change_types project_change_types_pkey; Type: CONSTRAINT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.project_change_types
+    ADD CONSTRAINT project_change_types_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: project_image_types project_image_types_pkey; Type: CONSTRAINT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.project_image_types
+    ADD CONSTRAINT project_image_types_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: project_models project_models_pkey; Type: CONSTRAINT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.project_models
+    ADD CONSTRAINT project_models_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: project_spectral_indices project_spectral_indices_pkey; Type: CONSTRAINT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.project_spectral_indices
+    ADD CONSTRAINT project_spectral_indices_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: public_access_token_paths public_access_token_paths_pkey; Type: CONSTRAINT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.public_access_token_paths
+    ADD CONSTRAINT public_access_token_paths_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: public_access_tokens public_access_tokens_pkey; Type: CONSTRAINT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.public_access_tokens
+    ADD CONSTRAINT public_access_tokens_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: raster_uploads raster_uploads_pkey; Type: CONSTRAINT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.raster_uploads
+    ADD CONSTRAINT raster_uploads_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: rename_tasks rename_tasks_pkey; Type: CONSTRAINT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.rename_tasks
+    ADD CONSTRAINT rename_tasks_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: representatives representatives_pkey; Type: CONSTRAINT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.representatives
+    ADD CONSTRAINT representatives_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: request_jobs_old request_jobs_pkey; Type: CONSTRAINT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.request_jobs_old
+    ADD CONSTRAINT request_jobs_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: request_jobs_old request_jobs_uuid_key; Type: CONSTRAINT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.request_jobs_old
+    ADD CONSTRAINT request_jobs_uuid_key UNIQUE (uuid);
+
+
+--
+-- Name: reset_password_attempts reset_password_attempts_pkey; Type: CONSTRAINT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.reset_password_attempts
+    ADD CONSTRAINT reset_password_attempts_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: data_sources satellites_pkey; Type: CONSTRAINT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.data_sources
+    ADD CONSTRAINT satellites_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: data_sources satellites_uuid_key; Type: CONSTRAINT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.data_sources
+    ADD CONSTRAINT satellites_uuid_key UNIQUE (uuid);
+
+
+--
+-- Name: search_checkpoints search_checkpoints_pkey; Type: CONSTRAINT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.search_checkpoints
+    ADD CONSTRAINT search_checkpoints_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: series_uploads series_uploads_pkey; Type: CONSTRAINT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.series_uploads
+    ADD CONSTRAINT series_uploads_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: servers servers_pkey; Type: CONSTRAINT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.servers
+    ADD CONSTRAINT servers_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: openid_sessions session_pkey; Type: CONSTRAINT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.openid_sessions
+    ADD CONSTRAINT session_pkey PRIMARY KEY (session_id);
+
+
+--
+-- Name: shape_layer_properties shape_layer_properties_pkey; Type: CONSTRAINT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.shape_layer_properties
+    ADD CONSTRAINT shape_layer_properties_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: shape_layer_style_rules shape_layer_styles_pkey; Type: CONSTRAINT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.shape_layer_style_rules
+    ADD CONSTRAINT shape_layer_styles_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: shape_layer_styles shape_layer_styles_pkey1; Type: CONSTRAINT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.shape_layer_styles
+    ADD CONSTRAINT shape_layer_styles_pkey1 PRIMARY KEY (id);
+
+
+--
+-- Name: shape_layers shape_layers_pkey; Type: CONSTRAINT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.shape_layers
+    ADD CONSTRAINT shape_layers_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: shapes_depricated shapes_pkey; Type: CONSTRAINT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.shapes_depricated
+    ADD CONSTRAINT shapes_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: share_link_dems share_link_dems_pkey; Type: CONSTRAINT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.share_link_dems
+    ADD CONSTRAINT share_link_dems_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: share_link_maps share_link_maps_pkey; Type: CONSTRAINT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.share_link_maps
+    ADD CONSTRAINT share_link_maps_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: share_links_old share_links_pkey; Type: CONSTRAINT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.share_links_old
+    ADD CONSTRAINT share_links_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: share_links share_links_pkey1; Type: CONSTRAINT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.share_links
+    ADD CONSTRAINT share_links_pkey1 PRIMARY KEY (id);
+
+
+--
+-- Name: slp_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e slp_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e_pkey; Type: CONSTRAINT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.slp_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e
+    ADD CONSTRAINT slp_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: slpt_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e slpt_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e_pkey; Type: CONSTRAINT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.slpt_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e
+    ADD CONSTRAINT slpt_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: slpv_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e slpv_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e_pkey; Type: CONSTRAINT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.slpv_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e
+    ADD CONSTRAINT slpv_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: spectral_indices spectral_indices_pkey; Type: CONSTRAINT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.spectral_indices
+    ADD CONSTRAINT spectral_indices_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: starred_root_paths starred_root_paths_pkey; Type: CONSTRAINT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.starred_root_paths
+    ADD CONSTRAINT starred_root_paths_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: starred_roots starred_roots_pkey; Type: CONSTRAINT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.starred_roots
+    ADD CONSTRAINT starred_roots_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: storage_changelog storage_changelog_pkey; Type: CONSTRAINT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.storage_changelog
+    ADD CONSTRAINT storage_changelog_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: storage_sizes storage_sizes_pkey; Type: CONSTRAINT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.storage_sizes
+    ADD CONSTRAINT storage_sizes_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: stripe_tasks stripe_tasks_pkey; Type: CONSTRAINT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.stripe_tasks
+    ADD CONSTRAINT stripe_tasks_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: temporary temporary_pkey; Type: CONSTRAINT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.temporary
+    ADD CONSTRAINT temporary_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: tile_messages tile_messages_pkey; Type: CONSTRAINT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.tile_messages
+    ADD CONSTRAINT tile_messages_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: timestamp_image_types timestamp_image_types_pkey; Type: CONSTRAINT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.timestamp_image_types
+    ADD CONSTRAINT timestamp_image_types_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: timestamp_models timestamp_models_pkey; Type: CONSTRAINT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.timestamp_models
+    ADD CONSTRAINT timestamp_models_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: timestamp_reruns timestamp_reruns_pkey; Type: CONSTRAINT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.timestamp_reruns
+    ADD CONSTRAINT timestamp_reruns_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: timestamp_spectral_indices timestamp_spectral_indices_pkey; Type: CONSTRAINT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.timestamp_spectral_indices
+    ADD CONSTRAINT timestamp_spectral_indices_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: user_external_keys user_external_keys_pkey; Type: CONSTRAINT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.user_external_keys
+    ADD CONSTRAINT user_external_keys_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: user_external_layers user_external_layers_pkey; Type: CONSTRAINT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.user_external_layers
+    ADD CONSTRAINT user_external_layers_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: user_favorite_paths user_favorite_paths_pkey; Type: CONSTRAINT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.user_favorite_paths
+    ADD CONSTRAINT user_favorite_paths_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: user_groups user_groups_pkey; Type: CONSTRAINT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.user_groups
+    ADD CONSTRAINT user_groups_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: user_history user_history_pkey; Type: CONSTRAINT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.user_history
+    ADD CONSTRAINT user_history_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: user_map_favorites user_map_favorites_pkey; Type: CONSTRAINT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.user_map_favorites
+    ADD CONSTRAINT user_map_favorites_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: user_plans user_plans_pkey; Type: CONSTRAINT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.user_plans
+    ADD CONSTRAINT user_plans_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: users users_pkey; Type: CONSTRAINT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.users
+    ADD CONSTRAINT users_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: users users_uuid_key; Type: CONSTRAINT; Schema: public; Owner: ellipsis_app
+--
+
+ALTER TABLE ONLY public.users
+    ADD CONSTRAINT users_uuid_key UNIQUE (uuid);
+
+
+--
+-- Name: IDX_session_date; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE INDEX "IDX_session_date" ON public.openid_sessions USING btree (date);
+
+
+--
+-- Name: add_polygon_queue_added_idx; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE INDEX add_polygon_queue_added_idx ON public.add_polygon_queue USING btree (added);
+
+
+--
+-- Name: add_polygon_queue_shape_layer_id; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE INDEX add_polygon_queue_shape_layer_id ON public.add_polygon_queue USING btree (shape_layer_id);
+
+
+--
+-- Name: add_polygon_queue_uuid; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE INDEX add_polygon_queue_uuid ON public.add_polygon_queue USING btree (uuid);
+
+
+--
+-- Name: atlases_name_idx; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE UNIQUE INDEX atlases_name_idx ON public.atlases USING btree (name);
+
+
+--
+-- Name: bands_name_user_id; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE UNIQUE INDEX bands_name_user_id ON public.bands USING btree (name, user_id);
+
+
+--
+-- Name: coins_history_payements; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE INDEX coins_history_payements ON public.coins_history USING btree (date_trunc('milliseconds'::text, date), uuid);
+
+
+--
+-- Name: coins_history_tracking; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE INDEX coins_history_tracking ON public.coins_history USING btree (user_id, action);
+
+
+--
+-- Name: correct_tile_queue_status; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE INDEX correct_tile_queue_status ON public.correct_tile_queue USING btree (status);
+
+
+--
+-- Name: data_source_bands_name_data_source_id_idx; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE UNIQUE INDEX data_source_bands_name_data_source_id_idx ON public.data_source_bands USING btree (name, data_source_id);
+
+
+--
+-- Name: data_sources_name_custom_idx; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE UNIQUE INDEX data_sources_name_custom_idx ON public.data_sources USING btree (name, custom);
+
+
+--
+-- Name: de_date_idx; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE INDEX de_date_idx ON public.drive_exports USING btree (date) WHERE (finished = false);
+
+
+--
+-- Name: email_validation_tokens_email_idx; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE UNIQUE INDEX email_validation_tokens_email_idx ON public.email_validation_tokens USING btree (email);
+
+
+--
+-- Name: external_layers_general; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE INDEX external_layers_general ON public.external_layers USING btree (map_id);
+
+
+--
+-- Name: file_system_tasks_ordering; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE INDEX file_system_tasks_ordering ON public.file_system_tasks USING btree (creation_date);
+
+
+--
+-- Name: file_system_tasks_ordering_2; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE INDEX file_system_tasks_ordering_2 ON public.file_system_tasks USING btree (status, creation_date);
+
+
+--
+-- Name: files_path_id; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE INDEX files_path_id ON public.files USING btree (path_id);
+
+
+--
+-- Name: forms_map_id_formname_idx; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE UNIQUE INDEX forms_map_id_formname_idx ON public.forms USING btree (map_id, formname);
+
+
+--
+-- Name: gct_date_idx; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE INDEX gct_date_idx ON public.geometry_cluster_tasks USING btree (date) WHERE (finished = false);
+
+
+--
+-- Name: gct_layer_task_tdx; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE INDEX gct_layer_task_tdx ON public.geometry_cluster_tasks USING btree (shape_layer_id, task) WHERE ((geometry_upload_id IS NULL) AND (geometry_download_id IS NULL) AND (series_upload_id IS NULL) AND ((task)::text <> 'reproject'::text) AND ((task)::text <> 'precompute'::text) AND (finished = false));
+
+
+--
+-- Name: gct_layer_upload_task_idx; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE INDEX gct_layer_upload_task_idx ON public.geometry_cluster_tasks USING btree (shape_layer_id, geometry_upload_id, task) WHERE (finished = false);
+
+
+--
+-- Name: gct_revert_task_idx; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE UNIQUE INDEX gct_revert_task_idx ON public.geometry_cluster_tasks USING btree (shape_layer_id, geometry_upload_id) WHERE (((task)::text = 'revert_upload'::text) AND (finished = false));
+
+
+--
+-- Name: geometry_cancel_uploads; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE INDEX geometry_cancel_uploads ON public.geometry_uploads USING btree (receiving_api, status);
+
+
+--
+-- Name: geometry_uploads_id; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE UNIQUE INDEX geometry_uploads_id ON public.geometry_uploads USING btree (id);
+
+
+--
+-- Name: geometry_uploads_transfer; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE INDEX geometry_uploads_transfer ON public.geometry_uploads USING btree (id) WHERE (((status)::text = 'pending'::text) AND (need_transfer IS TRUE));
+
+
+--
+-- Name: group_invites_token; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE INDEX group_invites_token ON public.group_invites USING btree (token);
+
+
+--
+-- Name: groups_map_id_idx; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE INDEX groups_map_id_idx ON public.groups USING btree (map_id);
+
+
+--
+-- Name: groups_name_map_id_idx; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE UNIQUE INDEX groups_name_map_id_idx ON public.groups USING btree (name, map_id);
+
+
+--
+-- Name: gs_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e_1; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE UNIQUE INDEX gs_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e_1 ON public.gs_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e USING btree (uuid);
+
+
+--
+-- Name: gs_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e_2; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE INDEX gs_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e_2 ON public.gs_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e USING btree (date);
+
+
+--
+-- Name: gs_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e_3; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE INDEX gs_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e_3 ON public.gs_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e USING btree (shape_layer_polygon_id, deleted, date, uuid);
+
+
+--
+-- Name: gs_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e_4; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE INDEX gs_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e_4 ON public.gs_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e USING btree (shape_layer_polygon_id, deleted, property, date, uuid);
+
+
+--
+-- Name: gs_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e_5; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE INDEX gs_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e_5 ON public.gs_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e USING btree (shape_layer_polygon_id, deleted, add_date, uuid);
+
+
+--
+-- Name: gs_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e_6; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE INDEX gs_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e_6 ON public.gs_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e USING btree (shape_layer_polygon_id, deleted, property, add_date, uuid);
+
+
+--
+-- Name: gs_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e_7; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE INDEX gs_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e_7 ON public.gs_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e USING btree (shape_layer_polygon_id, deleted, user_id, add_date, uuid);
+
+
+--
+-- Name: gs_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e_8; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE INDEX gs_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e_8 ON public.gs_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e USING btree (shape_layer_polygon_id, deleted, user_id, property, add_date, uuid);
+
+
+--
+-- Name: hard_delete_tasks_finished; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE INDEX hard_delete_tasks_finished ON public.hard_delete_tasks USING btree (id) WHERE (finished IS FALSE);
+
+
+--
+-- Name: hashtags_name; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE INDEX hashtags_name ON public.hashtags USING btree (name);
+
+
+--
+-- Name: idx_aggregated_invalidation_tasks_date; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE INDEX idx_aggregated_invalidation_tasks_date ON public.aggregated_invalidation_tasks USING btree (date);
+
+
+--
+-- Name: idx_amadh_path_date_user; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE UNIQUE INDEX idx_amadh_path_date_user ON public.aggregated_map_actions_day_history USING btree (path_id, date, public);
+
+
+--
+-- Name: idx_coupled_maps_layers; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE INDEX idx_coupled_maps_layers ON public.coupled_maps USING btree (map_id, type, layer_id);
+
+
+--
+-- Name: idx_invalidation_tasks_date; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE INDEX idx_invalidation_tasks_date ON public.invalidation_tasks USING btree (date);
+
+
+--
+-- Name: idx_jobs_id; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE UNIQUE INDEX idx_jobs_id ON public.jobs USING btree (id);
+
+
+--
+-- Name: idx_jobs_timestamp_phase; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE INDEX idx_jobs_timestamp_phase ON public.jobs USING btree (map_timestamp_id, phase);
+
+
+--
+-- Name: idx_jobs_uuid; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE UNIQUE INDEX idx_jobs_uuid ON public.jobs USING btree (uuid);
+
+
+--
+-- Name: idx_madh_path_date_ip; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE INDEX idx_madh_path_date_ip ON public.map_actions_day_history USING btree (path_id, date, ip);
+
+
+--
+-- Name: idx_madh_path_date_user; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE UNIQUE INDEX idx_madh_path_date_user ON public.map_actions_day_history USING btree (path_id, date, COALESCE((user_id)::text, (ip)::text));
+
+
+--
+-- Name: idx_madh_path_date_user_id; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE INDEX idx_madh_path_date_user_id ON public.map_actions_day_history USING btree (path_id, date, user_id);
+
+
+--
+-- Name: idx_mel_map_name; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE UNIQUE INDEX idx_mel_map_name ON public.map_external_layers USING btree (map_id, name);
+
+
+--
+-- Name: idx_mel_map_uuid; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE UNIQUE INDEX idx_mel_map_uuid ON public.map_external_layers USING btree (map_id, uuid);
+
+
+--
+-- Name: idx_muh_path_user; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE UNIQUE INDEX idx_muh_path_user ON public.map_user_history USING btree (path_id, user_id);
+
+
+--
+-- Name: idx_share_links_ip_date; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE INDEX idx_share_links_ip_date ON public.share_links_old USING btree (ip, date);
+
+
+--
+-- Name: idx_share_links_user_id_date; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE INDEX idx_share_links_user_id_date ON public.share_links_old USING btree (user_id, date);
+
+
+--
+-- Name: idx_share_links_uuid; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE INDEX idx_share_links_uuid ON public.share_links_old USING btree (uuid);
+
+
+--
+-- Name: idx_uel_user_name; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE UNIQUE INDEX idx_uel_user_name ON public.user_external_layers USING btree (user_id, name);
+
+
+--
+-- Name: idx_uel_uuid; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE UNIQUE INDEX idx_uel_uuid ON public.user_external_layers USING btree (uuid);
+
+
+--
+-- Name: idx_uh_user_date; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE UNIQUE INDEX idx_uh_user_date ON public.user_history USING btree (user_id, date);
+
+
+--
+-- Name: image_types_name_user_id; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE UNIQUE INDEX image_types_name_user_id ON public.image_types USING btree (name, user_id);
+
+
+--
+-- Name: login_attempts_general_idx; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE INDEX login_attempts_general_idx ON public.login_attempts USING btree (ip, result, date);
+
+
+--
+-- Name: map_action_credits_date; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE INDEX map_action_credits_date ON public.map_actions_log USING btree (date);
+
+
+--
+-- Name: map_action_credits_map_id; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE INDEX map_action_credits_map_id ON public.map_actions_log USING btree (map_id);
+
+
+--
+-- Name: map_bands_map_id; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE INDEX map_bands_map_id ON public.map_bands USING btree (map_id);
+
+
+--
+-- Name: map_bands_number; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE UNIQUE INDEX map_bands_number ON public.map_bands USING btree (map_id, number);
+
+
+--
+-- Name: map_credits_history_map_id_idx; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE INDEX map_credits_history_map_id_idx ON public.map_actions_history USING btree (map_id);
+
+
+--
+-- Name: map_id_name; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE UNIQUE INDEX map_id_name ON public.shape_layer_styles USING btree (map_id, name);
+
+
+--
+-- Name: map_layer_bands_map_layer_id; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE INDEX map_layer_bands_map_layer_id ON public.map_layer_bands USING btree (map_layer_id);
+
+
+--
+-- Name: map_layers_default_limit; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE UNIQUE INDEX map_layers_default_limit ON public.map_layers USING btree (map_id) WHERE (is_default = true);
+
+
+--
+-- Name: map_layers_map_id; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE INDEX map_layers_map_id ON public.map_layers USING btree (map_id);
+
+
+--
+-- Name: map_layers_map_id_name; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE UNIQUE INDEX map_layers_map_id_name ON public.map_layers USING btree (map_id, name);
+
+
+--
+-- Name: map_public_credits_map_id; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE INDEX map_public_credits_map_id ON public.map_public_credits USING btree (map_id);
+
+
+--
+-- Name: map_public_credits_map_id_ip; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE UNIQUE INDEX map_public_credits_map_id_ip ON public.map_public_credits USING btree (map_id, ip);
+
+
+--
+-- Name: map_timestamp_layers_search1; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE INDEX map_timestamp_layers_search1 ON public.map_timestamp_layers USING btree (map_timestamp_id, map_layer_id);
+
+
+--
+-- Name: map_timestamp_layers_unique; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE UNIQUE INDEX map_timestamp_layers_unique ON public.map_timestamp_layers USING btree (map_timestamp_id, map_layer_id);
+
+
+--
+-- Name: map_timestamp_layers_uuid; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE UNIQUE INDEX map_timestamp_layers_uuid ON public.map_timestamp_layers USING btree (uuid);
+
+
+--
+-- Name: map_timestamp_number; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE UNIQUE INDEX map_timestamp_number ON public.map_timestamps USING btree (map_id, timestamp_number) WHERE (hard_deleted = false);
+
+
+--
+-- Name: map_timestamp_update_bounds; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE INDEX map_timestamp_update_bounds ON public.map_timestamps USING btree (update_bounds, creation_date) WHERE (hard_deleted = false);
+
+
+--
+-- Name: map_timestamps_general; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE INDEX map_timestamps_general ON public.map_timestamps USING btree (map_id, timestamp_number);
+
+
+--
+-- Name: map_timestamps_moving_server; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE INDEX map_timestamps_moving_server ON public.map_timestamps USING btree (moving_server, moving_date);
+
+
+--
+-- Name: map_timestamps_reprojection_status; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE INDEX map_timestamps_reprojection_status ON public.map_timestamps USING btree (reprojection_status);
+
+
+--
+-- Name: map_timestamps_shape_id; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE INDEX map_timestamps_shape_id ON public.map_timestamps USING btree (shape_id);
+
+
+--
+-- Name: map_timestamps_status; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE INDEX map_timestamps_status ON public.map_timestamps USING btree (status) WHERE (deleted = false);
+
+
+--
+-- Name: maps_thumbnails; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE INDEX maps_thumbnails ON public.maps USING btree (thumbnail_invalidation_date) WHERE (has_thumbnail = false);
+
+
+--
+-- Name: maps_unique; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE UNIQUE INDEX maps_unique ON public.maps USING btree (user_id, is_area, name) WHERE (deleted = false);
+
+
+--
+-- Name: maps_uuid; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE INDEX maps_uuid ON public.maps USING btree (uuid);
+
+
+--
+-- Name: mh_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e_1; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE UNIQUE INDEX mh_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e_1 ON public.pmh_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e USING btree (uuid);
+
+
+--
+-- Name: mh_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e_2; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE INDEX mh_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e_2 ON public.pmh_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e USING btree (shape_layer_polygon_id, action, date, uuid);
+
+
+--
+-- Name: mh_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e_3; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE INDEX mh_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e_3 ON public.pmh_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e USING btree (shape_layer_polygon_id, action, user_id, date, uuid);
+
+
+--
+-- Name: model_classes_general; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE INDEX model_classes_general ON public.model_classes USING btree (model_id, name);
+
+
+--
+-- Name: model_collections_name_idx; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE UNIQUE INDEX model_collections_name_idx ON public.model_collections USING btree (name);
+
+
+--
+-- Name: models_name_version_idx; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE UNIQUE INDEX models_name_version_idx ON public.models USING btree (name, version);
+
+
+--
+-- Name: monitoring_projects_map_name_idx; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE UNIQUE INDEX monitoring_projects_map_name_idx ON public.monitoring_projects USING btree (map_name);
+
+
+--
+-- Name: organization_group_users_unique; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE UNIQUE INDEX organization_group_users_unique ON public.organization_group_users USING btree (organization_group_id, user_id);
+
+
+--
+-- Name: organization_group_users_users; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE INDEX organization_group_users_users ON public.organization_group_users USING btree (user_id);
+
+
+--
+-- Name: organization_groups_unique; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE UNIQUE INDEX organization_groups_unique ON public.organization_groups USING btree (user_id, name);
+
+
+--
+-- Name: pa_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e_1; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE UNIQUE INDEX pa_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e_1 ON public.pa_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e USING btree (uuid);
+
+
+--
+-- Name: pa_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e_2; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE INDEX pa_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e_2 ON public.pa_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e USING btree (type, user_id, date, uuid);
+
+
+--
+-- Name: pa_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e_3; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE INDEX pa_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e_3 ON public.pa_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e USING btree (type, date, uuid);
+
+
+--
+-- Name: path_data_search_spatial_index; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE INDEX path_data_search_spatial_index ON public.path_data_search USING gist (extent);
+
+
+--
+-- Name: path_data_search_temporal_index; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE INDEX path_data_search_temporal_index ON public.path_data_search USING gist (date_range);
+
+
+--
+-- Name: path_hashtags_search; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE INDEX path_hashtags_search ON public.path_hashtags USING btree (hashtag_id);
+
+
+--
+-- Name: path_path_id_user_id; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE UNIQUE INDEX path_path_id_user_id ON public.path_users USING btree (path_id, user_id);
+
+
+--
+-- Name: path_roots_search_idx; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE INDEX path_roots_search_idx ON public.path_roots_search USING btree (root, user_id);
+
+
+--
+-- Name: path_users_member_since; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE INDEX path_users_member_since ON public.path_users USING btree (member_since) WHERE (member_since IS NOT NULL);
+
+
+--
+-- Name: path_users_path_accepted_uuid; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE INDEX path_users_path_accepted_uuid ON public.path_users USING btree (path_id, accepted, uuid);
+
+
+--
+-- Name: path_users_root_list; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE INDEX path_users_root_list ON public.path_users USING btree (user_id, path_type, lower((path_name)::text) COLLATE "C", uuid) WHERE (accepted = true);
+
+
+--
+-- Name: path_users_user_groups; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE INDEX path_users_user_groups ON public.path_users USING btree (organization_group_id) WHERE (is_organization_group = true);
+
+
+--
+-- Name: path_users_user_groups_2; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE INDEX path_users_user_groups_2 ON public.path_users USING btree (path_id, organization_group_id) WHERE (is_organization_group = true);
+
+
+--
+-- Name: path_users_uuid; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE UNIQUE INDEX path_users_uuid ON public.path_users USING btree (uuid);
+
+
+--
+-- Name: paths_creation_date; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE INDEX paths_creation_date ON public.paths USING btree (creation_date);
+
+
+--
+-- Name: paths_hidden; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE INDEX paths_hidden ON public.paths USING btree (hidden) WHERE (deleted = false);
+
+
+--
+-- Name: paths_map_id; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE INDEX paths_map_id ON public.paths USING btree (map_id);
+
+
+--
+-- Name: paths_map_id_not_deleted; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE INDEX paths_map_id_not_deleted ON public.paths USING btree (map_id) WHERE (hard_deleted = false);
+
+
+--
+-- Name: paths_parent_id; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE INDEX paths_parent_id ON public.paths USING btree (parent_id) WHERE (deleted = false);
+
+
+--
+-- Name: paths_root_list; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE INDEX paths_root_list ON public.paths USING btree (user_id, path_type, deleted, parent_id, lower((name)::text) COLLATE "C", uuid) WHERE (hard_deleted = false);
+
+
+--
+-- Name: paths_search_active_index; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE INDEX paths_search_active_index ON public.paths_search USING btree (active);
+
+
+--
+-- Name: paths_search_path_index; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE INDEX paths_search_path_index ON public.paths_search USING btree (path_id);
+
+
+--
+-- Name: paths_search_public_index; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE INDEX paths_search_public_index ON public.paths_search USING btree (public) WHERE (public = true);
+
+
+--
+-- Name: paths_search_res_index; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE INDEX paths_search_res_index ON public.paths_search USING btree (resolution);
+
+
+--
+-- Name: paths_search_text_index; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE INDEX paths_search_text_index ON public.paths_search USING gin (text);
+
+
+--
+-- Name: paths_search_tree_index; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE INDEX paths_search_tree_index ON public.paths_search USING gist (path) WHERE (deleted = false);
+
+
+--
+-- Name: paths_search_type_index; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE INDEX paths_search_type_index ON public.paths_search USING btree (path_type);
+
+
+--
+-- Name: paths_search_user_deleted_index; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE INDEX paths_search_user_deleted_index ON public.paths_search USING btree (user_id, deleted);
+
+
+--
+-- Name: paths_user_id; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE INDEX paths_user_id ON public.paths USING btree (deleted, user_id) WHERE (hard_deleted = false);
+
+
+--
+-- Name: paths_user_id_hidden; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE INDEX paths_user_id_hidden ON public.paths USING btree (user_id, hidden) WHERE (deleted = false);
+
+
+--
+-- Name: paths_uuid; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE UNIQUE INDEX paths_uuid ON public.paths USING btree (uuid);
+
+
+--
+-- Name: patp_personal_access_token_id; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE INDEX patp_personal_access_token_id ON public.personal_access_token_paths USING btree (personal_access_token_id);
+
+
+--
+-- Name: patp_public_access_token_id; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE INDEX patp_public_access_token_id ON public.public_access_token_paths USING btree (public_access_token_id);
+
+
+--
+-- Name: patp_public_access_token_id_idx; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE INDEX patp_public_access_token_id_idx ON public.public_access_token_paths USING btree (public_access_token_id);
+
+
+--
+-- Name: patp_unique_1; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE UNIQUE INDEX patp_unique_1 ON public.public_access_token_paths USING btree (public_access_token_id, path_id);
+
+
+--
+-- Name: patpe_personal_access_token_path_id; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE INDEX patpe_personal_access_token_path_id ON public.patp_extents USING btree (personal_access_token_path_id);
+
+
+--
+-- Name: patpe_public_access_token_path_id; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE INDEX patpe_public_access_token_path_id ON public.patp_extents_old USING btree (public_access_token_path_id);
+
+
+--
+-- Name: paypal_transactions_paypal_id; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE UNIQUE INDEX paypal_transactions_paypal_id ON public.paypal_transactions USING btree (paypal_id);
+
+
+--
+-- Name: personal_access_token_paths_pat_id_path_id_idx; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE UNIQUE INDEX personal_access_token_paths_pat_id_path_id_idx ON public.personal_access_token_paths USING btree (personal_access_token_id, path_id);
+
+
+--
+-- Name: personal_access_token_paths_uuid_idx; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE UNIQUE INDEX personal_access_token_paths_uuid_idx ON public.personal_access_token_paths USING btree (uuid);
+
+
+--
+-- Name: personal_access_tokens_hash_idx; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE UNIQUE INDEX personal_access_tokens_hash_idx ON public.personal_access_tokens USING btree (secret);
+
+
+--
+-- Name: personal_access_tokens_uuid_idx; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE UNIQUE INDEX personal_access_tokens_uuid_idx ON public.personal_access_tokens USING btree (uuid);
+
+
+--
+-- Name: pm_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e_1; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE UNIQUE INDEX pm_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e_1 ON public.pm_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e USING btree (uuid);
+
+
+--
+-- Name: pm_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e_2; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE INDEX pm_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e_2 ON public.pm_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e USING btree (deleted, date, uuid);
+
+
+--
+-- Name: pm_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e_3; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE INDEX pm_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e_3 ON public.pm_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e USING btree (shape_layer_polygon_id, deleted, date, uuid);
+
+
+--
+-- Name: pm_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e_4; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE INDEX pm_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e_4 ON public.pm_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e USING btree (user_id, deleted, date, uuid);
+
+
+--
+-- Name: pm_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e_5; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE INDEX pm_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e_5 ON public.pm_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e USING btree (shape_layer_polygon_id, user_id, deleted, date, uuid);
+
+
+--
+-- Name: pm_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e_6; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE INDEX pm_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e_6 ON public.pm_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e USING btree (date);
+
+
+--
+-- Name: pmt_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e_1; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE INDEX pmt_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e_1 ON public.pmt_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e USING btree (polygon_message_id);
+
+
+--
+-- Name: pmt_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e_2; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE INDEX pmt_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e_2 ON public.pmt_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e USING btree (tile_x, tile_y, zoom, deleted, polygon_message_uuid);
+
+
+--
+-- Name: pmt_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e_3; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE INDEX pmt_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e_3 ON public.pmt_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e USING btree (tile_x, tile_y, zoom, deleted, date, polygon_message_uuid);
+
+
+--
+-- Name: pmt_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e_4; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE INDEX pmt_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e_4 ON public.pmt_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e USING btree (tile_x, tile_y, zoom, deleted, shape_layer_polygon_id, date, polygon_message_uuid);
+
+
+--
+-- Name: pmt_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e_5; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE INDEX pmt_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e_5 ON public.pmt_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e USING btree (tile_x, tile_y, zoom, deleted, user_id, date, polygon_message_uuid);
+
+
+--
+-- Name: pmt_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e_6; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE INDEX pmt_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e_6 ON public.pmt_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e USING btree (tile_x, tile_y, zoom, deleted, shape_layer_polygon_id, user_id, date, polygon_message_uuid);
+
+
+--
+-- Name: point_cloud_properties_path_id_name_idx; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE UNIQUE INDEX point_cloud_properties_path_id_name_idx ON public.point_cloud_properties USING btree (path_id, name);
+
+
+--
+-- Name: point_cloud_styles_path_id_name_idx; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE UNIQUE INDEX point_cloud_styles_path_id_name_idx ON public.point_cloud_styles USING btree (path_id, name);
+
+
+--
+-- Name: point_cloud_timestamps_map_id; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE INDEX point_cloud_timestamps_map_id ON public.point_cloud_timestamps USING btree (map_id) WHERE (hard_deleted = false);
+
+
+--
+-- Name: point_cloud_uploads_transfer; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE INDEX point_cloud_uploads_transfer ON public.point_cloud_uploads USING btree (id) WHERE (((status)::text = 'completed'::text) AND (need_transfer IS TRUE) AND (hard_deleted = false));
+
+
+--
+-- Name: processed_payments_order_id; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE UNIQUE INDEX processed_payments_order_id ON public.processed_payments USING btree (order_id);
+
+
+--
+-- Name: processed_stripe_events_unique; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE UNIQUE INDEX processed_stripe_events_unique ON public.processed_stripe_events USING btree (stripe_event_id);
+
+
+--
+-- Name: public_access_tokens_hash_idx; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE UNIQUE INDEX public_access_tokens_hash_idx ON public.public_access_tokens USING btree (hash);
+
+
+--
+-- Name: raster_cancel_uploads; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE INDEX raster_cancel_uploads ON public.raster_uploads USING btree (receiving_api, status);
+
+
+--
+-- Name: raster_uploads_in_bucket; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE INDEX raster_uploads_in_bucket ON public.raster_uploads USING btree (uuid, format, size, id) WHERE ((hard_deleted IS FALSE) AND (legacy IS FALSE) AND ((status)::text = 'completed'::text) AND (in_bucket IS FALSE) AND (need_transfer IS FALSE));
+
+
+--
+-- Name: raster_uploads_transfer; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE INDEX raster_uploads_transfer ON public.raster_uploads USING btree (id) WHERE (((status)::text = 'completed'::text) AND (need_transfer IS TRUE) AND (hard_deleted = false));
+
+
+--
+-- Name: raster_uploads_uuid; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE UNIQUE INDEX raster_uploads_uuid ON public.raster_uploads USING btree (uuid);
+
+
+--
+-- Name: rename_tasks_finished; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE INDEX rename_tasks_finished ON public.rename_tasks USING btree (id) WHERE (finished = false);
+
+
+--
+-- Name: representatives_unique_idx; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE UNIQUE INDEX representatives_unique_idx ON public.representatives USING btree (user_id, representative_user_id);
+
+
+--
+-- Name: reset_password_attempts_general_idx; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE INDEX reset_password_attempts_general_idx ON public.reset_password_attempts USING btree (ip, result, date);
+
+
+--
+-- Name: runs_unique; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE UNIQUE INDEX runs_unique ON public.runs USING btree (map_timestamp_id, map_layer_id) WHERE ((type)::text = 'create'::text);
+
+
+--
+-- Name: sent_user_emails_search1; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE INDEX sent_user_emails_search1 ON public.sent_user_emails USING btree (user_id, to_email, date);
+
+
+--
+-- Name: sh_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e_1; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE UNIQUE INDEX sh_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e_1 ON public.gsh_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e USING btree (uuid);
+
+
+--
+-- Name: sh_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e_2; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE INDEX sh_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e_2 ON public.gsh_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e USING btree (shape_layer_polygon_id, action, date, uuid);
+
+
+--
+-- Name: sh_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e_3; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE INDEX sh_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e_3 ON public.gsh_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e USING btree (shape_layer_polygon_id, action, user_id, date, uuid);
+
+
+--
+-- Name: sh_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e_4; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE INDEX sh_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e_4 ON public.gsh_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e USING btree (geometry_series_id, action, date);
+
+
+--
+-- Name: shape_layer_properties_map_id_name; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE UNIQUE INDEX shape_layer_properties_map_id_name ON public.shape_layer_properties USING btree (map_id, name);
+
+
+--
+-- Name: shape_layer_properties_shape_layer_id_filtering; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE UNIQUE INDEX shape_layer_properties_shape_layer_id_filtering ON public.shape_layer_properties USING btree (shape_layer_id, filtering);
+
+
+--
+-- Name: shape_layer_styles_default_limit; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE UNIQUE INDEX shape_layer_styles_default_limit ON public.shape_layer_styles USING btree (map_id) WHERE (is_default = true);
+
+
+--
+-- Name: shape_layer_styles_uuid; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE INDEX shape_layer_styles_uuid ON public.shape_layer_styles USING btree (uuid);
+
+
+--
+-- Name: shape_layers_reprojection; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE INDEX shape_layers_reprojection ON public.shape_layers USING btree (reprojection_status);
+
+
+--
+-- Name: shape_layers_shape_id; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE INDEX shape_layers_shape_id ON public.shape_layers USING btree (shape_id) WHERE (hard_deleted = false);
+
+
+--
+-- Name: shape_layers_update_bounds; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE INDEX shape_layers_update_bounds ON public.shape_layers USING btree (update_bounds) WHERE ((status)::text = 'active'::text);
+
+
+--
+-- Name: shape_layers_uuid; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE INDEX shape_layers_uuid ON public.shape_layers USING btree (uuid);
+
+
+--
+-- Name: shape_versions_shape_id_version_idx; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE UNIQUE INDEX shape_versions_shape_id_version_idx ON public.shape_versions USING btree (shape_id, version);
+
+
+--
+-- Name: shapes_name_idx; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE UNIQUE INDEX shapes_name_idx ON public.shapes_depricated USING btree (name);
+
+
+--
+-- Name: slp_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e_1; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE UNIQUE INDEX slp_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e_1 ON public.slp_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e USING btree (uuid);
+
+
+--
+-- Name: slp_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e_2; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE INDEX slp_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e_2 ON public.slp_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e USING btree (deleted, uuid);
+
+
+--
+-- Name: slp_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e_3; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE INDEX slp_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e_3 ON public.slp_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e USING btree (deleted, user_id, date, uuid);
+
+
+--
+-- Name: slp_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e_4; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE INDEX slp_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e_4 ON public.slp_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e USING btree (date, uuid);
+
+
+--
+-- Name: slp_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e_5; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE INDEX slp_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e_5 ON public.slp_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e USING btree (edit_date);
+
+
+--
+-- Name: slp_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e_6; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE UNIQUE INDEX slp_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e_6 ON public.slp_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e USING btree (geometry_upload_id, uuid);
+
+
+--
+-- Name: slpt_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e_1; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE INDEX slpt_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e_1 ON public.slpt_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e USING btree (shape_layer_polygon_id);
+
+
+--
+-- Name: slpt_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e_2; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE INDEX slpt_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e_2 ON public.slpt_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e USING btree (tile_x, tile_y, zoom, shape_layer_polygon_uuid) WHERE (deleted = false);
+
+
+--
+-- Name: slpv_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e_1; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE UNIQUE INDEX slpv_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e_1 ON public.slpv_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e USING btree (uuid);
+
+
+--
+-- Name: slpv_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e_2; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE INDEX slpv_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e_2 ON public.slpv_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e USING btree (shape_layer_polygon_id, edit_date, uuid);
+
+
+--
+-- Name: spectral_indices_name_idx; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE UNIQUE INDEX spectral_indices_name_idx ON public.spectral_indices USING btree (name);
+
+
+--
+-- Name: storage_sizes_map_id; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE INDEX storage_sizes_map_id ON public.storage_sizes USING btree (map_id);
+
+
+--
+-- Name: storage_sizes_unique; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE UNIQUE INDEX storage_sizes_unique ON public.storage_sizes USING btree (map_id, type, shape_layer_id);
+
+
+--
+-- Name: stripe_tasks_creation_date; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE INDEX stripe_tasks_creation_date ON public.stripe_tasks USING btree (creation_date);
+
+
+--
+-- Name: tile_messages_map_timestamp_id_delete_date; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE INDEX tile_messages_map_timestamp_id_delete_date ON public.tile_messages USING btree (map_timestamp_id, delete_date);
+
+
+--
+-- Name: tile_messages_map_timestamp_id_tile_id; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE INDEX tile_messages_map_timestamp_id_tile_id ON public.tile_messages USING btree (map_timestamp_id, tile_x, tile_y, zoom);
+
+
+--
+-- Name: tile_messages_sort; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE INDEX tile_messages_sort ON public.tile_messages USING btree (date);
+
+
+--
+-- Name: timestamp_models_map_timestamp_id; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE INDEX timestamp_models_map_timestamp_id ON public.timestamp_models USING btree (map_timestamp_id);
+
+
+--
+-- Name: ufp_user_id_path_id; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE UNIQUE INDEX ufp_user_id_path_id ON public.user_favorite_paths USING btree (user_id, path_id);
+
+
+--
+-- Name: ufp_uuid; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE UNIQUE INDEX ufp_uuid ON public.user_favorite_paths USING btree (uuid);
+
+
+--
+-- Name: unique_dems; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE UNIQUE INDEX unique_dems ON public.coupled_dems USING btree (map_id, coupled_map_id, band_number);
+
+
+--
+-- Name: unique_name_patch; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE UNIQUE INDEX unique_name_patch ON public.paths USING btree (user_id, path_type, name) WHERE ((deleted = false) AND (parent_id IS NULL));
+
+
+--
+-- Name: unique_paths; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE UNIQUE INDEX unique_paths ON public.paths USING btree (user_id, parent_id, path_type, name) WHERE (deleted = false);
+
+
+--
+-- Name: uploads_date_geometries; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE INDEX uploads_date_geometries ON public.geometry_uploads USING btree (shape_layer_id, date, uuid);
+
+
+--
+-- Name: uploads_date_rasters; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE INDEX uploads_date_rasters ON public.raster_uploads USING btree (map_timestamp_id, date, uuid);
+
+
+--
+-- Name: uploads_generations; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE INDEX uploads_generations ON public.raster_uploads USING btree (map_timestamp_id, status, generation, date);
+
+
+--
+-- Name: uploads_status_geometries; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE INDEX uploads_status_geometries ON public.geometry_uploads USING btree (shape_layer_id, status, date, uuid);
+
+
+--
+-- Name: uploads_status_rasters; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE INDEX uploads_status_rasters ON public.raster_uploads USING btree (map_timestamp_id, status, date, uuid);
+
+
+--
+-- Name: user_favorite_paths_root_list; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE INDEX user_favorite_paths_root_list ON public.user_favorite_paths USING btree (user_id, lower((path_name)::text) COLLATE "C", uuid);
+
+
+--
+-- Name: user_groups_group_id_idx; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE INDEX user_groups_group_id_idx ON public.user_groups USING btree (group_id);
+
+
+--
+-- Name: user_groups_unique_idx; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE UNIQUE INDEX user_groups_unique_idx ON public.user_groups USING btree (user_id, group_id);
+
+
+--
+-- Name: user_groups_user_id_idx; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE INDEX user_groups_user_id_idx ON public.user_groups USING btree (user_id);
+
+
+--
+-- Name: user_lookup; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE INDEX user_lookup ON public.notifications USING btree (user_id, datetime, uuid);
+
+
+--
+-- Name: user_map_favorites_unique_idx; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE UNIQUE INDEX user_map_favorites_unique_idx ON public.user_map_favorites USING btree (user_id, map_id);
+
+
+--
+-- Name: user_plans_user_id; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE UNIQUE INDEX user_plans_user_id ON public.user_plans USING btree (user_id);
+
+
+--
+-- Name: users_email_lowercase_idx; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE UNIQUE INDEX users_email_lowercase_idx ON public.users USING btree (lower((email)::text)) WHERE ((delete_date IS NULL) AND (is_organization = false));
+
+
+--
+-- Name: users_email_nonorg_idx; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE INDEX users_email_nonorg_idx ON public.users USING btree (email) WHERE ((delete_date IS NULL) AND (is_organization = false));
+
+
+--
+-- Name: users_unvalidated_email_lowercase_idx; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE UNIQUE INDEX users_unvalidated_email_lowercase_idx ON public.users USING btree (lower((unvalidated_email)::text));
+
+
+--
+-- Name: users_username_lowercase_idx; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE UNIQUE INDEX users_username_lowercase_idx ON public.users USING btree (lower((username)::text)) WHERE (delete_date IS NULL);
+
+
+--
+-- Name: users_username_nonorg_idx; Type: INDEX; Schema: public; Owner: ellipsis_app
+--
+
+CREATE INDEX users_username_nonorg_idx ON public.users USING btree (username) WHERE ((delete_date IS NULL) AND (is_organization = false));
+
+
+--
+-- Name: aggregated_invalidation_tasks invalidation_notify; Type: TRIGGER; Schema: public; Owner: ellipsis_app
+--
+
+CREATE TRIGGER invalidation_notify AFTER INSERT ON public.aggregated_invalidation_tasks FOR EACH ROW EXECUTE FUNCTION public.notify_invalidation_tasks();
+
+
+--
+-- Name: users_publication; Type: PUBLICATION; Schema: -; Owner: ellipsis_app
+--
+
+CREATE PUBLICATION users_publication WITH (publish = 'insert, update, delete, truncate');
+
+
+ALTER PUBLICATION users_publication OWNER TO ellipsis_app;
+
+--
+-- Name: users_publication users; Type: PUBLICATION TABLE; Schema: public; Owner: ellipsis_app
+--
+
+ALTER PUBLICATION users_publication ADD TABLE ONLY public.users;
+
+
+--
+-- Name: SCHEMA public; Type: ACL; Schema: -; Owner: postgres
+--
+
+GRANT ALL ON SCHEMA public TO ellipsis_app;
+
+
+--
+-- Name: TABLE add_polygon_queue; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE aggregated_invalidation_tasks; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE aggregated_map_actions_day_history; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE aggregated_map_actions_history; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE api_calls; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE atlases; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE aws_marketplace_tokens; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE backoffice_history; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE band_data_sources; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE band_image_types; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE band_spectral_indices; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE bands; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE cloud_errors; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE coins_history; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE compute_tasks; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE conversion_requests; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE correct_tile_queue; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE countries; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE coupled_dems; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE coupled_maps; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE custom_polygon_layer_properties; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE custom_polygon_layers; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE custom_polygon_messages; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE data_requests; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE data_source_bands; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE data_source_image_types; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE data_source_model_collections; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE data_source_spectral_indices; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE data_sources; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE database_check; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE drive_exports; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE earth_define; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE email_validation_tokens; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE external_layers; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE file_system_backup_info; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE file_system_tasks; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE files; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE forms; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE geometry_cluster_tasks; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE geometry_download_layers; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE geometry_downloads; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE geometry_uploads; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE group_api_call_costs; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE group_invites; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE groups; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE gs_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE gsh_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE hard_delete_tasks; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE hashtags; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE icons; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE image_types; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE invalidation_tasks; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE invite_validation_tokens; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE jobs; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE locations; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE login_attempts; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE map_actions_log; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE map_actions_day_history; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE map_actions_day_history_old; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE map_actions_history; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE map_api_call_costs; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE map_atlases; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE map_bands; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE map_calls_history; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE map_coin_day_history; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE tiles_feedback; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE map_external_layers; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE map_hashtags; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE map_layer_bands; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE map_layers; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE map_projections; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE map_public_credits; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE map_timestamp_layers; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE map_timestamps; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE map_user_history; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE map_view_settings; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE maps; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE model_classes; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE model_collection_classes; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE model_collections; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE models; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE monitoring_projects; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE notifications; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE oauth_attempts; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE oauth_clients; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE oauth_temp; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE oauth_tokens; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE openid_sessions; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE organization_group_users; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE organization_groups; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE pa_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE path_data_search; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE path_hashtags; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE path_public_extents; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE path_roots_search; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE path_setup_tasks; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE path_subscribe; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE path_user_extents; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE path_users; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE paths; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE paths_search; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE patp_extents; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE patp_extents_old; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE paypal_transactions; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE personal_access_token_paths; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE personal_access_tokens; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE pm_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE pmh_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE pmt_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE point_cloud_downloads; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE point_cloud_jobs; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE point_cloud_properties; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE point_cloud_styles; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE point_cloud_timestamps; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE point_cloud_uploads; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE polygon_sensor; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE processed_payments; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE processed_stripe_events; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE project_change_types; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE project_image_types; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE project_models; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE project_schedules; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE project_spectral_indices; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE public_access_token_paths; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE public_access_tokens; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE raster_downloads; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE raster_uploads; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE rename_tasks; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE representatives; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE request_image_types; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE request_jobs; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE request_jobs_old; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE request_spectral_indices; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE reset_password_attempts; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE reset_password_tokens; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE runs; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE search_checkpoints; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE send_email_queue; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE sent_user_emails; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE series_uploads; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE servers; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE shape_download_tokens; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE shape_layer_graphs; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE shape_layer_properties; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE shape_layer_style_rules; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE shape_layer_styles; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE shape_layers; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE shape_versions; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE shapes_depricated; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE share_link_dems; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE share_link_maps; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE share_links; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE share_links_old; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE slp_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE slpt_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE slpv_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE spectral_indices; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE starred_root_paths; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE starred_roots; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE storage_changelog; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE storage_sizes; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE stripe_tasks; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE temporary; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE tile_messages; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE timestamp_image_types; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE timestamp_models; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE timestamp_reruns; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE timestamp_spectral_indices; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE transfer_project_tokens; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE ui_theme; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE user_external_keys; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE user_external_layers; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE user_favorite_paths; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE user_groups; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE user_history; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE user_map_favorites; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE user_maps; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE user_plans; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: TABLE users; Type: ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- Name: DEFAULT PRIVILEGES FOR TABLES; Type: DEFAULT ACL; Schema: public; Owner: ellipsis_app
+--
+
+
+
+--
+-- PostgreSQL database dump complete
+--
+
+\unrestrict YhDIqhHcvFZL9ZWeWoZLwEJ1MJLzAi9YFrkx9VoRIuJvJl4GCRumqVgMtnG3mNR
+
