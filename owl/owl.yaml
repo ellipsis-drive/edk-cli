@@ -1,41 +1,45 @@
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: owl-db
-spec:
-  accessModes:
-    - ReadWriteOnce
-  storageClassName: ebs-sc-2
-  resources:
-    requests:
-      storage: 10Gi
----
-apiVersion: v1
-kind: Pod
+apiVersion: apps/v1
+kind: StatefulSet
 metadata:
   name: owl
-  labels: 
+  labels:
     ellipsis-drive: owl
 spec:
-  containers:
-    - name: owl
-      image: ghcr.io/ellipsis-drive/owl:latest
-      ports:
-        - containerPort: 5432
-      env:
-        - name: POSTGRES_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              name: owl-db-password
-              key: password
-        - name: PGDATA
-          value: /mnt/db/pgdata
-      volumeMounts:
-        - name: owl-db
-          mountPath: /mnt/db
-  imagePullSecrets:
-    - name: ghcr-secret
-  volumes:
-    - name: owl-db
-      persistentVolumeClaim:
-        claimName: owl-db
+  serviceName: owl
+  replicas: 1
+  selector:
+    matchLabels:
+      ellipsis-drive: owl
+  template:
+    metadata:
+      labels:
+        ellipsis-drive: owl
+    spec:
+      containers:
+        - name: owl
+          image: ghcr.io/ellipsis-drive/owl:latest
+          ports:
+            - containerPort: 5432
+          env:
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: owl-db-password
+                  key: password
+            - name: PGDATA
+              value: /mnt/db/pgdata
+          volumeMounts:
+            - name: owl-db
+              mountPath: /mnt/db
+      imagePullSecrets:
+        - name: ghcr-secret
+  volumeClaimTemplates:
+    - metadata:
+        name: owl-db
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        storageClassName: ebs-sc-2
+        resources:
+          requests:
+            storage: 10Gi
