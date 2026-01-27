@@ -1,0 +1,30 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: email-sender-deployment
+  labels:
+    ellipsis-drive: email-sender
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      ellipsis-drive: email-sender
+  template:
+    metadata:
+      labels:
+        ellipsis-drive: email-sender
+    spec:
+      containers:
+      - name: email-sender
+        image: ghcr.io/ellipsis-drive/email-sender:latest
+        env:
+          - name: POSTGRES_APP_PASS
+            valueFrom:
+              secretKeyRef:
+                name: owl-db-password
+                key: password
+        envFrom:
+          - configMapRef:
+              name: ellipsis
+      imagePullSecrets:
+        - name: dockerconfigjson-github-com

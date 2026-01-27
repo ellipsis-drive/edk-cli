@@ -30,4 +30,4 @@ COPY --from=builder --chown=nodejs:nodejs /app /app
 USER nodejs
 
 # Start the application
-CMD ["node", "run.js", "oauthManagement"]
+CMD ["node", "run.js", "emailSender"]
