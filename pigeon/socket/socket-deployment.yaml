@@ -19,6 +19,12 @@ spec:
         image: ghcr.io/ellipsis-drive/socket:latest
         ports:
           - containerPort: 7754
+        env:
+          - name: POSTGRES_APP_PASS
+            valueFrom:
+              secretKeyRef:
+                name: owl-db-password
+                key: password
         envFrom:
           - configMapRef:
               name: ellipsis

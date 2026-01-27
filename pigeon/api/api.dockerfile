@@ -20,8 +20,8 @@ FROM node:20-alpine AS production
 WORKDIR /app
 
 # Create non-root user
-RUN addgroup -g 1001 -S nodejs && \
-    adduser -S nodejs -u 1001
+RUN addgroup -g 1623 -S nodejs && \
+    adduser -S nodejs -u 1623
 
 # Copy built application from builder stage
 COPY --from=builder --chown=nodejs:nodejs /app /app

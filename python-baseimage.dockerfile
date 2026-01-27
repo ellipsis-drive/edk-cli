@@ -1,0 +1,32 @@
+FROM python:3.12
+
+ENV PYTHONUNBUFFERED=1
+
+RUN groupadd --gid 1623 ellipsis \
+    && useradd --uid 1623 --gid 1623 -m ellipsis
+
+COPY --chown=ellipsis:ellipsis hexagon /tmp/hexagon
+
+RUN set -ex; \
+    apt-get update; \
+    apt-get install -y libproj-dev libnetcdf-dev cmake build-essential libzstd-dev libpng-dev sqlite3;  \
+    mkdir -p /home/ellipsis/install/; \
+    cd /home/ellipsis/install/; \
+    wget https://github.com/OSGeo/gdal/releases/download/v3.10.2/gdal-3.10.2.tar.gz -O - | tar -xvzf -; \
+    cd gdal-3.10.2; \
+    mkdir build; \
+    cd build; \
+    ECW_ROOT="/tmp/hexagon/ERDAS-ECW_JPEG_2000_SDK-5.5.0/Desktop_Read-Only/"; \
+    export ECW_ROOT; \
+    cmake .. -DCMAKE_BUILD_TYPE=Release .; \
+    cmake --build .; \
+    cmake --build . --target install; \
+    cp libgdal* /usr/lib
+
+RUN chown ellipsis:ellipsis -R /home/ellipsis
+
+USER ellipsis
+
+WORKDIR /home/ellipsis
+
+ENV PATH="/home/ellipsis/.local/bin:${PATH}"
