@@ -1,4 +1,4 @@
-FROM ghcr.io/ellipsis-drive/python
+FROM ghcr.io/ellipsis-drive/gdal-python
 
 COPY --chown=ellipsis:ellipsis requirements.txt .
 
