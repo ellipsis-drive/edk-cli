@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vector-worker-deployment
+  labels:
+    ellipsis-drive: vector-worker
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      ellipsis-drive: vector-worker
+  template:
+    metadata:
+      labels:
+        ellipsis-drive: vector-worker
+    spec:
+      containers:
+      - name: vector-worker
+        image: ghcr.io/ellipsis-drive/vector-worker:latest
+        env:
+          - name: POSTGRES_APP_PASS
+            valueFrom:
+              secretKeyRef:
+                name: owl-db-password
+                key: password
+          - name: POSTGRES_APP_PASS_SHAPE
+            valueFrom:
+              secretKeyRef:
+                name: rooster-db-password
+                key: password
+        envFrom:
+          - configMapRef:
+              name: ellipsis
+        volumeMounts:
+          - name: etmpfs
+            mountPath: /mnt/etmpfs
+          - name: tmpfs
+            mountPath: /mnt/tmpfs  
+      imagePullSecrets:
+        - name: dockerconfigjson-github-com
+      volumes:
+        - name: etmpfs
+          persistentVolumeClaim:
+            claimName: etmpfs
+        - name: tmpfs
+          emptyDir:
+            medium: Memory
+            sizeLimit: 128Mi

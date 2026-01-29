@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vector-master-deployment
+  labels:
+    ellipsis-drive: vector-master
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      ellipsis-drive: vector-master
+  template:
+    metadata:
+      labels:
+        ellipsis-drive: vector-master
+    spec:
+      containers:
+      - name: vector-master
+        image: ghcr.io/ellipsis-drive/vector-master:latest
+        env:
+          - name: POSTGRES_APP_PASS
+            valueFrom:
+              secretKeyRef:
+                name: owl-db-password
+                key: password
+          - name: POSTGRES_APP_PASS_SHAPE
+            valueFrom:
+              secretKeyRef:
+                name: rooster-db-password
+                key: password
+        envFrom:
+          - configMapRef:
+              name: ellipsis
+        volumeMounts:
+          - name: etmpfs
+            mountPath: /mnt/etmpfs
+      imagePullSecrets:
+        - name: dockerconfigjson-github-com
+
+      volumes:
+        - name: etmpfs
+          persistentVolumeClaim:
+            claimName: etmpfs
