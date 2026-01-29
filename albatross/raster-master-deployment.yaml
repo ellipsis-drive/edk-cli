@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: raster-master-deployment
+  labels:
+    ellipsis-drive: raster-master
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      ellipsis-drive: raster-master
+  template:
+    metadata:
+      labels:
+        ellipsis-drive: raster-master
+    spec:
+      containers:
+      - name: raster-master
+        image: ghcr.io/ellipsis-drive/raster-master:latest
+        env:
+          - name: POSTGRES_APP_PASS
+            valueFrom:
+              secretKeyRef:
+                name: owl-db-password
+                key: password
+        envFrom:
+          - configMapRef:
+              name: ellipsis
+        volumeMounts:
+          - name: etmpfs
+            mountPath: /mnt/etmpfs
+      imagePullSecrets:
+        - name: dockerconfigjson-github-com
+
+      volumes:
+        - name: etmpfs
+          persistentVolumeClaim:
+            claimName: etmpfs

@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: finch-file-server-api
+spec:
+  type: ClusterIP
+  selector:
+    ellipsis-drive: finch-file-server-api
+  ports:
+    - port: 8738
+      targetPort: 8738
