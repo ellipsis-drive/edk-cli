@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: raster-worker-deployment
+  labels:
+    ellipsis-drive: raster-worker
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      ellipsis-drive: raster-worker
+  template:
+    metadata:
+      labels:
+        ellipsis-drive: raster-worker
+    spec:
+      containers:
+      - name: raster-worker
+        image: ghcr.io/ellipsis-drive/raster-worker:latest
+        env:
+          - name: POSTGRES_APP_PASS
+            valueFrom:
+              secretKeyRef:
+                name: owl-db-password
+                key: password
+        envFrom:
+          - configMapRef:
+              name: ellipsis
+        volumeMounts:
+          - name: etmpfs
+            mountPath: /mnt/etmpfs
+          - name: tmpfs
+            mountPath: /mnt/tmpfs  
+      imagePullSecrets:
+        - name: dockerconfigjson-github-com
+
+      volumes:
+        - name: etmpfs
+          persistentVolumeClaim:
+            claimName: etmpfs
+        - name: tmpfs
+          emptyDir:
+            medium: Memory
+            sizeLimit: 128Mi

@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bucket-management-deployment
+  labels:
+    ellipsis-drive: bucket-management
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      ellipsis-drive: bucket-management
+  template:
+    metadata:
+      labels:
+        ellipsis-drive: bucket-management
+    spec:
+      serviceAccountName: s3-access-sa
+      containers:
+      - name: bucket-management
+        image: ghcr.io/ellipsis-drive/bucket-management:latest
+        env:
+          - name: POSTGRES_APP_PASS
+            valueFrom:
+              secretKeyRef:
+                name: owl-db-password
+                key: password
+        envFrom:
+          - configMapRef:
+              name: ellipsis
+        volumeMounts:
+          - name: etmpfs
+            mountPath: /mnt/etmpfs
+      imagePullSecrets:
+        - name: dockerconfigjson-github-com
+
+      volumes:
+        - name: etmpfs
+          persistentVolumeClaim:
+            claimName: etmpfs
