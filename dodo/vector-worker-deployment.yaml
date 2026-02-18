@@ -28,6 +28,10 @@ spec:
               secretKeyRef:
                 name: rooster-db-password
                 key: password
+          - name: POD_NAME
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.name
         envFrom:
           - configMapRef:
               name: ellipsis

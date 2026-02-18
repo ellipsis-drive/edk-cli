@@ -14,6 +14,7 @@ spec:
       labels:
         ellipsis-drive: vector-master
     spec:
+      serviceAccountName: cluster-master-service-account
       containers:
       - name: vector-master
         image: ghcr.io/ellipsis-drive/vector-master:latest
@@ -28,6 +29,10 @@ spec:
               secretKeyRef:
                 name: rooster-db-password
                 key: password
+          - name: MIN_WORKERS
+            value: "0"
+          - name: MAX_WORKERS
+            value: "2"
         envFrom:
           - configMapRef:
               name: ellipsis
