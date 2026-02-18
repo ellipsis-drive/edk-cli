@@ -17,6 +17,9 @@ spec:
       containers:
       - name: socket
         image: ghcr.io/ellipsis-drive/socket:latest
+        resources:
+          requests:
+            cpu: 2
         ports:
           - containerPort: 7754
         env:

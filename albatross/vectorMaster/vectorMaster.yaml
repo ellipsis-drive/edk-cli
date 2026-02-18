@@ -18,6 +18,9 @@ spec:
       containers:
       - name: vector-master
         image: ghcr.io/ellipsis-drive/vector-master:latest
+        resources:
+          requests:
+            cpu: 500m
         env:
           - name: POSTGRES_APP_PASS
             valueFrom:

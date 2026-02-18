@@ -17,6 +17,9 @@ spec:
       containers:
       - name: vector-worker
         image: ghcr.io/ellipsis-drive/vector-worker:latest
+        resources:
+          requests:
+            cpu: 2
         env:
           - name: POSTGRES_APP_PASS
             valueFrom:

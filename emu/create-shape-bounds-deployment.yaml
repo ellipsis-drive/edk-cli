@@ -17,6 +17,9 @@ spec:
       containers:
       - name: create-shape-bounds
         image: ghcr.io/ellipsis-drive/create-shape-bounds:latest
+        resources:
+          requests:
+            cpu: 1
         env:
           - name: POSTGRES_APP_PASS
             valueFrom:

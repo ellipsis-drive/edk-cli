@@ -18,6 +18,9 @@ spec:
       containers:
         - name: owl
           image: ghcr.io/ellipsis-drive/owl:latest
+          resources:
+            requests:
+              cpu: 1
           ports:
             - containerPort: 5432
           env:

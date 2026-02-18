@@ -1,0 +1,1060 @@
+--
+-- PostgreSQL database dump
+--
+
+-- Dumped from database version 14.17 (Ubuntu 14.17-1.pgdg24.04+1)
+-- Dumped by pg_dump version 14.17 (Ubuntu 14.17-1.pgdg24.04+1)
+
+SET statement_timeout = 0;
+SET lock_timeout = 0;
+SET idle_in_transaction_session_timeout = 0;
+SET client_encoding = 'UTF8';
+SET standard_conforming_strings = on;
+SELECT pg_catalog.set_config('search_path', '', false);
+SET check_function_bodies = false;
+SET xmloption = content;
+SET client_min_messages = warning;
+SET row_security = off;
+
+--
+-- Name: pg_stat_statements; Type: EXTENSION; Schema: -; Owner: -
+--
+
+CREATE EXTENSION IF NOT EXISTS pg_stat_statements WITH SCHEMA public;
+
+
+--
+-- Name: EXTENSION pg_stat_statements; Type: COMMENT; Schema: -; Owner:
+--
+
+COMMENT ON EXTENSION pg_stat_statements IS 'track planning and execution statist                                                                                                             ics of all SQL statements executed';
+
+
+--
+-- Name: uuid-ossp; Type: EXTENSION; Schema: -; Owner: -
+--
+
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp" WITH SCHEMA public;
+
+
+--
+-- Name: EXTENSION "uuid-ossp"; Type: COMMENT; Schema: -; Owner:
+--
+
+COMMENT ON EXTENSION "uuid-ossp" IS 'generate universally unique identifiers (UU                                                                                                             IDs)';
+
+
+SET default_tablespace = '';
+
+SET default_table_access_method = heap;
+
+--
+-- Name: features_paging_cache; Type: TABLE; Schema: public; Owner: local_api
+--
+
+CREATE TABLE public.features_paging_cache (
+    id integer NOT NULL,
+    timestamp_uuid uuid,
+    bbox_key character varying,
+    bbox_value jsonb,
+    date timestamp without time zone
+);
+
+
+ALTER TABLE public.features_paging_cache OWNER TO local_api;
+
+--
+-- Name: features_paging_cache_id_seq; Type: SEQUENCE; Schema: public; Owner: lo                                                                                                             cal_api
+--
+
+CREATE SEQUENCE public.features_paging_cache_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.features_paging_cache_id_seq OWNER TO local_api;
+
+--
+-- Name: features_paging_cache_id_seq; Type: SEQUENCE OWNED BY; Schema: public;                                                                                                              Owner: local_api
+--
+
+ALTER SEQUENCE public.features_paging_cache_id_seq OWNED BY public.features_pagi                                                                                                             ng_cache.id;
+
+
+--
+-- Name: group_leases; Type: TABLE; Schema: public; Owner: local_api
+--
+
+CREATE TABLE public.group_leases (
+    group_uuid uuid,
+    token uuid,
+    creation_date timestamp without time zone
+);
+
+
+ALTER TABLE public.group_leases OWNER TO local_api;
+
+--
+-- Name: groups_cache; Type: TABLE; Schema: public; Owner: local_api
+--
+
+CREATE TABLE public.groups_cache (
+    group_id integer NOT NULL,
+    group_uuid uuid,
+    group_username character varying,
+    group_info jsonb,
+    last_update timestamp without time zone
+);
+
+
+ALTER TABLE public.groups_cache OWNER TO local_api;
+
+--
+-- Name: groups_cache_group_id_seq; Type: SEQUENCE; Schema: public; Owner: local                                                                                                             _api
+--
+
+CREATE SEQUENCE public.groups_cache_group_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.groups_cache_group_id_seq OWNER TO local_api;
+
+--
+-- Name: groups_cache_group_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Own                                                                                                             er: local_api
+--
+
+ALTER SEQUENCE public.groups_cache_group_id_seq OWNED BY public.groups_cache.gro                                                                                                             up_id;
+
+
+--
+-- Name: owner_actions; Type: TABLE; Schema: public; Owner: local_api
+--
+
+CREATE TABLE public.owner_actions (
+    user_id integer,
+    actions integer,
+    user_uuid uuid
+);
+
+
+ALTER TABLE public.owner_actions OWNER TO local_api;
+
+--
+-- Name: pat_cache; Type: TABLE; Schema: public; Owner: local_api
+--
+
+CREATE TABLE public.pat_cache (
+    id integer NOT NULL,
+    user_id integer,
+    user_uuid uuid,
+    secret character varying,
+    pat_info jsonb,
+    last_update timestamp without time zone
+);
+
+
+ALTER TABLE public.pat_cache OWNER TO local_api;
+
+--
+-- Name: pat_cache_id_seq; Type: SEQUENCE; Schema: public; Owner: local_api
+--
+
+CREATE SEQUENCE public.pat_cache_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.pat_cache_id_seq OWNER TO local_api;
+
+--
+-- Name: pat_cache_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: local                                                                                                             _api
+--
+
+ALTER SEQUENCE public.pat_cache_id_seq OWNED BY public.pat_cache.id;
+
+
+--
+-- Name: path_leases; Type: TABLE; Schema: public; Owner: local_api
+--
+
+CREATE TABLE public.path_leases (
+    path_id integer,
+    token uuid,
+    path_uuid uuid,
+    creation_date timestamp without time zone DEFAULT now()
+);
+
+
+ALTER TABLE public.path_leases OWNER TO local_api;
+
+--
+-- Name: path_user_actions; Type: TABLE; Schema: public; Owner: local_api
+--
+
+CREATE TABLE public.path_user_actions (
+    path_id integer,
+    user_id integer,
+    ip inet,
+    actions integer,
+    path_uuid uuid
+);
+
+
+ALTER TABLE public.path_user_actions OWNER TO local_api;
+
+--
+-- Name: path_users; Type: TABLE; Schema: public; Owner: local_api
+--
+
+CREATE TABLE public.path_users (
+    path_id integer,
+    path_uuid uuid,
+    user_id integer,
+    user_uuid uuid,
+    path_info jsonb,
+    direct_invite jsonb,
+    indirect_invite jsonb,
+    direct_member jsonb,
+    indirect_member jsonb,
+    last_update timestamp without time zone,
+    access_info jsonb,
+    access_level integer,
+    can_share boolean
+);
+
+
+ALTER TABLE public.path_users OWNER TO local_api;
+
+--
+-- Name: path_users_cache; Type: TABLE; Schema: public; Owner: local_api
+--
+
+CREATE TABLE public.path_users_cache (
+    path_id integer,
+    path_uuid uuid,
+    user_id integer,
+    user_uuid uuid,
+    path_info jsonb,
+    direct_invite jsonb,
+    indirect_invite jsonb,
+    direct_member jsonb,
+    indirect_member jsonb,
+    last_update timestamp without time zone,
+    access_info jsonb,
+    access_level integer,
+    can_share boolean
+);
+
+
+ALTER TABLE public.path_users_cache OWNER TO local_api;
+
+--
+-- Name: paths; Type: TABLE; Schema: public; Owner: local_api
+--
+
+CREATE TABLE public.paths (
+    path_id integer,
+    path_uuid uuid,
+    parent_id integer,
+    deleted boolean,
+    info jsonb,
+    direct_invites jsonb,
+    indirect_invites jsonb,
+    direct_members jsonb,
+    indirect_members jsonb,
+    path jsonb,
+    map jsonb,
+    list jsonb,
+    user_id integer,
+    last_update timestamp without time zone,
+    hidden boolean,
+    list_maps jsonb,
+    list_folders jsonb,
+    list_maps_owner jsonb,
+    list_folders_owner jsonb,
+    insert_date timestamp without time zone,
+    name character varying(250),
+    shape_layers jsonb,
+    map_layers jsonb,
+    map_timestamps jsonb,
+    map_bands jsonb,
+    user_uuid uuid,
+    parent_uuids jsonb,
+    vector_info jsonb,
+    raster_info jsonb
+);
+
+
+ALTER TABLE public.paths OWNER TO local_api;
+
+--
+-- Name: paths_cache; Type: TABLE; Schema: public; Owner: local_api
+--
+
+CREATE TABLE public.paths_cache (
+    path_id integer,
+    path_uuid uuid,
+    parent_id integer,
+    deleted boolean,
+    info jsonb,
+    direct_invites jsonb,
+    indirect_invites jsonb,
+    direct_members jsonb,
+    indirect_members jsonb,
+    path jsonb,
+    map jsonb,
+    list jsonb,
+    user_id integer,
+    last_update timestamp without time zone,
+    hidden boolean,
+    list_maps jsonb,
+    list_folders jsonb,
+    list_maps_owner jsonb,
+    list_folders_owner jsonb,
+    insert_date timestamp without time zone,
+    name character varying(250),
+    shape_layers jsonb,
+    map_layers jsonb,
+    map_timestamps jsonb,
+    map_bands jsonb,
+    user_uuid uuid,
+    parent_uuids jsonb,
+    vector_info jsonb,
+    raster_info jsonb,
+    list_vectors jsonb,
+    list_rasters jsonb,
+    list_vectors_owner jsonb,
+    list_rasters_owner jsonb,
+    list_files jsonb,
+    list_files_owner jsonb,
+    path_type character varying(10),
+    list_point_clouds jsonb,
+    list_point_clouds_owner jsonb,
+    point_cloud_info jsonb,
+    list_bookmarks jsonb,
+    list_bookmarks_owner jsonb
+);
+
+
+ALTER TABLE public.paths_cache OWNER TO local_api;
+
+--
+-- Name: point_cloud_uploads_cache; Type: TABLE; Schema: public; Owner: local_ap                                                                                                             i
+--
+
+CREATE TABLE public.point_cloud_uploads_cache (
+    path_id integer,
+    path_uuid uuid,
+    timestamp_id integer,
+    timestamp_uuid uuid,
+    uploads jsonb,
+    last_update timestamp without time zone
+);
+
+
+ALTER TABLE public.point_cloud_uploads_cache OWNER TO local_api;
+
+--
+-- Name: raster_uploads; Type: TABLE; Schema: public; Owner: local_api
+--
+
+CREATE TABLE public.raster_uploads (
+    timestamp_id integer,
+    timestamp_uuid uuid,
+    uploads jsonb,
+    path_id integer,
+    last_update timestamp without time zone,
+    path_uuid uuid
+);
+
+
+ALTER TABLE public.raster_uploads OWNER TO local_api;
+
+--
+-- Name: raster_uploads_cache; Type: TABLE; Schema: public; Owner: local_api
+--
+
+CREATE TABLE public.raster_uploads_cache (
+    timestamp_id integer,
+    timestamp_uuid uuid,
+    uploads jsonb,
+    path_id integer,
+    last_update timestamp without time zone,
+    path_uuid uuid
+);
+
+
+ALTER TABLE public.raster_uploads_cache OWNER TO local_api;
+
+--
+-- Name: root_leases; Type: TABLE; Schema: public; Owner: local_api
+--
+
+CREATE TABLE public.root_leases (
+    user_id integer,
+    token uuid,
+    user_uuid uuid,
+    creation_date timestamp without time zone DEFAULT now()
+);
+
+
+ALTER TABLE public.root_leases OWNER TO local_api;
+
+--
+-- Name: roots; Type: TABLE; Schema: public; Owner: local_api
+--
+
+CREATE TABLE public.roots (
+    user_id integer NOT NULL,
+    my_maps jsonb,
+    my_folders jsonb,
+    shared_maps jsonb,
+    shared_folders jsonb,
+    share_invites jsonb,
+    favorite_maps jsonb,
+    favorite_folders jsonb,
+    trashed_maps jsonb,
+    trashed_folders jsonb,
+    last_update timestamp without time zone,
+    user_uuid uuid
+);
+
+
+ALTER TABLE public.roots OWNER TO local_api;
+
+--
+-- Name: roots_user_id_seq; Type: SEQUENCE; Schema: public; Owner: local_api
+--
+
+CREATE SEQUENCE public.roots_user_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.roots_user_id_seq OWNER TO local_api;
+
+--
+-- Name: roots_user_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: loca                                                                                                             l_api
+--
+
+ALTER SEQUENCE public.roots_user_id_seq OWNED BY public.roots.user_id;
+
+
+--
+-- Name: roots_cache; Type: TABLE; Schema: public; Owner: local_api
+--
+
+CREATE TABLE public.roots_cache (
+    user_id integer DEFAULT nextval('public.roots_user_id_seq'::regclass) NOT NU                                                                                                             LL,
+    my_maps jsonb,
+    my_folders jsonb,
+    shared_maps jsonb,
+    shared_folders jsonb,
+    share_invites jsonb,
+    favorite_maps jsonb,
+    favorite_folders jsonb,
+    trashed_maps jsonb,
+    trashed_folders jsonb,
+    last_update timestamp without time zone,
+    user_uuid uuid,
+    my_vectors jsonb,
+    my_rasters jsonb,
+    shared_vectors jsonb,
+    shared_rasters jsonb,
+    favorite_vectors jsonb,
+    favorite_rasters jsonb,
+    trashed_vectors jsonb,
+    trashed_rasters jsonb,
+    my_files jsonb,
+    shared_files jsonb,
+    favorite_files jsonb,
+    trashed_files jsonb,
+    my_point_clouds jsonb,
+    shared_point_clouds jsonb,
+    favorite_point_clouds jsonb,
+    trashed_point_clouds jsonb,
+    my_bookmarks jsonb,
+    shared_bookmarks jsonb,
+    favorite_bookmarks jsonb,
+    trashed_bookmarks jsonb
+);
+
+
+ALTER TABLE public.roots_cache OWNER TO local_api;
+
+--
+-- Name: tile_service_cache; Type: TABLE; Schema: public; Owner: local_api
+--
+
+CREATE TABLE public.tile_service_cache (
+    style_id integer,
+    timestamp_id integer,
+    version integer,
+    date timestamp without time zone,
+    tile_x integer,
+    tile_y integer,
+    tile_zoom integer,
+    data text,
+    epsg integer DEFAULT 3857
+);
+
+
+ALTER TABLE public.tile_service_cache OWNER TO local_api;
+
+--
+-- Name: user_leases; Type: TABLE; Schema: public; Owner: local_api
+--
+
+CREATE TABLE public.user_leases (
+    user_id integer,
+    token uuid,
+    user_uuid uuid,
+    creation_date timestamp without time zone DEFAULT now()
+);
+
+
+ALTER TABLE public.user_leases OWNER TO local_api;
+
+--
+-- Name: users; Type: TABLE; Schema: public; Owner: local_api
+--
+
+CREATE TABLE public.users (
+    user_id integer,
+    user_uuid uuid,
+    disabled boolean,
+    info jsonb,
+    profile jsonb,
+    share_invites jsonb,
+    transfer_invites jsonb,
+    external_layers jsonb,
+    vector_downloads jsonb,
+    raster_downloads jsonb,
+    username character varying(255),
+    commercial boolean,
+    last_update timestamp without time zone,
+    max_actions integer,
+    login_info jsonb
+);
+
+
+ALTER TABLE public.users OWNER TO local_api;
+
+--
+-- Name: users_cache; Type: TABLE; Schema: public; Owner: local_api
+--
+
+CREATE TABLE public.users_cache (
+    user_id integer,
+    user_uuid uuid,
+    disabled boolean,
+    info jsonb,
+    profile jsonb,
+    share_invites jsonb,
+    transfer_invites jsonb,
+    external_layers jsonb,
+    vector_downloads jsonb,
+    raster_downloads jsonb,
+    username character varying(255),
+    commercial boolean,
+    last_update timestamp without time zone,
+    max_actions bigint,
+    login_info jsonb,
+    oauth_info jsonb,
+    point_cloud_downloads jsonb
+);
+
+
+ALTER TABLE public.users_cache OWNER TO local_api;
+
+--
+-- Name: vector_uploads; Type: TABLE; Schema: public; Owner: local_api
+--
+
+CREATE TABLE public.vector_uploads (
+    layer_id integer,
+    layer_uuid uuid,
+    uploads jsonb,
+    path_id integer,
+    last_update timestamp without time zone,
+    path_uuid uuid
+);
+
+
+ALTER TABLE public.vector_uploads OWNER TO local_api;
+
+--
+-- Name: vector_uploads_cache; Type: TABLE; Schema: public; Owner: local_api
+--
+
+CREATE TABLE public.vector_uploads_cache (
+    layer_id integer,
+    layer_uuid uuid,
+    uploads jsonb,
+    path_id integer,
+    last_update timestamp without time zone,
+    path_uuid uuid
+);
+
+
+ALTER TABLE public.vector_uploads_cache OWNER TO local_api;
+
+--
+-- Name: features_paging_cache id; Type: DEFAULT; Schema: public; Owner: local_a                                                                                                             pi
+--
+
+ALTER TABLE ONLY public.features_paging_cache ALTER COLUMN id SET DEFAULT nextva                                                                                                             l('public.features_paging_cache_id_seq'::regclass);
+
+
+--
+-- Name: groups_cache group_id; Type: DEFAULT; Schema: public; Owner: local_api
+--
+
+ALTER TABLE ONLY public.groups_cache ALTER COLUMN group_id SET DEFAULT nextval('                                                                                                             public.groups_cache_group_id_seq'::regclass);
+
+
+--
+-- Name: pat_cache id; Type: DEFAULT; Schema: public; Owner: local_api
+--
+
+ALTER TABLE ONLY public.pat_cache ALTER COLUMN id SET DEFAULT nextval('public.pa                                                                                                             t_cache_id_seq'::regclass);
+
+
+--
+-- Name: roots user_id; Type: DEFAULT; Schema: public; Owner: local_api
+--
+
+ALTER TABLE ONLY public.roots ALTER COLUMN user_id SET DEFAULT nextval('public.r                                                                                                             oots_user_id_seq'::regclass);
+
+
+--
+-- Name: features_paging_cache features_paging_cache_pkey; Type: CONSTRAINT; Sch                                                                                                             ema: public; Owner: local_api
+--
+
+ALTER TABLE ONLY public.features_paging_cache
+    ADD CONSTRAINT features_paging_cache_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: groups_cache groups_cache_pkey; Type: CONSTRAINT; Schema: public; Owner                                                                                                             : local_api
+--
+
+ALTER TABLE ONLY public.groups_cache
+    ADD CONSTRAINT groups_cache_pkey PRIMARY KEY (group_id);
+
+
+--
+-- Name: pat_cache pat_cache_pkey; Type: CONSTRAINT; Schema: public; Owner: loca                                                                                                             l_api
+--
+
+ALTER TABLE ONLY public.pat_cache
+    ADD CONSTRAINT pat_cache_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: roots_cache roots_cache_pkey; Type: CONSTRAINT; Schema: public; Owner:                                                                                                              local_api
+--
+
+ALTER TABLE ONLY public.roots_cache
+    ADD CONSTRAINT roots_cache_pkey PRIMARY KEY (user_id);
+
+
+--
+-- Name: roots roots_pkey; Type: CONSTRAINT; Schema: public; Owner: local_api
+--
+
+ALTER TABLE ONLY public.roots
+    ADD CONSTRAINT roots_pkey PRIMARY KEY (user_id);
+
+
+--
+-- Name: groups_cache_group_uuid_idx; Type: INDEX; Schema: public; Owner: local_                                                                                                             api
+--
+
+CREATE UNIQUE INDEX groups_cache_group_uuid_idx ON public.groups_cache USING btr                                                                                                             ee (group_uuid);
+
+
+--
+-- Name: groups_cache_last_update_idx; Type: INDEX; Schema: public; Owner: local                                                                                                             _api
+--
+
+CREATE INDEX groups_cache_last_update_idx ON public.groups_cache USING btree (la                                                                                                             st_update);
+
+
+--
+-- Name: idx_group_lease_creation_date; Type: INDEX; Schema: public; Owner: loca                                                                                                             l_api
+--
+
+CREATE INDEX idx_group_lease_creation_date ON public.group_leases USING btree (c                                                                                                             reation_date);
+
+
+--
+-- Name: idx_group_lease_group_token; Type: INDEX; Schema: public; Owner: local_                                                                                                             api
+--
+
+CREATE INDEX idx_group_lease_group_token ON public.group_leases USING btree (gro                                                                                                             up_uuid, token);
+
+
+--
+-- Name: idx_group_lease_token; Type: INDEX; Schema: public; Owner: local_api
+--
+
+CREATE UNIQUE INDEX idx_group_lease_token ON public.group_leases USING btree (to                                                                                                             ken);
+
+
+--
+-- Name: idx_owner_actions; Type: INDEX; Schema: public; Owner: local_api
+--
+
+CREATE UNIQUE INDEX idx_owner_actions ON public.owner_actions USING btree (user_                                                                                                             id);
+
+
+--
+-- Name: idx_path_lease_creation_date; Type: INDEX; Schema: public; Owner: local                                                                                                             _api
+--
+
+CREATE INDEX idx_path_lease_creation_date ON public.path_leases USING btree (cre                                                                                                             ation_date);
+
+
+--
+-- Name: idx_path_lease_path_token; Type: INDEX; Schema: public; Owner: local_ap                                                                                                             i
+--
+
+CREATE INDEX idx_path_lease_path_token ON public.path_leases USING btree (path_i                                                                                                             d, token);
+
+
+--
+-- Name: idx_path_lease_token; Type: INDEX; Schema: public; Owner: local_api
+--
+
+CREATE UNIQUE INDEX idx_path_lease_token ON public.path_leases USING btree (toke                                                                                                             n);
+
+
+--
+-- Name: idx_path_user_actions; Type: INDEX; Schema: public; Owner: local_api
+--
+
+CREATE UNIQUE INDEX idx_path_user_actions ON public.path_user_actions USING btre                                                                                                             e (path_id, COALESCE((user_id)::text, (ip)::text));
+
+
+--
+-- Name: idx_path_users_last_update; Type: INDEX; Schema: public; Owner: local_a                                                                                                             pi
+--
+
+CREATE INDEX idx_path_users_last_update ON public.path_users USING btree (last_u                                                                                                             pdate);
+
+
+--
+-- Name: idx_path_users_path_id_user_id; Type: INDEX; Schema: public; Owner: loc                                                                                                             al_api
+--
+
+CREATE UNIQUE INDEX idx_path_users_path_id_user_id ON public.path_users USING bt                                                                                                             ree (path_id, COALESCE(user_id, 0));
+
+
+--
+-- Name: idx_path_users_path_user_search; Type: INDEX; Schema: public; Owner: lo                                                                                                             cal_api
+--
+
+CREATE INDEX idx_path_users_path_user_search ON public.path_users USING btree (p                                                                                                             ath_id, user_id);
+
+
+--
+-- Name: idx_paths_last_update; Type: INDEX; Schema: public; Owner: local_api
+--
+
+CREATE INDEX idx_paths_last_update ON public.paths USING btree (last_update);
+
+
+--
+-- Name: idx_paths_path_id; Type: INDEX; Schema: public; Owner: local_api
+--
+
+CREATE UNIQUE INDEX idx_paths_path_id ON public.paths USING btree (path_id);
+
+
+--
+-- Name: idx_raster_uploads_last_update; Type: INDEX; Schema: public; Owner: loc                                                                                                             al_api
+--
+
+CREATE INDEX idx_raster_uploads_last_update ON public.raster_uploads USING btree                                                                                                              (last_update);
+
+
+--
+-- Name: idx_raster_uploads_path_timestamp; Type: INDEX; Schema: public; Owner:                                                                                                              local_api
+--
+
+CREATE INDEX idx_raster_uploads_path_timestamp ON public.raster_uploads USING bt                                                                                                             ree (path_id, timestamp_uuid);
+
+
+--
+-- Name: idx_raster_uploads_timestamp_id; Type: INDEX; Schema: public; Owner: lo                                                                                                             cal_api
+--
+
+CREATE UNIQUE INDEX idx_raster_uploads_timestamp_id ON public.raster_uploads USI                                                                                                             NG btree (timestamp_id);
+
+
+--
+-- Name: idx_root_lease_creation_date; Type: INDEX; Schema: public; Owner: local                                                                                                             _api
+--
+
+CREATE INDEX idx_root_lease_creation_date ON public.root_leases USING btree (cre                                                                                                             ation_date);
+
+
+--
+-- Name: idx_root_lease_token; Type: INDEX; Schema: public; Owner: local_api
+--
+
+CREATE UNIQUE INDEX idx_root_lease_token ON public.root_leases USING btree (toke                                                                                                             n);
+
+
+--
+-- Name: idx_root_lease_user_token; Type: INDEX; Schema: public; Owner: local_ap                                                                                                             i
+--
+
+CREATE INDEX idx_root_lease_user_token ON public.root_leases USING btree (user_i                                                                                                             d, token);
+
+
+--
+-- Name: idx_roots_last_update; Type: INDEX; Schema: public; Owner: local_api
+--
+
+CREATE INDEX idx_roots_last_update ON public.roots USING btree (last_update);
+
+
+--
+-- Name: idx_roots_user_id; Type: INDEX; Schema: public; Owner: local_api
+--
+
+CREATE UNIQUE INDEX idx_roots_user_id ON public.roots USING btree (user_id);
+
+
+--
+-- Name: idx_user_lease_creation_date; Type: INDEX; Schema: public; Owner: local                                                                                                             _api
+--
+
+CREATE INDEX idx_user_lease_creation_date ON public.user_leases USING btree (cre                                                                                                             ation_date);
+
+
+--
+-- Name: idx_user_lease_token; Type: INDEX; Schema: public; Owner: local_api
+--
+
+CREATE UNIQUE INDEX idx_user_lease_token ON public.user_leases USING btree (toke                                                                                                             n);
+
+
+--
+-- Name: idx_user_lease_user_token; Type: INDEX; Schema: public; Owner: local_ap                                                                                                             i
+--
+
+CREATE INDEX idx_user_lease_user_token ON public.user_leases USING btree (user_i                                                                                                             d, token);
+
+
+--
+-- Name: idx_users_last_update; Type: INDEX; Schema: public; Owner: local_api
+--
+
+CREATE INDEX idx_users_last_update ON public.users USING btree (last_update);
+
+
+--
+-- Name: idx_users_user_id; Type: INDEX; Schema: public; Owner: local_api
+--
+
+CREATE UNIQUE INDEX idx_users_user_id ON public.users USING btree (user_id);
+
+
+--
+-- Name: idx_vector_uploads_last_update; Type: INDEX; Schema: public; Owner: loc                                                                                                             al_api
+--
+
+CREATE INDEX idx_vector_uploads_last_update ON public.vector_uploads USING btree                                                                                                              (last_update);
+
+
+--
+-- Name: idx_vector_uploads_layer_id; Type: INDEX; Schema: public; Owner: local_                                                                                                             api
+--
+
+CREATE UNIQUE INDEX idx_vector_uploads_layer_id ON public.vector_uploads USING b                                                                                                             tree (layer_id);
+
+
+--
+-- Name: idx_vector_uploads_path_layer; Type: INDEX; Schema: public; Owner: loca                                                                                                             l_api
+--
+
+CREATE INDEX idx_vector_uploads_path_layer ON public.vector_uploads USING btree                                                                                                              (path_id, layer_uuid);
+
+
+--
+-- Name: pat_cache_last_update_idx; Type: INDEX; Schema: public; Owner: local_ap                                                                                                             i
+--
+
+CREATE INDEX pat_cache_last_update_idx ON public.pat_cache USING btree (last_upd                                                                                                             ate);
+
+
+--
+-- Name: pat_cache_user_id_idx; Type: INDEX; Schema: public; Owner: local_api
+--
+
+CREATE UNIQUE INDEX pat_cache_user_id_idx ON public.pat_cache USING btree (user_                                                                                                             id, secret);
+
+
+--
+-- Name: path_users_cache_last_update_idx; Type: INDEX; Schema: public; Owner: l                                                                                                             ocal_api
+--
+
+CREATE INDEX path_users_cache_last_update_idx ON public.path_users_cache USING b                                                                                                             tree (last_update);
+
+
+--
+-- Name: path_users_cache_path_id_coalesce_idx; Type: INDEX; Schema: public; Own                                                                                                             er: local_api
+--
+
+CREATE UNIQUE INDEX path_users_cache_path_id_coalesce_idx ON public.path_users_c                                                                                                             ache USING btree (path_id, COALESCE(user_id, 0));
+
+
+--
+-- Name: path_users_cache_path_id_user_id_idx; Type: INDEX; Schema: public; Owne                                                                                                             r: local_api
+--
+
+CREATE INDEX path_users_cache_path_id_user_id_idx ON public.path_users_cache USI                                                                                                             NG btree (path_id, user_id);
+
+
+--
+-- Name: paths_cache_last_update_idx; Type: INDEX; Schema: public; Owner: local_                                                                                                             api
+--
+
+CREATE INDEX paths_cache_last_update_idx ON public.paths_cache USING btree (last                                                                                                             _update);
+
+
+--
+-- Name: paths_cache_path_id_idx; Type: INDEX; Schema: public; Owner: local_api
+--
+
+CREATE UNIQUE INDEX paths_cache_path_id_idx ON public.paths_cache USING btree (p                                                                                                             ath_id);
+
+
+--
+-- Name: point_cloud_uploads_cache_last_update_idx; Type: INDEX; Schema: public;                                                                                                              Owner: local_api
+--
+
+CREATE INDEX point_cloud_uploads_cache_last_update_idx ON public.point_cloud_upl                                                                                                             oads_cache USING btree (last_update);
+
+
+--
+-- Name: point_cloud_uploads_cache_layer_id_idx; Type: INDEX; Schema: public; Ow                                                                                                             ner: local_api
+--
+
+CREATE UNIQUE INDEX point_cloud_uploads_cache_layer_id_idx ON public.point_cloud                                                                                                             _uploads_cache USING btree (timestamp_id);
+
+
+--
+-- Name: point_cloud_uploads_cache_path_id_layer_uuid_idx; Type: INDEX; Schema:                                                                                                              public; Owner: local_api
+--
+
+CREATE INDEX point_cloud_uploads_cache_path_id_layer_uuid_idx ON public.point_cl                                                                                                             oud_uploads_cache USING btree (path_id, timestamp_uuid);
+
+
+--
+-- Name: raster_uploads_cache_last_update_idx; Type: INDEX; Schema: public; Owne                                                                                                             r: local_api
+--
+
+CREATE INDEX raster_uploads_cache_last_update_idx ON public.raster_uploads_cache                                                                                                              USING btree (last_update);
+
+
+--
+-- Name: raster_uploads_cache_path_id_timestamp_uuid_idx; Type: INDEX; Schema: p                                                                                                             ublic; Owner: local_api
+--
+
+CREATE INDEX raster_uploads_cache_path_id_timestamp_uuid_idx ON public.raster_up                                                                                                             loads_cache USING btree (path_id, timestamp_uuid);
+
+
+--
+-- Name: raster_uploads_cache_timestamp_id_idx; Type: INDEX; Schema: public; Own                                                                                                             er: local_api
+--
+
+CREATE UNIQUE INDEX raster_uploads_cache_timestamp_id_idx ON public.raster_uploa                                                                                                             ds_cache USING btree (timestamp_id);
+
+
+--
+-- Name: roots_cache_last_update_idx; Type: INDEX; Schema: public; Owner: local_                                                                                                             api
+--
+
+CREATE INDEX roots_cache_last_update_idx ON public.roots_cache USING btree (last                                                                                                             _update);
+
+
+--
+-- Name: roots_cache_user_id_idx; Type: INDEX; Schema: public; Owner: local_api
+--
+
+CREATE UNIQUE INDEX roots_cache_user_id_idx ON public.roots_cache USING btree (u                                                                                                             ser_id);
+
+
+--
+-- Name: tile_service_cache_date; Type: INDEX; Schema: public; Owner: local_api
+--
+
+CREATE INDEX tile_service_cache_date ON public.tile_service_cache USING btree (d                                                                                                             ate);
+
+
+--
+-- Name: tile_service_cache_look_up; Type: INDEX; Schema: public; Owner: local_a                                                                                                             pi
+--
+
+CREATE UNIQUE INDEX tile_service_cache_look_up ON public.tile_service_cache USIN                                                                                                             G btree (style_id, version, timestamp_id, tile_zoom, tile_x, tile_y);
+
+
+--
+-- Name: users_cache_last_update_idx; Type: INDEX; Schema: public; Owner: local_                                                                                                             api
+--
+
+CREATE INDEX users_cache_last_update_idx ON public.users_cache USING btree (last                                                                                                             _update);
+
+
+--
+-- Name: users_cache_user_id_idx; Type: INDEX; Schema: public; Owner: local_api
+--
+
+CREATE UNIQUE INDEX users_cache_user_id_idx ON public.users_cache USING btree (u                                                                                                             ser_id);
+
+
+--
+-- Name: vector_uploads_cache_last_update_idx; Type: INDEX; Schema: public; Owne                                                                                                             r: local_api
+--
+
+CREATE INDEX vector_uploads_cache_last_update_idx ON public.vector_uploads_cache                                                                                                              USING btree (last_update);
+
+
+--
+-- Name: vector_uploads_cache_layer_id_idx; Type: INDEX; Schema: public; Owner:                                                                                                              local_api
+--
+
+CREATE UNIQUE INDEX vector_uploads_cache_layer_id_idx ON public.vector_uploads_c                                                                                                             ache USING btree (layer_id);
+
+
+--
+-- Name: vector_uploads_cache_path_id_layer_uuid_idx; Type: INDEX; Schema: publi                                                                                                             c; Owner: local_api
+--
+
+CREATE INDEX vector_uploads_cache_path_id_layer_uuid_idx ON public.vector_upload                                                                                                             s_cache USING btree (path_id, layer_uuid);
+
+
+--
+-- PostgreSQL database dump complete
+--

@@ -17,10 +17,24 @@ spec:
       containers:
       - name: cache-db
         image: ghcr.io/ellipsis-drive/cache-db:latest
+        resources:
+          requests:
+            cpu: 1
         ports:
           - containerPort: 5432
         envFrom:
           - configMapRef:
               name: ellipsis
+        env:
+          - name: POSTGRES_DB
+            valueFrom:
+              configMapKeyRef:
+                name: ellipsis
+                key: POSTGRES_DB_LOCAL
+          - name: POSTGRES_USER
+            valueFrom:
+              configMapKeyRef:
+                name: ellipsis
+                key: POSTGRES_USER_LOCAL
       imagePullSecrets:
         - name: dockerconfigjson-github-com

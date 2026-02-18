@@ -17,6 +17,9 @@ spec:
       containers:
       - name: api
         image: ghcr.io/ellipsis-drive/api:latest
+        resources:
+          requests:
+            cpu: 1
         ports:
           - containerPort: 7556
         env:

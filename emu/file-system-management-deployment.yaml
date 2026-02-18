@@ -18,6 +18,9 @@ spec:
       containers:
       - name: file-system-management
         image: ghcr.io/ellipsis-drive/file-system-management:latest
+        resources:
+          requests:
+            cpu: 500m
         env:
           - name: POSTGRES_APP_PASS
             valueFrom:

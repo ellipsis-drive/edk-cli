@@ -23,6 +23,9 @@ spec:
       containers:
         - name: rooster-1-list-features
           image: ghcr.io/ellipsis-drive/file-server-api-vector:latest
+          resources:
+            requests:
+              cpu: 500m
           ports:
             - containerPort: 8738
           envFrom:

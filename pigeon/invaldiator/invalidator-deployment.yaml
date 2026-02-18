@@ -17,6 +17,9 @@ spec:
       containers:
       - name: invalidator
         image: ghcr.io/ellipsis-drive/invalidator:latest
+        resources:
+          requests:
+            cpu: 500m
         env:
           - name: POSTGRES_APP_PASS
             valueFrom:

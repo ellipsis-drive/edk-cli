@@ -18,6 +18,9 @@ spec:
       containers:
         - name: rooster
           image: ghcr.io/ellipsis-drive/rooster:latest
+          resources:
+            requests:
+              cpu: 500m
           ports:
             - containerPort: 5432
           env:
