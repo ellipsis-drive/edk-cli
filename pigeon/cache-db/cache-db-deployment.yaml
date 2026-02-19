@@ -26,6 +26,11 @@ spec:
           - configMapRef:
               name: ellipsis
         env:
+          - name: POSTGRES_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: pigeon-db-password
+                key: password
           - name: POSTGRES_DB
             valueFrom:
               configMapKeyRef:

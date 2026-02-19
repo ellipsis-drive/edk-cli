@@ -26,6 +26,11 @@ spec:
               secretKeyRef:
                 name: owl-db-password
                 key: password
+          - name: POSTGRES_APP_PASS_LOCAL
+            valueFrom:
+              secretKeyRef:
+                name: pigeon-db-password
+                key: password
         envFrom:
           - configMapRef:
               name: ellipsis
