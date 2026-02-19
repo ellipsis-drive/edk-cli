@@ -23,6 +23,11 @@ WORKDIR /app
 RUN addgroup -g 1623 -S nodejs && \
     adduser -S nodejs -u 1623
 
+# RUN apk add --no-cache curl bash ca-certificates
+# RUN curl -LO https://dl.k8s.io/release/v1.35.0/bin/linux/amd64/kubectl && \
+#     chmod +x kubectl && \
+#     mv kubectl /usr/local/bin/
+
 # Copy built application from builder stage
 COPY --from=builder --chown=nodejs:nodejs /app /app
 

@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: vector-master-deployment
+  name: vector-master
   labels:
     ellipsis-drive: vector-master
 spec:
