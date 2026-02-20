@@ -5,7 +5,7 @@ metadata:
   labels:
     ellipsis-drive: vector-worker
 spec:
-  replicas: 1
+  replicas: 0
   selector:
     matchLabels:
       ellipsis-drive: vector-worker

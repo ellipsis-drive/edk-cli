@@ -1,11 +1,11 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: raster-worker-deployment
+  name: raster-worker
   labels:
     ellipsis-drive: raster-worker
 spec:
-  replicas: 1
+  replicas: 0
   selector:
     matchLabels:
       ellipsis-drive: raster-worker
@@ -26,6 +26,10 @@ spec:
               secretKeyRef:
                 name: owl-db-password
                 key: password
+          - name: POD_NAME
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.name
         envFrom:
           - configMapRef:
               name: ellipsis
@@ -36,7 +40,6 @@ spec:
             mountPath: /mnt/tmpfs  
       imagePullSecrets:
         - name: dockerconfigjson-github-com
-
       volumes:
         - name: etmpfs
           persistentVolumeClaim:
