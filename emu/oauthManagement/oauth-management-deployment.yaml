@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: oauth-management-deployment
+  labels:
+    ellipsis-drive: oauth-management
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      ellipsis-drive: oauth-management
+  template:
+    metadata:
+      labels:
+        ellipsis-drive: oauth-management
+    spec:
+      containers:
+      - name: oauth-management
+        image: ghcr.io/ellipsis-drive/oauth-management:latest
+        resources:
+          requests:
+            cpu: 500m
+        env:
+          - name: POSTGRES_APP_PASS
+            valueFrom:
+              secretKeyRef:
+                name: owl-db-password
+                key: password
+        envFrom:
+          - configMapRef:
+              name: ellipsis
+      imagePullSecrets:
+        - name: dockerconfigjson-github-com

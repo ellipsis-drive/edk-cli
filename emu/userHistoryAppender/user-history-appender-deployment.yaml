@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: user-history-appender-deployment
+  labels:
+    ellipsis-drive: user-history-appender
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      ellipsis-drive: user-history-appender
+  template:
+    metadata:
+      labels:
+        ellipsis-drive: user-history-appender
+    spec:
+      containers:
+      - name: user-history-appender
+        image: ghcr.io/ellipsis-drive/user-history-appender:latest
+        resources:
+          requests:
+            cpu: 250m
+        env:
+          - name: POSTGRES_APP_PASS
+            valueFrom:
+              secretKeyRef:
+                name: owl-db-password
+                key: password
+        envFrom:
+          - configMapRef:
+              name: ellipsis
+      imagePullSecrets:
+        - name: dockerconfigjson-github-com

@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: actions-writer-deployment
+  labels:
+    ellipsis-drive: actions-writer
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      ellipsis-drive: actions-writer
+  template:
+    metadata:
+      labels:
+        ellipsis-drive: actions-writer
+    spec:
+      containers:
+      - name: actions-writer
+        image: ghcr.io/ellipsis-drive/actions-writer:latest
+        resources:
+          requests:
+            cpu: 250m
+        env:
+          - name: POSTGRES_APP_PASS
+            valueFrom:
+              secretKeyRef:
+                name: owl-db-password
+                key: password
+          - name: POSTGRES_APP_PASS_LOCAL
+            valueFrom:
+              secretKeyRef:
+                name: pigeon-db-password
+                key: password
+        envFrom:
+          - configMapRef:
+              name: ellipsis
+      imagePullSecrets:
+        - name: dockerconfigjson-github-com

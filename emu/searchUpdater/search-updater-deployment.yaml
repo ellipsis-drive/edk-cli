@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: search-updater-deployment
+  labels:
+    ellipsis-drive: search-updater
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      ellipsis-drive: search-updater
+  template:
+    metadata:
+      labels:
+        ellipsis-drive: search-updater
+    spec:
+      containers:
+      - name: search-updater
+        image: ghcr.io/ellipsis-drive/search-updater:latest
+        resources:
+          requests:
+            cpu: 250m
+        env:
+          - name: POSTGRES_APP_PASS
+            valueFrom:
+              secretKeyRef:
+                name: owl-db-password
+                key: password
+        envFrom:
+          - configMapRef:
+              name: ellipsis
+      imagePullSecrets:
+        - name: dockerconfigjson-github-com

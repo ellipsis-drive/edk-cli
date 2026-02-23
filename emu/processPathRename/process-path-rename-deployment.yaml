@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: process-path-rename-deployment
+  labels:
+    ellipsis-drive: process-path-rename
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      ellipsis-drive: process-path-rename
+  template:
+    metadata:
+      labels:
+        ellipsis-drive: process-path-rename
+    spec:
+      containers:
+      - name: process-path-rename
+        image: ghcr.io/ellipsis-drive/process-path-rename:latest
+        resources:
+          requests:
+            cpu: 250m
+        env:
+          - name: POSTGRES_APP_PASS
+            valueFrom:
+              secretKeyRef:
+                name: owl-db-password
+                key: password
+        envFrom:
+          - configMapRef:
+              name: ellipsis
+      imagePullSecrets:
+        - name: dockerconfigjson-github-com

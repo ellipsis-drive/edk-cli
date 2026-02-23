@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: user-deletion-management-deployment
+  labels:
+    ellipsis-drive: user-deletion-management
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      ellipsis-drive: user-deletion-management
+  template:
+    metadata:
+      labels:
+        ellipsis-drive: user-deletion-management
+    spec:
+      containers:
+      - name: user-deletion-management
+        image: ghcr.io/ellipsis-drive/user-deletion-management:latest
+        resources:
+          requests:
+            cpu: 250m
+        env:
+          - name: POSTGRES_APP_PASS
+            valueFrom:
+              secretKeyRef:
+                name: owl-db-password
+                key: password
+        envFrom:
+          - configMapRef:
+              name: ellipsis
+      imagePullSecrets:
+        - name: dockerconfigjson-github-com
