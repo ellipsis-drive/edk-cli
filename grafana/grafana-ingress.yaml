@@ -1,0 +1,22 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: grafana
+  annotations:
+    alb.ingress.kubernetes.io/scheme: internet-facing  # public internet access
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80},{"HTTPS":443}]'
+    alb.ingress.kubernetes.io/target-type: ip   # route to Pod IPs
+    alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:eu-central-1:758738941592:certificate/3cfdf42d-1325-48a6-8207-f02d5d729569
+spec:
+  ingressClassName: alb
+  rules:
+    - host: kubernetes.grafana.ellipsis-drive.com          # your domain
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: prometheus-stack-grafana                   # name of your Service
+                port:
+                  number: 80
