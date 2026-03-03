@@ -1,32 +1,36 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: file-system-management
+  name: point-cloud-master
   labels:
-    ellipsis-drive: file-system-management
+    ellipsis-drive: point-cloud-master
 spec:
   replicas: 1
   selector:
     matchLabels:
-      ellipsis-drive: file-system-management
+      ellipsis-drive: point-cloud-master
   template:
     metadata:
       labels:
-        ellipsis-drive: file-system-management
+        ellipsis-drive: point-cloud-master
     spec:
-      serviceAccountName: s3-access-sa
+      serviceAccountName: cluster-master-service-account
       containers:
-      - name: file-system-management
-        image: ghcr.io/ellipsis-drive/file-system-management:latest
-        resources:
-          requests:
-            cpu: 100m
+      - name: point-cloud-master
+        image: ghcr.io/ellipsis-drive/point-cloud-master:latest
+        # resources:
+        #   requests:
+        #     cpu: 500m
         env:
           - name: POSTGRES_APP_PASS
             valueFrom:
               secretKeyRef:
                 name: owl-db-password
                 key: password
+          - name: MIN_WORKERS
+            value: "0"
+          - name: MAX_WORKERS
+            value: "2"
           - name: INTERNAL_MAIL
             valueFrom:
               secretKeyRef:
@@ -43,15 +47,9 @@ spec:
         volumeMounts:
           - name: etmpfs
             mountPath: /mnt/etmpfs
-          - name: finch-1-fra
-            mountPath: /mnt/finch-1-eu-central-1
       imagePullSecrets:
         - name: dockerconfigjson-github-com
-
       volumes:
         - name: etmpfs
           persistentVolumeClaim:
             claimName: etmpfs
-        - name: finch-1-fra
-          persistentVolumeClaim:
-            claimName: finch-1-fra
