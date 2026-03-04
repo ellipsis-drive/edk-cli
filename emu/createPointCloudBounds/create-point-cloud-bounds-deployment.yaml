@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: create-point-cloud-bounds
+  labels:
+    ellipsis-drive: create-point-cloud-bounds
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      ellipsis-drive: create-point-cloud-bounds
+  template:
+    metadata:
+      labels:
+        ellipsis-drive: create-point-cloud-bounds
+    spec:
+      containers:
+      - name: create-point-cloud-bounds
+        image: ghcr.io/ellipsis-drive/create-point-cloud-bounds:latest
+        resources:
+          requests:
+            cpu: 100m
+        env:
+          - name: POSTGRES_APP_PASS
+            valueFrom:
+              secretKeyRef:
+                name: owl-db-password
+                key: password
+          - name: INTERNAL_MAIL
+            valueFrom:
+              secretKeyRef:
+                name: internal-mail
+                key: username
+          - name: INTERNAL_MAIL_PASS
+            valueFrom:
+              secretKeyRef:
+                name: internal-mail
+                key: password
+        envFrom:
+          - configMapRef:
+              name: ellipsis
+        volumeMounts:
+          - name: etmpfs
+            mountPath: /mnt/etmpfs
+      imagePullSecrets:
+        - name: dockerconfigjson-github-com
+
+      volumes:
+        - name: etmpfs
+          persistentVolumeClaim:
+            claimName: etmpfs
