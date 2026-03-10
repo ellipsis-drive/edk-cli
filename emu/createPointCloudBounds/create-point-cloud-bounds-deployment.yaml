@@ -1,23 +1,22 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: file-system-management
+  name: create-point-cloud-bounds
   labels:
-    ellipsis-drive: file-system-management
+    ellipsis-drive: create-point-cloud-bounds
 spec:
   replicas: 1
   selector:
     matchLabels:
-      ellipsis-drive: file-system-management
+      ellipsis-drive: create-point-cloud-bounds
   template:
     metadata:
       labels:
-        ellipsis-drive: file-system-management
+        ellipsis-drive: create-point-cloud-bounds
     spec:
-      serviceAccountName: s3-access-sa
       containers:
-      - name: file-system-management
-        image: ghcr.io/ellipsis-drive/file-system-management:latest
+      - name: create-point-cloud-bounds
+        image: ghcr.io/ellipsis-drive/create-point-cloud-bounds:latest
         resources:
           requests:
             cpu: 100m
@@ -43,8 +42,6 @@ spec:
         volumeMounts:
           - name: etmpfs
             mountPath: /mnt/etmpfs
-          - name: finch-1-fra
-            mountPath: /mnt/finch-1-eu-central-1
       imagePullSecrets:
         - name: dockerconfigjson-github-com
 
@@ -52,6 +49,3 @@ spec:
         - name: etmpfs
           persistentVolumeClaim:
             claimName: etmpfs
-        - name: finch-1-fra
-          persistentVolumeClaim:
-            claimName: finch-1-fra
