@@ -1,0 +1,24 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: cache-db
+  labels:
+    ellipsis-drive: cache-db
+spec:
+  instances: 1
+  imageName: ghcr.io/cloudnative-pg/postgresql:18
+
+  storage:
+    size: 10Gi
+    storageClass: ebs-sc-2
+
+  bootstrap:
+    initdb:
+      database: api_cache
+      owner: local_api
+      secret:
+        name: pigeon-db-password
+      postInitApplicationSQLRefs:
+        configMapRefs:
+        - name: pigeon-init-database
+          key: database.sql
