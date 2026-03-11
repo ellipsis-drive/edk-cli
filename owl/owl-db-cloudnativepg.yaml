@@ -27,3 +27,13 @@ spec:
           key: database.sql
         - name: owl-init-database
           key: queries.sql
+
+  resources:
+    requests:
+      memory: "1024Mi"
+      cpu: 1
+    limits:
+      memory: "1024Mi"
+      cpu: 1
+
+  priorityClassName: high-priority
