@@ -1,1 +1,3 @@
 penguin/build/*
+node_modules/*
+build/*

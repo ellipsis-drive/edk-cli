@@ -1,0 +1,8 @@
+{
+  // Hi
+  "kubernetesVersion": 1.34,
+
+  "clusterName": "Ellipsis-Drive-Kubernetes",
+
+  "licenseKey": "" 
+}

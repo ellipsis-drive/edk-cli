@@ -1,0 +1,20 @@
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+metadata:
+  name: <<<clusterName>>>
+  region: eu-central-1
+  version: "<<<kubernetesVersion>>>"
+
+autoModeConfig:
+  enabled: true
+
+addons:
+  # - name: vpc-cni
+  # - name: coredns
+  # - name: kube-proxy
+  - name: aws-ebs-csi-driver
+  - name: aws-efs-csi-driver
+  # - name: eks-pod-identity-agent
+  - name: external-dns
+  # - name: metrics-server
