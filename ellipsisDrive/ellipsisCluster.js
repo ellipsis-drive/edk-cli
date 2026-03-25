@@ -63,11 +63,6 @@ async function applySecrets(config) {
     { key: 'password', value: config.cacheDbPassword }
   ]);
 
-  await kubectl.createSecret('pigeon-db-password', [
-    { key: 'username', value: 'local_api' },
-    { key: 'password', value: config.cacheDbPassword }
-  ]);
-
   await kubectl.createSecret('ellipsis-internal-key', [
     { key: 'get-cache', value: config.internalCallKey },
     { key: 'point-cloud', value: config.internalCallKey },
@@ -100,4 +95,9 @@ async function applyVarious(config) {
   await kubectl.apply('../storage/storage/ebs-sc.yaml');
   await kubectl.apply('../storage/storage/efs-sc.yaml');
   await kubectl.apply('../storage/storage/efs-finch-sc.yaml');
+
+  await kubectl.apply('../storage/storage/efs-pv.yaml');
+
+  await kubectl.apply('../storage/storage/finch-1-pvc.yaml');
+  await kubectl.apply('../storage/storage/etmpfs-pvc.yaml');
 }
