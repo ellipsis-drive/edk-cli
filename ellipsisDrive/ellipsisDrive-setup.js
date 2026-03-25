@@ -14,7 +14,7 @@ async function ellipsisDrive() {
 
   let config = loadConfig();
 
-  ellipsisCluster.create(config);
+  await ellipsisCluster.create(config);  
 
   console.log('Done');
 }

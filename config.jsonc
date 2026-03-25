@@ -4,5 +4,24 @@
 
   "clusterName": "Ellipsis-Drive-Kubernetes",
 
-  "licenseKey": "" 
+  "licenseKey": "",
+
+  "loginSecret": "foobar",
+  "oauthSecret": "foobar",
+
+  "mainDbPassword": "foobar",
+  "vectorDbPassword": "foobar",
+  "cacheDbPassword": "foobar",
+
+  "internalCallKey": "foobar",
+
+  // Only supports Gmail
+  "internalMailUsername": "internal@ellipsis-drive.com",
+  "internalMailPassword": "foobar",
+
+  "noReplyMailUsername": "no-reply@ellipsis-drive.com",
+  "noReplyMailPassword": "foobar",
+
+  "googleClientId": "foobar",
+  "googleClientSecret": "foobar"
 }

@@ -10,7 +10,7 @@ spec:
 
   storage:
     size: 10Gi
-    storageClass: ebs-sc-2
+    storageClass: ebs-s2
 
   bootstrap:
     initdb:

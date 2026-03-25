@@ -7,5 +7,9 @@ module.exports = {
     );
 
     // console.log(output);
+  },
+
+  createServiceAccount: async (name, clusterName, policyArn) => {
+    await cmd.executeCommandSimple(`eksctl create iamserviceaccount --name ${name} --namespace default --cluster ${clusterName} --attach-policy-arn ${policyArn} --approve`); 
   }
 }
