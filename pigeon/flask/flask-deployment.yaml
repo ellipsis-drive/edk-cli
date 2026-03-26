@@ -1,0 +1,54 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: flask
+  labels:
+    ellipsis-drive: flask
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      ellipsis-drive: flask
+  template:
+    metadata:
+      labels:
+        ellipsis-drive: flask
+    spec:
+      containers:
+      - name: flask
+        image: ghcr.io/ellipsis-drive/flask:latest
+        resources:
+          requests:
+            cpu: 500m
+        ports:
+          - containerPort: 8000
+        envFrom:
+          - configMapRef:
+              name: ellipsis
+        env:
+          - name: POSTGRES_APP_PASS
+            valueFrom:
+              secretKeyRef:
+                name: owl-db-password
+                key: password
+          - name: POSTGRES_APP_PASS_LOCAL
+            valueFrom:
+              secretKeyRef:
+                name: pigeon-db-password
+                key: password
+          - name: NUMBER_OF_API_PROCESSES
+            value: "2"
+        volumeMounts:
+          - name: etmpfs
+            mountPath: /mnt/etmpfs
+          - name: finch-1-fra
+            mountPath: /mnt/finch
+      imagePullSecrets:
+        - name: dockerconfigjson-github-com
+      volumes:
+        - name: etmpfs
+          persistentVolumeClaim:
+            claimName: etmpfs
+        - name: finch-1-fra
+          persistentVolumeClaim:
+            claimName: finch-1-fra
