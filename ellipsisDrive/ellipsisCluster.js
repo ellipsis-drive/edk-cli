@@ -216,3 +216,20 @@ async function createPenguin(config) {
   kubectl.apply('../penguin/penguin-service.yaml');
   kubectl.apply('../penguin/penguin.yaml');
 }
+
+async function createEmu(config) {
+  kubectl.apply('../emu/bucketManagement/bucket-management-deployment.yaml');
+  kubectl.apply('../emu/createPointCloudBounds/create-point-cloud-bounds-deployment.yaml');
+  kubectl.apply('../emu/createRasterBounds/create-raster-bounds-deployment.yaml');
+  kubectl.apply('../emu/createShapeBounds/create-shape-bounds-deployment.yaml');
+  kubectl.apply('../emu/emailSender/email-sender-deployment.yaml');
+  kubectl.apply('../emu/fileSystemManagement/file-system-management-deployment.yaml');
+  kubectl.apply('../emu/invalidationTaskAggregator/invalidation-task-aggregator-deployment.yaml');
+  kubectl.apply('../emu/oauthManagement/oauth-management-deployment.yaml');
+  kubectl.apply('../emu/processHardDeletes/process-hard-deletes-deployment.yaml');
+  kubectl.apply('../emu/processPathRename/process-path-rename-deployment.yaml');
+  kubectl.apply('../emu/searchUpdater/search-updater-deployment.yaml');
+  kubectl.apply('../emu/thumbnails/thumbnails-deployment.yaml');
+  kubectl.apply('../emu/userDeletionManagement/user-deletion-management-deployment.yaml');
+  kubectl.apply('../emu/userHistoryAppender/user-history-appender-deployment.yaml');
+}
