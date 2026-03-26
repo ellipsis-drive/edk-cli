@@ -1,59 +1,39 @@
-apiVersion: apps/v1
-kind: StatefulSet
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
 metadata:
   name: owl
   labels:
     ellipsis-drive: owl
 spec:
-  serviceName: owl
-  replicas: 1
-  selector:
-    matchLabels:
-      ellipsis-drive: owl
-  template:
-    metadata:
-      labels:
-        ellipsis-drive: owl
-    spec:
-      containers:
-        - name: owl
-          image: ghcr.io/ellipsis-drive/owl:latest
-          resources:
-            requests:
-              cpu: 500m
-          ports:
-            - containerPort: 5432
-          env:
-            - name: POSTGRES_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: owl-db-password
-                  key: password
-            - name: PGDATA
-              value: /mnt/db/pgdata
-          args:
-            - "-c"
-            - "config_file=/etc/postgres-config/postgresql.conf"
-            - "-c"
-            - "hba_file=/etc/postgres-config/pg_hba.conf"
-          volumeMounts:
-            - name: postgres-config
-              mountPath: /etc/postgres-config
-            - name: owl-db-2
-              mountPath: /mnt/db
-      imagePullSecrets:
-        - name: ghcr-secret
-      volumes:
-        - name: postgres-config
-          configMap:
-            name: owl-postgres-config
-  volumeClaimTemplates:
-    - metadata:
-        name: owl-db-2
-      spec:
-        accessModes:
-          - ReadWriteOnce
-        storageClassName: ebs-s2
-        resources:
-          requests:
-            storage: 10Gi
+  instances: 3
+  imageName: ghcr.io/ellipsis-drive/owl:18
+
+  imagePullSecrets:
+  - name: ghcr-secret
+
+  storage:
+    size: 10Gi
+    storageClass: ebs-sc
+
+  bootstrap:
+    initdb:
+      database: ellipsis
+      owner: ellipsis_app
+      secret:
+        name: owl-db-password
+      postInitApplicationSQLRefs:
+        configMapRefs:
+        - name: owl-init-database
+          key: database.sql
+        - name: owl-init-database
+          key: queries.sql
+
+  resources:
+    requests:
+      memory: "1024Mi"
+      cpu: 1
+    limits:
+      memory: "1024Mi"
+      cpu: 1
+
+  priorityClassName: high-priority

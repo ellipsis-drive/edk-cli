@@ -27,6 +27,8 @@ module.exports = {
 
     await applySecrets(config);
 
+    await applyStorage(config);
+
     await applyVarious(config);
   }
 }
@@ -89,9 +91,7 @@ async function applySecrets(config) {
   ]);
 }
 
-async function applyVarious(config) {
-  await kubectl.createPriorityClass('high-priority', 1000000);
-
+async function applyStorage(config) {
   await kubectl.apply('../storage/storage/ebs-sc.yaml');
   await kubectl.apply('../storage/storage/efs-sc.yaml');
   await kubectl.apply('../storage/storage/efs-finch-sc.yaml');
@@ -100,4 +100,22 @@ async function applyVarious(config) {
 
   await kubectl.apply('../storage/storage/finch-1-pvc.yaml');
   await kubectl.apply('../storage/storage/etmpfs-pvc.yaml');
+}
+
+async function applyVarious(config) {
+  await kubectl.createPriorityClass('high-priority', 1000000);
+}
+
+async function createOwl(config) {
+  kubectl.apply('../owl/owl-configmap.yaml');
+  kubectl.apply('../owl/owl-queries-config-map.yaml');
+  kubectl.apply('../owl/owl-service.yaml');
+  kubectl.apply('../owl/owl.yaml');
+}
+
+async function createAlbatross(config) {
+  kubectl.apply('../albatross/cluster-master-service-account.yaml');
+  kubectl.apply('../albatross/rasterMaster/raster-master.yaml');
+  kubectl.apply('../albatross/vectorMaster/vector-master.yaml');
+  kubectl.apply('../albatross/pointCloud/point-cloud-master.yaml');
 }
