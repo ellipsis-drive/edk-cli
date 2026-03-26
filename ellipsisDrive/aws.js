@@ -15,5 +15,9 @@ module.exports = {
     certificate = JSON.parse(certificate);
 
     return certificate.CertificateArn;
+  },
+
+  createBucket: async (name) => {
+    await cmd.executeCommandSimple(`aws s3api create-bucket --bucket ${name} --region ${region}`);
   }
 }

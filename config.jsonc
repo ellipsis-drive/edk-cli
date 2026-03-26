@@ -28,5 +28,6 @@
   "apiUrl": "kubernetes.api.ellipsis-drive.com",
   "frontendUrl": "kubernetes.ellipsis-drive.com",
   "masterZone": "eu-central-1",
-  "masterZoneAbbreviation": "fra"
+  "masterZoneAbbreviation": "fra",
+  "companyName": "kubernetes"
 }

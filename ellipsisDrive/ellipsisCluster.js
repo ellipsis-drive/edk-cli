@@ -25,6 +25,8 @@ module.exports = {
 
     await applyPolicies(config);
 
+    await createBuckets(config);
+
     await applySecrets(config);
 
     await applyStorage(config);
@@ -119,6 +121,15 @@ async function applyVarious(config) {
   await kubectl.createPriorityClass('high-priority', 1000000);
 }
 
+async function createBuckets(config) {
+  await aws.createBucket(`ellipsis-${config.companyName}-raster-uploads-${config.masterZoneAbbreviation}}`, config.masterZone);
+  await aws.createBucket(`ellipsis-${config.companyName}-vector-uploads-${config.masterZoneAbbreviation}}`, config.masterZone);
+  await aws.createBucket(`ellipsis-${config.companyName}-point-cloud-uploads-${config.masterZoneAbbreviation}}`, config.masterZone);
+  await aws.createBucket(`ellipsis-${config.companyName}-files-${config.masterZoneAbbreviation}}`, config.masterZone);
+  await aws.createBucket(`ellipsis-${config.companyName}-message-images-${config.masterZoneAbbreviation}}`, config.masterZone);
+  await aws.createBucket(`ellipsis-${config.companyName}-cold-vector-data-${config.masterZoneAbbreviation}}`, config.masterZone);
+}
+
 async function createOwl(config) {
   kubectl.apply('../owl/owl-pdb.yaml');
   kubectl.create('../owl/owl-queries-config-map.yaml');
@@ -148,7 +159,8 @@ async function setupEllipsisConfigmap(config) {
     'apiUrl',
     'masterZone',
     'masterZoneAbbreviation',
-    'frontendUrl'
+    'frontendUrl',
+    'companyName'
   ];
 
   let substitutes = keys.map((x) => { return { key: x, value: config[x] }; });
