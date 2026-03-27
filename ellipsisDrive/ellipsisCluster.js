@@ -6,9 +6,9 @@ const cmd = require('./cmd');
 
 module.exports = {
   create: async (config) => {
-    let vpcId = await createVpc(config);
+    let vpc = await createVpc(config);
 
-    await createCluster(config)
+    await createCluster(config, vpc)
 
     await setLicenseSecret(config);
 
@@ -55,7 +55,7 @@ module.exports = {
   createEmu: createEmu
 }
 
-async function createCluster(config) {
+async function createCluster(config, vpc) {
   let clusterTemplate = utilities.loadFile('../cluster.yaml.template');
 
   let keys = [
@@ -64,6 +64,8 @@ async function createCluster(config) {
   ];
 
   let substitutes = keys.map((x) => { return { key: x, value: config[x] }; });
+
+  substitutes.push({ key: 'vpcId', value: vpc.vpcId }, { key: 'subnetId1', value: vpc.privateSubnetId1 }, { key: 'subnetId2', value: vpc.privateSubnetId2 });
 
   clusterTemplate = utilities.substituteMulti(clusterTemplate, substitutes);
 
@@ -106,7 +108,13 @@ async function createVpc(config) {
   await aws.associateRouteTable(privateRouteTableId1, privateSubnetId1);
   await aws.associateRouteTable(privateRouteTableId2, privateSubnetId2);
 
-  return vpcId;
+  return {
+    vpcId: vpcId,
+    publicSubnetId1: publicSubnetId1,
+    privateSubnetId1: privateSubnetId1,
+    publicSubnetId2: publicSubnetId2,
+    privateSubnetId2: privateSubnetId2
+  };
 }
 
 async function setLicenseSecret(config) {
