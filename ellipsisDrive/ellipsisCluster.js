@@ -65,7 +65,7 @@ async function createCluster(config, vpc) {
 
   let substitutes = keys.map((x) => { return { key: x, value: config[x] }; });
 
-  substitutes.push({ key: 'vpcId', value: vpc.vpcId }, { key: 'subnetId1', value: vpc.privateSubnetId1 }, { key: 'subnetId2', value: vpc.privateSubnetId2 });
+  substitutes.push({ key: 'subnetId1', value: vpc.privateSubnetId1 }, { key: 'subnetId2', value: vpc.privateSubnetId2 });
 
   clusterTemplate = utilities.substituteMulti(clusterTemplate, substitutes);
 

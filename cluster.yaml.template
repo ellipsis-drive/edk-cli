@@ -5,11 +5,12 @@ metadata:
   name: <<<clusterName>>>
   region: eu-central-1
   version: "<<<kubernetesVersion>>>"
-  resources-vpc-config:
-    vpcId: <<<vpcId>>>
-    subnetIds: 
-      - <<<subnetId1>>>
-      - <<<subnetId2>>>
+
+vpc:
+  subnets:
+    private:
+      eu-central-1b: { id: <<<subnetId1>>> }
+      eu-central-1a: { id: <<<subnetId2>>> }
 
 autoModeConfig:
   enabled: true
