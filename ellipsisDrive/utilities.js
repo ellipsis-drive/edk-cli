@@ -10,7 +10,7 @@ module.exports = {
   },
 
   saveFile: (path, contents) => {
-    fs.writeFileSync(path, contents);
+    fs.writeFileSync(path, contents, { recursive: true });
   },
 
   substituteMulti: (text, keyValues) => {
