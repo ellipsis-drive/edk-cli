@@ -2,7 +2,17 @@ const cmd = require('./cmd');
 
 module.exports = {
   createPolicy: async (name, documentPath) => {
-    let policyInfo = await cmd.executeCommandSimple(`aws iam create-policy --policy-name ${name} --policy-document file://${documentPath}`);
+    let policyInfo = await cmd.executeCommandSimple(`aws iam list-policies`);
+
+    policyInfo = JSON.parse(policyInfo);
+
+    let existingPolicy = policyInfo.Policies.find((x) => x.PolicyName === name);
+
+    if (existingPolicy) {
+      return { Policy: existingPolicy };
+    }
+
+    policyInfo = await cmd.executeCommandSimple(`aws iam create-policy --policy-name ${name} --policy-document file://${documentPath}`);
     
     policyInfo = JSON.parse(policyInfo);
 
