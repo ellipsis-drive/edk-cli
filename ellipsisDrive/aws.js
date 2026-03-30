@@ -28,7 +28,7 @@ module.exports = {
   },
 
   createBucket: async (name, region) => {
-    await cmd.executeCommandSimple(`aws s3api create-bucket --bucket ${name} --region ${region}`);
+    await cmd.executeCommandSimple(`aws s3api create-bucket --bucket ${name} --region ${region} --create-bucket-configuration LocationConstraint=${region}`);
   },
 
   createVpc: async () => {
