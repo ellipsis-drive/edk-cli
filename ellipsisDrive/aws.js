@@ -27,8 +27,8 @@ module.exports = {
     return vpc.Vpc.VpcId;
   },
 
-  createSubnet: async (vpcId, availabilityZone, CIDR) => {
-    let subnet = await cmd.executeCommandSimple(`aws ec2 create-subnet --vpc-id ${vpcId} --cidr-block ${CIDR} --availability-zone ${availabilityZone}`);
+  createSubnet: async (vpcId, availabilityZone, CIDR, public) => {
+    let subnet = await cmd.executeCommandSimple(`aws ec2 create-subnet --vpc-id ${vpcId} --cidr-block ${CIDR} --availability-zone ${availabilityZone} --tag-specifications ResourceType=subnet,Tags=[{Key=${public ? 'kubernetes.io/role/elb' : 'kubernetes.io/role/internal-elb'},Value=1}]`);
     subnet = JSON.parse(subnet);
     return subnet.Subnet.SubnetId;
   },
