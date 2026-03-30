@@ -14,6 +14,7 @@ async function test() {
     publicSubnetId2: 'subnet-0b701969531d9c4a4',
     privateSubnetId2: 'subnet-0a4be94f055a021ea'
   }
-  await ellipsis.createCluster(config, vpc);
+  // await ellipsis.createCluster(config, vpc);
+  await ellipsis.setLicenseSecret(config);
   console.log(vpc);
 }
