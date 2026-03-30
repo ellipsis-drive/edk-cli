@@ -5,6 +5,8 @@ metadata:
   name: <<<clusterName>>>
   region: eu-central-1
   version: "<<<kubernetesVersion>>>"
+  with-oidc: true
+  support-type: Standard
 
 vpc:
   subnets:
