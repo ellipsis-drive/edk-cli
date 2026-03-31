@@ -14,6 +14,14 @@ module.exports = {
   },
 
   createSecret: async (name, keyValues) => {
+    let secrets = await cmd.executeCommandSimple(`kubectl get secrets -o json`);
+
+    secrets = JSON.parse(secrets);
+
+    if (secrets.items.find((x) => x.metadata.name === name)) {
+      return;
+    }
+
     let literalParts = keyValues.map((x) => `--from-literal=${x.key}="${x.value}"`);
     literalParts = literalParts.join(' ');
 
