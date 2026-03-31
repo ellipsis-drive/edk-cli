@@ -242,7 +242,7 @@ async function setupEllipsisConfigmap(config) {
 
   utilities.saveFile('../build/ellipsis.env', clusterTemplate);
 
-  await kubectl.createConfigmap('ellipsis', { type: file, fileName: '../build/ellipsis.env' });
+  await kubectl.createConfigmap('ellipsis', { type: 'file', fileName: '../build/ellipsis.env' });
 }
 
 async function createPigeon(config) {
