@@ -1,8 +1,8 @@
 const cmd = require('./cmd');
 
 module.exports = {
-  apply: async (path) => {
-    await cmd.executeCommandSimple(`kubectl apply -f ${path}`);
+  apply: async (path, serverSide = false) => {
+    await cmd.executeCommandSimple(`kubectl apply ${serverSide ? '--server-side' : ''} -f ${path}`);
   },
 
   create: async (path) => {
