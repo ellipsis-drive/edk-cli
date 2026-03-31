@@ -218,7 +218,7 @@ async function createAlbatross(config) {
 }
 
 async function setupIngress(config) {
-  await kubectl.apply('../ingress/ingress.yaml');
+  await kubectl.apply('../ingress/ingress-class.yaml');
 }
 
 async function setupCloudnativepg(config) {
