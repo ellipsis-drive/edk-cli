@@ -206,7 +206,6 @@ async function createBuckets(config) {
 async function createOwl(config) {
   kubectl.apply('../owl/owl-pdb.yaml');
   kubectl.create('../owl/owl-queries-config-map.yaml');
-  kubectl.apply('../owl/owl-service.yaml');
   kubectl.apply('../owl/owl.yaml');
 }
 
@@ -278,8 +277,6 @@ async function createPigeon(config) {
   await kubectl.apply('../pigeon/cache-db/cache-db-pdb.yaml');
   await kubectl.apply('../pigeon/cache-db/cache-queries-config-map.yaml');
   await kubectl.apply('../pigeon/cache-db/cache-db-cloudnativepg.yaml');
-  await kubectl.apply('../pigeon/cache-db/cache-db-deployment.yaml');
-  await kubectl.apply('../pigeon/cache-db/cache-db-service.yaml');
 }
 
 async function createRooster(config) {
