@@ -269,7 +269,7 @@ async function createPigeon(config) {
 
   await kubectl.apply('../pigeon/actionsWriter/actions-writer-deployment.yaml');
 
-  await kubectl.apply('../pigeon/invalidator/invalidator.yaml');
+  await kubectl.apply('../pigeon/invalidator/invalidator-deployment.yaml');
 
   await kubectl.apply('../pigeon/flask/flask-pdb.yaml');
   await kubectl.apply('../pigeon/flask/flask-deployment.yaml');
