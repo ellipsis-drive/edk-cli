@@ -14,7 +14,7 @@ module.exports = {
   },
 
   createSecret: async (name, keyValues) => {
-    let literalParts = keyValues.map((x) => `--from-literal=${x.key}=${x.value}`);
+    let literalParts = keyValues.map((x) => `--from-literal=${x.key}="${x.value}"`);
     literalParts = literalParts.join(' ');
 
     await cmd.executeCommandSimple(`kubectl create secret generic ${name} ${literalParts}`)
