@@ -200,7 +200,7 @@ async function createEfsAndPersistentVolume(vpc, baseName, region) {
 
   let clusterTemplate = utilities.loadFile('../storage/efs-pv.yaml');
 
-  let substitutes = [{ key: 'storageClassName', value: `${baseName}-sc` }, { key: 'efsId', value: efsId }];
+  let substitutes = [{ key: 'storageClassName', value: baseName }, { key: 'efsId', value: efsId }];
 
   clusterTemplate = utilities.substituteMulti(clusterTemplate, substitutes);
 
