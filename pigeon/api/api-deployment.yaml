@@ -42,16 +42,6 @@ spec:
               secretKeyRef:
                 name: rooster-db-password
                 key: password
-          - name: API_TO_PYTHON_HANDSHAKE
-            valueFrom:
-              secretKeyRef:
-                name: pigeon-socket-handshake
-                key: api
-          - name: PYTHON_TO_API_HANDSHAKE
-            valueFrom:
-              secretKeyRef:
-                name: pigeon-socket-handshake
-                key: python
           - name: SECRET
             valueFrom:
               secretKeyRef:
