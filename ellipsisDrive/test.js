@@ -19,7 +19,7 @@ async function test() {
   // await ellipsis.applyPolicies(config);
   // await ellipsis.createBuckets(config);
   // await ellipsis.applySecrets(config);
-  await ellipsis.applyStorage(config);
+  await ellipsis.applyStorage(config, vpc);
   // await ellipsis.applyVarious(config);
   // await ellipsis.setupEllipsisConfigmap(config);
   // await ellipsis.setupCloudnativepg(config);
