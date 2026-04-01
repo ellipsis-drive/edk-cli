@@ -194,6 +194,7 @@ async function applyStorage(config, vpc) {
 
 async function createEfsAndPersistentVolume(vpc, baseName, region) {
   let efsId = await aws.createEfs(region);
+  await aws.waitForEfsAvailable(efsId);
   await aws.attachEfsToSubnet(efsId, vpc.privateSubnetId1);
   await aws.attachEfsToSubnet(efsId, vpc.privateSubnetId2);
 

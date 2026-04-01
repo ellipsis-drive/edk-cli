@@ -49,6 +49,21 @@ module.exports = {
     await cmd.executeCommandSimple(`aws efs create-mount-target --file-system-id ${fileSystemId} --subnet-id ${subnetId}`);
   },
 
+  waitForEfsAvailable: async (fileSystemId) => {
+    while (true) {
+      let fileSystems = await cmd.executeCommandSimple(`aws efs describe-file-systems`);
+      fileSystems = JSON.parse(fileSystems);
+      let fileSystem = fileSystems.FileSystems.find((x) => x.FileSystemId === fileSystemId);
+
+      if (fileSystem.LifeCycleState === "available") {
+        break;
+      }
+      else {
+        console.log('lifecyclestate', fileSystem.LifeCycleState);
+      }
+    }
+  },
+
   createVpc: async () => {
     let vpc = await cmd.executeCommandSimple(`aws ec2 create-vpc --cidr-block 10.0.0.0/16`);
     vpc = JSON.parse(vpc);
