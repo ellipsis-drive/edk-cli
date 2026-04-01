@@ -19,14 +19,14 @@ async function test() {
   // await ellipsis.applyPolicies(config);
   // await ellipsis.createBuckets(config);
   // await ellipsis.applySecrets(config);
-  // await ellipsis.applyStorage(config);
+  await ellipsis.applyStorage(config);
   // await ellipsis.applyVarious(config);
   // await ellipsis.setupEllipsisConfigmap(config);
   // await ellipsis.setupCloudnativepg(config);
   // await ellipsis.setupIngress(config);
 
   // await ellipsis.createOwl(config);
-  await ellipsis.createPigeon(config);
+  // await ellipsis.createPigeon(config);
   // await ellipsis.createEmu(config);
   // await ellipsis.createAlbatross(config);
   // await ellipsis.createRooster(config);

@@ -18,7 +18,7 @@ module.exports = {
 
     await applySecrets(config);
 
-    await applyStorage(config);
+    await applyStorage(config, vpc);
 
     await applyVarious(config);
 
@@ -179,15 +179,33 @@ async function applySecrets(config) {
   ]);
 }
 
-async function applyStorage(config) {
+async function applyStorage(config, vpc) {
   await kubectl.apply('../storage/ebs-sc.yaml');
+
   await kubectl.apply('../storage/efs-sc.yaml');
   await kubectl.apply('../storage/efs-finch-sc.yaml');
 
-  await kubectl.apply('../storage/efs-pv.yaml');
+  await createEfsAndPersistentVolume(vpc, 'efs');
+  await createEfsAndPersistentVolume(vpc, 'efs-finch');
 
   await kubectl.apply('../storage/finch-1-pvc.yaml');
   await kubectl.apply('../storage/etmpfs-pvc.yaml');
+}
+
+async function createEfsAndPersistentVolume( vpc, baseName) {
+  let efsId = await aws.createEfs();
+  await aws.attachEfsToSubnet(efsId, vpc.privateSubnetId1);
+  await aws.attachEfsToSubnet(efsId, vpc.privateSubnetId2);
+
+  let clusterTemplate = utilities.loadFile('../storage/efs-pv.yaml');
+
+  let substitutes = [{ key: 'storageClassName', value: `${baseName}-sc` }, { key: 'efsId', value: efsId }];
+
+  clusterTemplate = utilities.substituteMulti(clusterTemplate, substitutes);
+
+  utilities.saveFile(`../build/${baseName}-pv.yaml`, clusterTemplate);
+
+  await kubectl.apply(`../build/${baseName}-pv.yaml`);
 }
 
 async function applyVarious(config) {
