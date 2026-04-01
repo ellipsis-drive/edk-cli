@@ -77,6 +77,8 @@ async function createCluster(config, vpc) {
 async function createVpc(config) {
   let vpcId = await aws.createVpc();
 
+  await aws.enabledDnsHostnames(vpcId);
+
   let publicSubnetId1 = await aws.createSubnet(vpcId, config.masterZone + 'b', '10.0.1.0/20', true);
   let privateSubnetId1 = await aws.createSubnet(vpcId, config.masterZone + 'b', '10.0.16.0/20', false);
   let publicSubnetId2 = await aws.createSubnet(vpcId, config.masterZone + 'a', '10.0.128.0/20', true);
