@@ -29,7 +29,7 @@ async function test() {
   // await ellipsis.createPigeon(config);
   // await ellipsis.createRooster(config);
   // await ellipsis.createEmu(config);
-  // await ellipsis.createAlbatross(config);
+  await ellipsis.createAlbatross(config);
   // await ellipsis.createPenguin(config);
 
   console.log(vpc);

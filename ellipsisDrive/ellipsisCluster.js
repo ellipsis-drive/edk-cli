@@ -238,6 +238,8 @@ async function createAlbatross(config) {
   kubectl.apply('../albatross/rasterMaster/raster-master.yaml');
   kubectl.apply('../albatross/vectorMaster/vector-master.yaml');
   kubectl.apply('../albatross/pointCloudMaster/point-cloud-master.yaml');
+  kubectl.apply('../albatross/exportMaster/export-master.yaml');
+  kubectl.apply('../albatross/importMaster/import-master.yaml');
 }
 
 async function setupIngress(config) {
