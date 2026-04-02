@@ -1,0 +1,61 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: import-worker
+  labels:
+    ellipsis-drive: import-worker
+spec:
+  replicas: 0
+  selector:
+    matchLabels:
+      ellipsis-drive: import-worker
+  template:
+    metadata:
+      labels:
+        ellipsis-drive: import-worker
+    spec:
+      containers:
+      - name: import-worker
+        image: ghcr.io/ellipsis-drive/import-worker:latest
+        resources:
+          requests:
+            cpu: 4
+            memory: 32Gi
+        env:
+          - name: POSTGRES_APP_PASS
+            valueFrom:
+              secretKeyRef:
+                name: owl-db-password
+                key: password
+          - name: POD_NAME
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.name
+          - name: INTERNAL_MAIL
+            valueFrom:
+              secretKeyRef:
+                name: internal-mail
+                key: username
+          - name: INTERNAL_MAIL_PASS
+            valueFrom:
+              secretKeyRef:
+                name: internal-mail
+                key: password
+        envFrom:
+          - configMapRef:
+              name: ellipsis
+        volumeMounts:
+          - name: etmpfs
+            mountPath: /mnt/etmpfs
+          - name: tmpfs
+            mountPath: /mnt/tmpfs  
+      imagePullSecrets:
+        - name: ghcr-secret
+      volumes:
+        - name: etmpfs
+          persistentVolumeClaim:
+            claimName: etmpfs
+        - name: tmpfs
+          emptyDir:
+            medium: Memory
+            sizeLimit: 2Gi
