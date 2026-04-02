@@ -22,7 +22,7 @@ module.exports = {
   },
 
   createCertificate: async (name, documentPath) => {
-    let certificate = await cmd.executeCommandSimple(`aws acm request-certificate --domain-name ${name}`);
+    let certificate = await cmd.executeCommandSimple(`aws acm request-certificate --domain-name ${name} --validation-method DNS`);
 
     certificate = JSON.parse(certificate);
 
