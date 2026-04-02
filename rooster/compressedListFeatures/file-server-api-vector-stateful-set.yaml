@@ -42,7 +42,7 @@ spec:
       spec:
         accessModes:
           - ReadWriteOnce
-        storageClassName: ebs-s2
+        storageClassName: ebs-sc
         resources:
           requests:
             storage: 10Gi

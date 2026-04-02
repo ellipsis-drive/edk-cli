@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: subscription-monitor-deployment
+  name: subscription-monitor
   labels:
     ellipsis-drive: subscription-monitor
 spec:

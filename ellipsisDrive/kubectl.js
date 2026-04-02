@@ -1,8 +1,8 @@
 const cmd = require('./cmd');
 
 module.exports = {
-  apply: async (path) => {
-    await cmd.executeCommandSimple(`kubectl apply -f ${path}`);
+  apply: async (path, serverSide = false) => {
+    await cmd.executeCommandSimple(`kubectl apply ${serverSide ? '--server-side' : ''} -f ${path}`);
   },
 
   create: async (path) => {
@@ -14,7 +14,15 @@ module.exports = {
   },
 
   createSecret: async (name, keyValues) => {
-    let literalParts = keyValues.map((x) => `--from-literal=${x.key}=${x.value}`);
+    let secrets = await cmd.executeCommandSimple(`kubectl get secrets -o json`);
+
+    secrets = JSON.parse(secrets);
+
+    if (secrets.items.find((x) => x.metadata.name === name)) {
+      return;
+    }
+
+    let literalParts = keyValues.map((x) => `--from-literal=${x.key}="${x.value}"`);
     literalParts = literalParts.join(' ');
 
     await cmd.executeCommandSimple(`kubectl create secret generic ${name} ${literalParts}`)
@@ -25,6 +33,6 @@ module.exports = {
   },
 
   createConfigmap: async (name, dataSource) => {
-    await cmd.executeCommandSimple(`kubectl create configmap ${name} ${dataSource.type === 'file' ? `--from-file=${dataSource.fileName}` : ''}`);
+    await cmd.executeCommandSimple(`kubectl create configmap ${name} ${dataSource.type === 'file' ? `--from-env-file=${dataSource.fileName}` : ''}`);
   }
 }

@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: rooster-1-list-features-deployment
+  name: rooster-1-list-features
   labels:
     ellipsis-drive: rooster-1-list-features
 spec:

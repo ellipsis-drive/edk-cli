@@ -42,8 +42,6 @@ data:
     -- PostgreSQL database dump
     --
 
-    \restrict YhDIqhHcvFZL9ZWeWoZLwEJ1MJLzAi9YFrkx9VoRIuJvJl4GCRumqVgMtnG3mNR
-
     -- Dumped from database version 14.18 (Ubuntu 14.18-0ubuntu0.22.04.1)
     -- Dumped by pg_dump version 14.19 (Ubuntu 14.19-0ubuntu0.22.04.1)
 
@@ -12317,5 +12315,3 @@ data:
     --
     -- PostgreSQL database dump complete
     --
-
-    \unrestrict YhDIqhHcvFZL9ZWeWoZLwEJ1MJLzAi9YFrkx9VoRIuJvJl4GCRumqVgMtnG3mNR

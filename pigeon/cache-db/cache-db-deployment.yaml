@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: cache-db-deployment
+  name: cache-db
   labels:
     ellipsis-drive: cache-db
 spec:

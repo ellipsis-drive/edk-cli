@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: create-raster-bounds-deployment
+  name: create-raster-bounds
   labels:
     ellipsis-drive: create-raster-bounds
 spec:

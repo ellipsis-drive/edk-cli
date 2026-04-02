@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: socket-deployment
+  name: socket
   labels:
     ellipsis-drive: socket
 spec:
@@ -36,16 +36,6 @@ spec:
               secretKeyRef:
                 name: pigeon-db-password
                 key: password
-          - name: API_TO_PYTHON_HANDSHAKE
-            valueFrom:
-              secretKeyRef:
-                name: pigeon-socket-handshake
-                key: api
-          - name: PYTHON_TO_API_HANDSHAKE
-            valueFrom:
-              secretKeyRef:
-                name: pigeon-socket-handshake
-                key: python
           - name: NUMBER_OF_API_PROCESSES
             value: "2"
         volumeMounts:

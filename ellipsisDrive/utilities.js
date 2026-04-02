@@ -1,4 +1,5 @@
 const fs = require('fs');
+const getDirName = require('path').dirname;
 
 module.exports = {
   loadFile: (path) => {
@@ -10,7 +11,13 @@ module.exports = {
   },
 
   saveFile: (path, contents) => {
-    fs.writeFileSync(path, contents);
+    fs.mkdir(getDirName(path), { recursive: true }, function (err) {
+      if (err) {
+        throw(err);
+      }
+
+      fs.writeFileSync(path, contents);
+    });
   },
 
   substituteMulti: (text, keyValues) => {

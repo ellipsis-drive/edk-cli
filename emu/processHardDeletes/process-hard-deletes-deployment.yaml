@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: process-hard-deletes-deployment
+  name: process-hard-deletes
   labels:
     ellipsis-drive: process-hard-deletes
 spec:

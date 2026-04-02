@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: user-deletion-management-deployment
+  name: user-deletion-management
   labels:
     ellipsis-drive: user-deletion-management
 spec:

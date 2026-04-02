@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: process-path-rename-deployment
+  name: process-path-rename
   labels:
     ellipsis-drive: process-path-rename
 spec:

@@ -41,7 +41,7 @@ spec:
         volumeMounts:
           - name: etmpfs
             mountPath: /mnt/etmpfs
-          - name: finch-1-fra
+          - name: finch-1
             mountPath: /mnt/finch
       imagePullSecrets:
         - name: ghcr-secret
@@ -49,6 +49,6 @@ spec:
         - name: etmpfs
           persistentVolumeClaim:
             claimName: etmpfs
-        - name: finch-1-fra
+        - name: finch-1
           persistentVolumeClaim:
-            claimName: finch-1-fra
+            claimName: finch-1

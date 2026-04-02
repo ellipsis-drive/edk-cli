@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: invalidation-task-aggregator-deployment
+  name: invalidation-task-aggregator
   labels:
     ellipsis-drive: invalidation-task-aggregator
 spec:

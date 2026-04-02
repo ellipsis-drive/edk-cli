@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: create-shape-bounds-deployment
+  name: create-shape-bounds
   labels:
     ellipsis-drive: create-shape-bounds
 spec:

@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: search-updater-deployment
+  name: search-updater
   labels:
     ellipsis-drive: search-updater
 spec:

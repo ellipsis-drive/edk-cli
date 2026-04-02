@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: email-sender-deployment
+  name: email-sender
   labels:
     ellipsis-drive: email-sender
 spec:

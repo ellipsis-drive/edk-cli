@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: bucket-management-deployment
+  name: bucket-management
   labels:
     ellipsis-drive: bucket-management
 spec:
