@@ -237,7 +237,7 @@ async function createAlbatross(config) {
   kubectl.apply('../albatross/cluster-master-service-account.yaml');
   kubectl.apply('../albatross/rasterMaster/raster-master.yaml');
   kubectl.apply('../albatross/vectorMaster/vector-master.yaml');
-  kubectl.apply('../albatross/pointCloud/point-cloud-master.yaml');
+  kubectl.apply('../albatross/pointCloudMaster/point-cloud-master.yaml');
 }
 
 async function setupIngress(config) {
