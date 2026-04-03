@@ -13,7 +13,7 @@ data:
     VALUES (1, 'finch-1', 'finch', null);
 
     INSERT INTO servers (location_id, name, type, ip, api_url)
-    VALUES (1, 'pigeon-1', 'pigeon', 'cache-db-rw', 'http://api:7556');
+    VALUES (1, 'pigeon-1', 'pigeon', 'cache-db-rw', '<<<apiUrl>>>');
 
     INSERT INTO servers (location_id, name, type, ip)
     VALUES (1, 'rooster-1', 'rooster', 'rooster-rw');

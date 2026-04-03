@@ -230,7 +230,7 @@ async function createBuckets(config) {
 async function createOwl(config) {
   let clusterTemplate = utilities.loadFile('../owl/owl-data-config-map.yaml');
 
-  let substitutes = [{ key: 'masterZone', value: config['masterZone']}];
+  let substitutes = [{ key: 'masterZone', value: config['masterZone'] }, { key: 'apiUrl', value: config['apiUrl'] }]; 
 
   clusterTemplate = utilities.substituteMulti(clusterTemplate, substitutes);
 
