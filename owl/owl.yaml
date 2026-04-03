@@ -25,7 +25,9 @@ spec:
         configMapRefs:
         - name: owl-init-database
           key: database.sql
-        - name: owl-init-database
+        - name: owl-data-database
+          key: queries.sql
+        - name: icons-init-database
           key: queries.sql
 
   resources:

@@ -3,47 +3,13 @@ kind: ConfigMap
 metadata:
   name: owl-init-database
 data:
-  queries.sql: |
-    INSERT INTO locations (uuid, city, country, x, y, availability_zone)
-    VALUES (UUID_GENERATE_V4(), 'Montreal', 'Canada', -73.62515822620395, 45.52216017892998, 'ca-central-1b');
-
-    INSERT INTO servers (location_id, name, type, ip)
-    VALUES (1, 'finch-1', 'finch', '10.0.140.134');
-
-    INSERT INTO servers (location_id, name, type, ip, api_url)
-    VALUES (1, 'pigeon-1', 'pigeon', '10.0.4.105', 'https://dev.setup.api.ellipsis-drive.com');
-
-    INSERT INTO servers (location_id, name, type, ip)
-    VALUES (1, 'rooster-1', 'rooster', '10.0.143.163');
-
-    INSERT INTO servers (location_id, name, type, ip)
-    VALUES (1, 'gull-1', 'gull', '10.0.128.10');
-
-
-    INSERT INTO users (uuid, username, password, email, coins, registration_date, commercial, location_id, disabled)
-    VALUES (UUID_GENERATE_V4(), 'admin', '$2b$10$FKp4SeBmKu26RwLjJnDNt.pzrwKdybnLlAa0SOSwrD4IuqAoHIari', 'daniel@ellipsis-drive.com', 0, NOW(), true, 1, false);
-
-    INSERT INTO user_plans (user_id, storage_limit, storage_fee, service_fee, next_service_fee, max_negative, last_changed, paid_till, storage_discount_factor, processing_units_fee, cold_storage_factor)
-    VALUES (1, 10000, 0, 0, 0, -10000, NOW(), NOW() + INTERVAL '1 MONTH', 0, 0, 1);
-
-    INSERT INTO user_history (user_id, date, actions, storage, max_storage, cluster_usage, upload_usage, map_usage, max_processing_units, created_maps, created_files)
-    VALUES (1, date_trunc('month', NOW()), 0, 0, 10000, 0, 0, 0, 1000000000, 0, 0), (1, date_trunc('month', NOW() + INTERVAL '1 MONTH'), 0, 0, 10000, 0, 0, 0, 1000000000, 0, 0);
-
-    INSERT INTO users (uuid, username, password, email, coins, registration_date, location_id)
-    VALUES (UUID_GENERATE_V4(), 'backoffice', '$2b$10$FKp4SeBmKu26RwLjJnDNt.pzrwKdybnLlAa0SOSwrD4IuqAoHIari', 'rens@ellipsis-newsletter.com', 0, NOW(), 1);
-
-    INSERT INTO user_plans (user_id, storage_limit, storage_fee, service_fee, next_service_fee, max_negative, last_changed, paid_till, storage_discount_factor, processing_units_fee, cold_storage_factor)
-    VALUES (2, 10000, 0, 0, 0, -10000, NOW(), NOW() + INTERVAL '1 MONTH', 0, 0, 1);
-
-    INSERT INTO user_history (user_id, date, actions, storage, max_storage, cluster_usage, upload_usage, map_usage, max_processing_units, created_maps, created_files)
-    VALUES (2, date_trunc('month', NOW()), 0, 0, 10000, 0, 0, 0, 1000000000, 0, 0), (2, date_trunc('month', NOW() + INTERVAL '1 MONTH'), 0, 0, 10000, 0, 0, 0, 1000000000, 0, 0);
   database.sql: |
     --
     -- PostgreSQL database dump
     --
 
     -- Dumped from database version 14.18 (Ubuntu 14.18-0ubuntu0.22.04.1)
-    -- Dumped by pg_dump version 14.19 (Ubuntu 14.19-0ubuntu0.22.04.1)
+    -- Dumped by pg_dump version 14.22 (Ubuntu 14.22-0ubuntu0.22.04.1)
 
     SET statement_timeout = 0;
     SET lock_timeout = 0;
@@ -106,9 +72,9 @@ data:
         LANGUAGE plpgsql IMMUTABLE
         AS $_$
     BEGIN
-      RETURN CASE WHEN $1::TIMESTAMP WITHOUT TIME ZONE IS NULL THEN FALSE ELSE TRUE END;
+    RETURN CASE WHEN $1::TIMESTAMP WITHOUT TIME ZONE IS NULL THEN FALSE ELSE TRUE END;
     EXCEPTION WHEN OTHERS THEN
-      RETURN FALSE;
+    RETURN FALSE;
     END;$_$;
 
 
@@ -122,9 +88,9 @@ data:
         LANGUAGE plpgsql IMMUTABLE
         AS $_$
     BEGIN
-      RETURN CASE WHEN $1::NUMERIC IS NULL THEN FALSE ELSE TRUE END;
+    RETURN CASE WHEN $1::NUMERIC IS NULL THEN FALSE ELSE TRUE END;
     EXCEPTION WHEN OTHERS THEN
-      RETURN FALSE;
+    RETURN FALSE;
     END;$_$;
 
 
@@ -139,8 +105,8 @@ data:
         AS $$
     DECLARE
     BEGIN
-      PERFORM pg_notify(CAST('aggregated_invalidation_tasks' AS text), CAST(NEW.id AS text));
-      RETURN NEW;
+    PERFORM pg_notify(CAST('aggregated_invalidation_tasks' AS text), CAST(NEW.id AS text));
+    RETURN NEW;
     END;
     $$;
 
@@ -667,7 +633,6 @@ data:
         status character varying(32),
         message character varying(512),
         requirements character varying(2048),
-        code bytea,
         result text,
         interpreter character varying(32),
         nodes integer,
@@ -678,7 +643,8 @@ data:
         large_result boolean,
         size numeric DEFAULT 0,
         files jsonb,
-        write_to_layer jsonb
+        write_to_layer jsonb,
+        code character varying
     );
 
 
@@ -1680,7 +1646,8 @@ data:
         public_access_token_id integer,
         geometry_upload_id integer,
         personal_access_token_id integer,
-        extent_epsg integer
+        extent_epsg integer,
+        geofence jsonb
     );
 
 
@@ -3013,7 +2980,8 @@ data:
         projection_zoom jsonb DEFAULT '{}'::jsonb,
         finish_run_copying boolean DEFAULT false,
         cleaned boolean DEFAULT false,
-        version smallint DEFAULT 1
+        version smallint DEFAULT 1,
+        remote boolean DEFAULT false
     );
 
 
@@ -3454,6 +3422,19 @@ data:
 
     ALTER SEQUENCE public.monitoring_projects_satellite_id_seq OWNED BY public.monitoring_projects.data_source_id;
 
+
+    --
+    -- Name: nexus_openid_sessions; Type: TABLE; Schema: public; Owner: ellipsis_app
+    --
+
+    CREATE TABLE public.nexus_openid_sessions (
+        session_id character varying NOT NULL,
+        session json NOT NULL,
+        date timestamp without time zone NOT NULL
+    );
+
+
+    ALTER TABLE public.nexus_openid_sessions OWNER TO ellipsis_app;
 
     --
     -- Name: notifications; Type: TABLE; Schema: public; Owner: ellipsis_app
@@ -4059,6 +4040,7 @@ data:
         organization_group_id integer,
         is_organization_group boolean DEFAULT false,
         property_fence text[],
+        allowed_bounds jsonb,
         CONSTRAINT path_users_fee_two_decimals CHECK ((fee = round(fee, 2)))
     );
 
@@ -4110,7 +4092,8 @@ data:
         description character varying(2500),
         size numeric DEFAULT 0,
         size_change_date timestamp without time zone DEFAULT now(),
-        property_fence text[]
+        property_fence text[],
+        allowed_bounds jsonb
     );
 
 
@@ -4298,7 +4281,8 @@ data:
         path_id integer,
         access_level integer NOT NULL,
         max_zoom integer,
-        property_fence text[]
+        property_fence text[],
+        allowed_bounds jsonb
     );
 
 
@@ -4510,7 +4494,8 @@ data:
         send_mail boolean,
         worker_node character varying(32),
         extent_epsg integer,
-        personal_access_token_id integer
+        personal_access_token_id integer,
+        geofence jsonb
     );
 
 
@@ -5158,7 +5143,9 @@ data:
         upload_id integer,
         epsg integer,
         public_access_token_id integer,
-        personal_access_token_id integer
+        personal_access_token_id integer,
+        mask character varying(1024),
+        geofence jsonb
     );
 
 
@@ -5248,7 +5235,9 @@ data:
         need_transfer boolean DEFAULT false,
         scale_factor real,
         cleaned boolean DEFAULT false,
-        cleaned_date timestamp without time zone DEFAULT '-infinity'::timestamp without time zone
+        cleaned_date timestamp without time zone DEFAULT '-infinity'::timestamp without time zone,
+        remote_info jsonb,
+        remote boolean DEFAULT false
     );
 
 
@@ -5273,6 +5262,44 @@ data:
     --
 
     ALTER SEQUENCE public.raster_uploads_id_seq OWNED BY public.raster_uploads.id;
+
+
+    --
+    -- Name: remote_login_sessions; Type: TABLE; Schema: public; Owner: ellipsis_app
+    --
+
+    CREATE TABLE public.remote_login_sessions (
+        id integer NOT NULL,
+        uuid uuid NOT NULL,
+        status character varying(64),
+        user_id integer,
+        ip inet,
+        date timestamp without time zone NOT NULL
+    );
+
+
+    ALTER TABLE public.remote_login_sessions OWNER TO ellipsis_app;
+
+    --
+    -- Name: remote_login_sessions_id_seq; Type: SEQUENCE; Schema: public; Owner: ellipsis_app
+    --
+
+    CREATE SEQUENCE public.remote_login_sessions_id_seq
+        AS integer
+        START WITH 1
+        INCREMENT BY 1
+        NO MINVALUE
+        NO MAXVALUE
+        CACHE 1;
+
+
+    ALTER TABLE public.remote_login_sessions_id_seq OWNER TO ellipsis_app;
+
+    --
+    -- Name: remote_login_sessions_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: ellipsis_app
+    --
+
+    ALTER SEQUENCE public.remote_login_sessions_id_seq OWNED BY public.remote_login_sessions.id;
 
 
     --
@@ -6987,7 +7014,8 @@ data:
 
     CREATE TABLE public.ui_theme (
         type character varying(32),
-        value character varying
+        value character varying,
+        environment character varying(256) DEFAULT 'default'::character varying
     );
 
 
@@ -7358,6 +7386,7 @@ data:
         delete_date timestamp without time zone,
         recalculating_storage boolean DEFAULT false,
         is_organization boolean DEFAULT false,
+        nexus_id character varying(64),
         CONSTRAINT coins_not_nan CHECK (((coins <> 'NaN'::numeric) AND (coins IS NOT NULL)))
     );
 
@@ -8240,6 +8269,13 @@ data:
 
 
     --
+    -- Name: remote_login_sessions id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
+    --
+
+    ALTER TABLE ONLY public.remote_login_sessions ALTER COLUMN id SET DEFAULT nextval('public.remote_login_sessions_id_seq'::regclass);
+
+
+    --
     -- Name: rename_tasks id; Type: DEFAULT; Schema: public; Owner: ellipsis_app
     --
 
@@ -8997,6 +9033,14 @@ data:
 
 
     --
+    -- Name: nexus_openid_sessions nexus_session_pkey; Type: CONSTRAINT; Schema: public; Owner: ellipsis_app
+    --
+
+    ALTER TABLE ONLY public.nexus_openid_sessions
+        ADD CONSTRAINT nexus_session_pkey PRIMARY KEY (session_id);
+
+
+    --
     -- Name: notifications notifications_pkey; Type: CONSTRAINT; Schema: public; Owner: ellipsis_app
     --
 
@@ -9322,6 +9366,14 @@ data:
 
     ALTER TABLE ONLY public.raster_uploads
         ADD CONSTRAINT raster_uploads_pkey PRIMARY KEY (id);
+
+
+    --
+    -- Name: remote_login_sessions remote_login_sessions_pkey; Type: CONSTRAINT; Schema: public; Owner: ellipsis_app
+    --
+
+    ALTER TABLE ONLY public.remote_login_sessions
+        ADD CONSTRAINT remote_login_sessions_pkey PRIMARY KEY (id);
 
 
     --
@@ -9674,6 +9726,13 @@ data:
 
     ALTER TABLE ONLY public.users
         ADD CONSTRAINT users_uuid_key UNIQUE (uuid);
+
+
+    --
+    -- Name: IDX_nexus_session_date; Type: INDEX; Schema: public; Owner: ellipsis_app
+    --
+
+    CREATE INDEX "IDX_nexus_session_date" ON public.nexus_openid_sessions USING btree (date);
 
 
     --
@@ -10923,6 +10982,13 @@ data:
 
 
     --
+    -- Name: single_remote_file; Type: INDEX; Schema: public; Owner: ellipsis_app
+    --
+
+    CREATE UNIQUE INDEX single_remote_file ON public.raster_uploads USING btree (map_timestamp_id) WHERE ((remote = true) AND (hard_deleted = false) AND ((status)::text = 'completed'::text));
+
+
+    --
     -- Name: slp_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e_1; Type: INDEX; Schema: public; Owner: ellipsis_app
     --
 
@@ -11231,11 +11297,9 @@ data:
 
     GRANT ALL ON SCHEMA public TO ellipsis_app;
 
-
     --
     -- Name: TABLE add_polygon_queue; Type: ACL; Schema: public; Owner: ellipsis_app
     --
-
 
 
     --
@@ -11243,11 +11307,9 @@ data:
     --
 
 
-
     --
     -- Name: TABLE aggregated_map_actions_day_history; Type: ACL; Schema: public; Owner: ellipsis_app
     --
-
 
 
     --
@@ -11255,11 +11317,9 @@ data:
     --
 
 
-
     --
     -- Name: TABLE api_calls; Type: ACL; Schema: public; Owner: ellipsis_app
     --
-
 
 
     --
@@ -11267,11 +11327,9 @@ data:
     --
 
 
-
     --
     -- Name: TABLE aws_marketplace_tokens; Type: ACL; Schema: public; Owner: ellipsis_app
     --
-
 
 
     --
@@ -11279,11 +11337,9 @@ data:
     --
 
 
-
     --
     -- Name: TABLE band_data_sources; Type: ACL; Schema: public; Owner: ellipsis_app
     --
-
 
 
     --
@@ -11291,11 +11347,9 @@ data:
     --
 
 
-
     --
     -- Name: TABLE band_spectral_indices; Type: ACL; Schema: public; Owner: ellipsis_app
     --
-
 
 
     --
@@ -11303,11 +11357,9 @@ data:
     --
 
 
-
     --
     -- Name: TABLE cloud_errors; Type: ACL; Schema: public; Owner: ellipsis_app
     --
-
 
 
     --
@@ -11315,11 +11367,9 @@ data:
     --
 
 
-
     --
     -- Name: TABLE compute_tasks; Type: ACL; Schema: public; Owner: ellipsis_app
     --
-
 
 
     --
@@ -11327,11 +11377,9 @@ data:
     --
 
 
-
     --
     -- Name: TABLE correct_tile_queue; Type: ACL; Schema: public; Owner: ellipsis_app
     --
-
 
 
     --
@@ -11339,11 +11387,9 @@ data:
     --
 
 
-
     --
     -- Name: TABLE coupled_dems; Type: ACL; Schema: public; Owner: ellipsis_app
     --
-
 
 
     --
@@ -11351,11 +11397,9 @@ data:
     --
 
 
-
     --
     -- Name: TABLE custom_polygon_layer_properties; Type: ACL; Schema: public; Owner: ellipsis_app
     --
-
 
 
     --
@@ -11363,11 +11407,9 @@ data:
     --
 
 
-
     --
     -- Name: TABLE custom_polygon_messages; Type: ACL; Schema: public; Owner: ellipsis_app
     --
-
 
 
     --
@@ -11375,11 +11417,9 @@ data:
     --
 
 
-
     --
     -- Name: TABLE data_source_bands; Type: ACL; Schema: public; Owner: ellipsis_app
     --
-
 
 
     --
@@ -11387,11 +11427,9 @@ data:
     --
 
 
-
     --
     -- Name: TABLE data_source_model_collections; Type: ACL; Schema: public; Owner: ellipsis_app
     --
-
 
 
     --
@@ -11399,11 +11437,9 @@ data:
     --
 
 
-
     --
     -- Name: TABLE data_sources; Type: ACL; Schema: public; Owner: ellipsis_app
     --
-
 
 
     --
@@ -11411,11 +11447,9 @@ data:
     --
 
 
-
     --
     -- Name: TABLE drive_exports; Type: ACL; Schema: public; Owner: ellipsis_app
     --
-
 
 
     --
@@ -11423,11 +11457,9 @@ data:
     --
 
 
-
     --
     -- Name: TABLE email_validation_tokens; Type: ACL; Schema: public; Owner: ellipsis_app
     --
-
 
 
     --
@@ -11435,11 +11467,9 @@ data:
     --
 
 
-
     --
     -- Name: TABLE file_system_backup_info; Type: ACL; Schema: public; Owner: ellipsis_app
     --
-
 
 
     --
@@ -11447,11 +11477,9 @@ data:
     --
 
 
-
     --
     -- Name: TABLE files; Type: ACL; Schema: public; Owner: ellipsis_app
     --
-
 
 
     --
@@ -11459,11 +11487,9 @@ data:
     --
 
 
-
     --
     -- Name: TABLE geometry_cluster_tasks; Type: ACL; Schema: public; Owner: ellipsis_app
     --
-
 
 
     --
@@ -11471,11 +11497,9 @@ data:
     --
 
 
-
     --
     -- Name: TABLE geometry_downloads; Type: ACL; Schema: public; Owner: ellipsis_app
     --
-
 
 
     --
@@ -11483,11 +11507,9 @@ data:
     --
 
 
-
     --
     -- Name: TABLE group_api_call_costs; Type: ACL; Schema: public; Owner: ellipsis_app
     --
-
 
 
     --
@@ -11495,11 +11517,9 @@ data:
     --
 
 
-
     --
     -- Name: TABLE groups; Type: ACL; Schema: public; Owner: ellipsis_app
     --
-
 
 
     --
@@ -11507,11 +11527,9 @@ data:
     --
 
 
-
     --
     -- Name: TABLE gsh_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e; Type: ACL; Schema: public; Owner: ellipsis_app
     --
-
 
 
     --
@@ -11519,11 +11537,9 @@ data:
     --
 
 
-
     --
     -- Name: TABLE hashtags; Type: ACL; Schema: public; Owner: ellipsis_app
     --
-
 
 
     --
@@ -11531,11 +11547,9 @@ data:
     --
 
 
-
     --
     -- Name: TABLE image_types; Type: ACL; Schema: public; Owner: ellipsis_app
     --
-
 
 
     --
@@ -11543,11 +11557,9 @@ data:
     --
 
 
-
     --
     -- Name: TABLE invite_validation_tokens; Type: ACL; Schema: public; Owner: ellipsis_app
     --
-
 
 
     --
@@ -11555,11 +11567,9 @@ data:
     --
 
 
-
     --
     -- Name: TABLE locations; Type: ACL; Schema: public; Owner: ellipsis_app
     --
-
 
 
     --
@@ -11567,11 +11577,9 @@ data:
     --
 
 
-
     --
     -- Name: TABLE map_actions_log; Type: ACL; Schema: public; Owner: ellipsis_app
     --
-
 
 
     --
@@ -11579,11 +11587,9 @@ data:
     --
 
 
-
     --
     -- Name: TABLE map_actions_day_history_old; Type: ACL; Schema: public; Owner: ellipsis_app
     --
-
 
 
     --
@@ -11591,11 +11597,9 @@ data:
     --
 
 
-
     --
     -- Name: TABLE map_api_call_costs; Type: ACL; Schema: public; Owner: ellipsis_app
     --
-
 
 
     --
@@ -11603,11 +11607,9 @@ data:
     --
 
 
-
     --
     -- Name: TABLE map_bands; Type: ACL; Schema: public; Owner: ellipsis_app
     --
-
 
 
     --
@@ -11615,11 +11617,9 @@ data:
     --
 
 
-
     --
     -- Name: TABLE map_coin_day_history; Type: ACL; Schema: public; Owner: ellipsis_app
     --
-
 
 
     --
@@ -11627,11 +11627,9 @@ data:
     --
 
 
-
     --
     -- Name: TABLE map_external_layers; Type: ACL; Schema: public; Owner: ellipsis_app
     --
-
 
 
     --
@@ -11639,11 +11637,9 @@ data:
     --
 
 
-
     --
     -- Name: TABLE map_layer_bands; Type: ACL; Schema: public; Owner: ellipsis_app
     --
-
 
 
     --
@@ -11651,11 +11647,9 @@ data:
     --
 
 
-
     --
     -- Name: TABLE map_projections; Type: ACL; Schema: public; Owner: ellipsis_app
     --
-
 
 
     --
@@ -11663,11 +11657,9 @@ data:
     --
 
 
-
     --
     -- Name: TABLE map_timestamp_layers; Type: ACL; Schema: public; Owner: ellipsis_app
     --
-
 
 
     --
@@ -11675,11 +11667,9 @@ data:
     --
 
 
-
     --
     -- Name: TABLE map_user_history; Type: ACL; Schema: public; Owner: ellipsis_app
     --
-
 
 
     --
@@ -11687,11 +11677,9 @@ data:
     --
 
 
-
     --
     -- Name: TABLE maps; Type: ACL; Schema: public; Owner: ellipsis_app
     --
-
 
 
     --
@@ -11699,11 +11687,9 @@ data:
     --
 
 
-
     --
     -- Name: TABLE model_collection_classes; Type: ACL; Schema: public; Owner: ellipsis_app
     --
-
 
 
     --
@@ -11711,11 +11697,9 @@ data:
     --
 
 
-
     --
     -- Name: TABLE models; Type: ACL; Schema: public; Owner: ellipsis_app
     --
-
 
 
     --
@@ -11723,11 +11707,14 @@ data:
     --
 
 
+    --
+    -- Name: TABLE nexus_openid_sessions; Type: ACL; Schema: public; Owner: ellipsis_app
+    --
+
 
     --
     -- Name: TABLE notifications; Type: ACL; Schema: public; Owner: ellipsis_app
     --
-
 
 
     --
@@ -11735,11 +11722,9 @@ data:
     --
 
 
-
     --
     -- Name: TABLE oauth_clients; Type: ACL; Schema: public; Owner: ellipsis_app
     --
-
 
 
     --
@@ -11747,11 +11732,9 @@ data:
     --
 
 
-
     --
     -- Name: TABLE oauth_tokens; Type: ACL; Schema: public; Owner: ellipsis_app
     --
-
 
 
     --
@@ -11759,11 +11742,9 @@ data:
     --
 
 
-
     --
     -- Name: TABLE organization_group_users; Type: ACL; Schema: public; Owner: ellipsis_app
     --
-
 
 
     --
@@ -11771,11 +11752,9 @@ data:
     --
 
 
-
     --
     -- Name: TABLE pa_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e; Type: ACL; Schema: public; Owner: ellipsis_app
     --
-
 
 
     --
@@ -11783,11 +11762,9 @@ data:
     --
 
 
-
     --
     -- Name: TABLE path_hashtags; Type: ACL; Schema: public; Owner: ellipsis_app
     --
-
 
 
     --
@@ -11795,11 +11772,9 @@ data:
     --
 
 
-
     --
     -- Name: TABLE path_roots_search; Type: ACL; Schema: public; Owner: ellipsis_app
     --
-
 
 
     --
@@ -11807,11 +11782,9 @@ data:
     --
 
 
-
     --
     -- Name: TABLE path_subscribe; Type: ACL; Schema: public; Owner: ellipsis_app
     --
-
 
 
     --
@@ -11819,11 +11792,9 @@ data:
     --
 
 
-
     --
     -- Name: TABLE path_users; Type: ACL; Schema: public; Owner: ellipsis_app
     --
-
 
 
     --
@@ -11831,11 +11802,9 @@ data:
     --
 
 
-
     --
     -- Name: TABLE paths_search; Type: ACL; Schema: public; Owner: ellipsis_app
     --
-
 
 
     --
@@ -11843,11 +11812,9 @@ data:
     --
 
 
-
     --
     -- Name: TABLE patp_extents_old; Type: ACL; Schema: public; Owner: ellipsis_app
     --
-
 
 
     --
@@ -11855,11 +11822,9 @@ data:
     --
 
 
-
     --
     -- Name: TABLE personal_access_token_paths; Type: ACL; Schema: public; Owner: ellipsis_app
     --
-
 
 
     --
@@ -11867,11 +11832,9 @@ data:
     --
 
 
-
     --
     -- Name: TABLE pm_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e; Type: ACL; Schema: public; Owner: ellipsis_app
     --
-
 
 
     --
@@ -11879,11 +11842,9 @@ data:
     --
 
 
-
     --
     -- Name: TABLE pmt_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e; Type: ACL; Schema: public; Owner: ellipsis_app
     --
-
 
 
     --
@@ -11891,11 +11852,9 @@ data:
     --
 
 
-
     --
     -- Name: TABLE point_cloud_jobs; Type: ACL; Schema: public; Owner: ellipsis_app
     --
-
 
 
     --
@@ -11903,11 +11862,9 @@ data:
     --
 
 
-
     --
     -- Name: TABLE point_cloud_styles; Type: ACL; Schema: public; Owner: ellipsis_app
     --
-
 
 
     --
@@ -11915,11 +11872,9 @@ data:
     --
 
 
-
     --
     -- Name: TABLE point_cloud_uploads; Type: ACL; Schema: public; Owner: ellipsis_app
     --
-
 
 
     --
@@ -11927,11 +11882,9 @@ data:
     --
 
 
-
     --
     -- Name: TABLE processed_payments; Type: ACL; Schema: public; Owner: ellipsis_app
     --
-
 
 
     --
@@ -11939,11 +11892,9 @@ data:
     --
 
 
-
     --
     -- Name: TABLE project_change_types; Type: ACL; Schema: public; Owner: ellipsis_app
     --
-
 
 
     --
@@ -11951,11 +11902,9 @@ data:
     --
 
 
-
     --
     -- Name: TABLE project_models; Type: ACL; Schema: public; Owner: ellipsis_app
     --
-
 
 
     --
@@ -11963,11 +11912,9 @@ data:
     --
 
 
-
     --
     -- Name: TABLE project_spectral_indices; Type: ACL; Schema: public; Owner: ellipsis_app
     --
-
 
 
     --
@@ -11975,11 +11922,9 @@ data:
     --
 
 
-
     --
     -- Name: TABLE public_access_tokens; Type: ACL; Schema: public; Owner: ellipsis_app
     --
-
 
 
     --
@@ -11987,11 +11932,14 @@ data:
     --
 
 
-
     --
     -- Name: TABLE raster_uploads; Type: ACL; Schema: public; Owner: ellipsis_app
     --
 
+
+    --
+    -- Name: TABLE remote_login_sessions; Type: ACL; Schema: public; Owner: ellipsis_app
+    --
 
 
     --
@@ -11999,11 +11947,9 @@ data:
     --
 
 
-
     --
     -- Name: TABLE representatives; Type: ACL; Schema: public; Owner: ellipsis_app
     --
-
 
 
     --
@@ -12011,11 +11957,9 @@ data:
     --
 
 
-
     --
     -- Name: TABLE request_jobs; Type: ACL; Schema: public; Owner: ellipsis_app
     --
-
 
 
     --
@@ -12023,11 +11967,9 @@ data:
     --
 
 
-
     --
     -- Name: TABLE request_spectral_indices; Type: ACL; Schema: public; Owner: ellipsis_app
     --
-
 
 
     --
@@ -12035,11 +11977,9 @@ data:
     --
 
 
-
     --
     -- Name: TABLE reset_password_tokens; Type: ACL; Schema: public; Owner: ellipsis_app
     --
-
 
 
     --
@@ -12047,11 +11987,9 @@ data:
     --
 
 
-
     --
     -- Name: TABLE search_checkpoints; Type: ACL; Schema: public; Owner: ellipsis_app
     --
-
 
 
     --
@@ -12059,11 +11997,9 @@ data:
     --
 
 
-
     --
     -- Name: TABLE sent_user_emails; Type: ACL; Schema: public; Owner: ellipsis_app
     --
-
 
 
     --
@@ -12071,11 +12007,9 @@ data:
     --
 
 
-
     --
     -- Name: TABLE servers; Type: ACL; Schema: public; Owner: ellipsis_app
     --
-
 
 
     --
@@ -12083,11 +12017,9 @@ data:
     --
 
 
-
     --
     -- Name: TABLE shape_layer_graphs; Type: ACL; Schema: public; Owner: ellipsis_app
     --
-
 
 
     --
@@ -12095,11 +12027,9 @@ data:
     --
 
 
-
     --
     -- Name: TABLE shape_layer_style_rules; Type: ACL; Schema: public; Owner: ellipsis_app
     --
-
 
 
     --
@@ -12107,11 +12037,9 @@ data:
     --
 
 
-
     --
     -- Name: TABLE shape_layers; Type: ACL; Schema: public; Owner: ellipsis_app
     --
-
 
 
     --
@@ -12119,11 +12047,9 @@ data:
     --
 
 
-
     --
     -- Name: TABLE shapes_depricated; Type: ACL; Schema: public; Owner: ellipsis_app
     --
-
 
 
     --
@@ -12131,11 +12057,9 @@ data:
     --
 
 
-
     --
     -- Name: TABLE share_link_maps; Type: ACL; Schema: public; Owner: ellipsis_app
     --
-
 
 
     --
@@ -12143,11 +12067,9 @@ data:
     --
 
 
-
     --
     -- Name: TABLE share_links_old; Type: ACL; Schema: public; Owner: ellipsis_app
     --
-
 
 
     --
@@ -12155,11 +12077,9 @@ data:
     --
 
 
-
     --
     -- Name: TABLE slpt_3afee7d6_dfc1_4d4a_8cf7_95a3d447e69e; Type: ACL; Schema: public; Owner: ellipsis_app
     --
-
 
 
     --
@@ -12167,11 +12087,9 @@ data:
     --
 
 
-
     --
     -- Name: TABLE spectral_indices; Type: ACL; Schema: public; Owner: ellipsis_app
     --
-
 
 
     --
@@ -12179,11 +12097,9 @@ data:
     --
 
 
-
     --
     -- Name: TABLE starred_roots; Type: ACL; Schema: public; Owner: ellipsis_app
     --
-
 
 
     --
@@ -12191,11 +12107,9 @@ data:
     --
 
 
-
     --
     -- Name: TABLE storage_sizes; Type: ACL; Schema: public; Owner: ellipsis_app
     --
-
 
 
     --
@@ -12203,11 +12117,9 @@ data:
     --
 
 
-
     --
     -- Name: TABLE temporary; Type: ACL; Schema: public; Owner: ellipsis_app
     --
-
 
 
     --
@@ -12215,11 +12127,9 @@ data:
     --
 
 
-
     --
     -- Name: TABLE timestamp_image_types; Type: ACL; Schema: public; Owner: ellipsis_app
     --
-
 
 
     --
@@ -12227,11 +12137,9 @@ data:
     --
 
 
-
     --
     -- Name: TABLE timestamp_reruns; Type: ACL; Schema: public; Owner: ellipsis_app
     --
-
 
 
     --
@@ -12239,11 +12147,9 @@ data:
     --
 
 
-
     --
     -- Name: TABLE transfer_project_tokens; Type: ACL; Schema: public; Owner: ellipsis_app
     --
-
 
 
     --
@@ -12251,11 +12157,9 @@ data:
     --
 
 
-
     --
     -- Name: TABLE user_external_keys; Type: ACL; Schema: public; Owner: ellipsis_app
     --
-
 
 
     --
@@ -12263,11 +12167,9 @@ data:
     --
 
 
-
     --
     -- Name: TABLE user_favorite_paths; Type: ACL; Schema: public; Owner: ellipsis_app
     --
-
 
 
     --
@@ -12275,11 +12177,9 @@ data:
     --
 
 
-
     --
     -- Name: TABLE user_history; Type: ACL; Schema: public; Owner: ellipsis_app
     --
-
 
 
     --
@@ -12287,11 +12187,9 @@ data:
     --
 
 
-
     --
     -- Name: TABLE user_maps; Type: ACL; Schema: public; Owner: ellipsis_app
     --
-
 
 
     --
@@ -12299,17 +12197,14 @@ data:
     --
 
 
-
     --
     -- Name: TABLE users; Type: ACL; Schema: public; Owner: ellipsis_app
     --
 
 
-
     --
     -- Name: DEFAULT PRIVILEGES FOR TABLES; Type: DEFAULT ACL; Schema: public; Owner: ellipsis_app
     --
-
 
 
     --

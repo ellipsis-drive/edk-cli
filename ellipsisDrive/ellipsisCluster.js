@@ -228,8 +228,18 @@ async function createBuckets(config) {
 }
 
 async function createOwl(config) {
+  let clusterTemplate = utilities.loadFile('../owl/owl-data-config-map.yaml');
+
+  let substitutes = [{ key: 'masterZone', value: config['masterZone']}];
+
+  clusterTemplate = utilities.substituteMulti(clusterTemplate, substitutes);
+
+  utilities.saveFile('../build/owl-data-config-map.yaml', clusterTemplate);
+
   kubectl.apply('../owl/owl-pdb.yaml');
   kubectl.create('../owl/owl-queries-config-map.yaml');
+  kubectl.create('../build/owl-data-config-map.yaml');
+  kubectl.create('../owl/icons-queries-config-map.yaml');
   kubectl.apply('../owl/owl.yaml');
 }
 
