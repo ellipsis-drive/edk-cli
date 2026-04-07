@@ -258,6 +258,8 @@ async function setupIngress(config) {
 
 async function setupCloudnativepg(config) {
   await kubectl.apply('https://raw.githubusercontent.com/cloudnative-pg/cloudnative-pg/release-1.28/releases/cnpg-1.28.1.yaml', true);
+
+  await kubectl.waitForCloudnativePG();
 }
 
 async function setupEllipsisConfigmap(config) {

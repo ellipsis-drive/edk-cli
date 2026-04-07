@@ -14,7 +14,7 @@ async function test() {
     publicSubnetId2: 'subnet-0b701969531d9c4a4',
     privateSubnetId2: 'subnet-0a4be94f055a021ea'
   }
-  await ellipsis.createCluster(config, vpc);
+  // await ellipsis.createCluster(config, vpc);
   // await ellipsis.setLicenseSecret(config);
   // await ellipsis.applyPolicies(config);
   // await ellipsis.createBuckets(config);
@@ -22,7 +22,7 @@ async function test() {
   // await ellipsis.applyStorage(config, vpc);
   // await ellipsis.applyVarious(config);
   // await ellipsis.setupEllipsisConfigmap(config);
-  // await ellipsis.setupCloudnativepg(config);
+  await ellipsis.setupCloudnativepg(config);
   // await ellipsis.setupIngress(config);
 
   // await ellipsis.createOwl(config);

@@ -34,5 +34,21 @@ module.exports = {
 
   createConfigmap: async (name, dataSource) => {
     await cmd.executeCommandSimple(`kubectl create configmap ${name} ${dataSource.type === 'file' ? `--from-env-file=${dataSource.fileName}` : ''}`);
+  },
+
+  waitForCloudnativePG: async () => {
+    while (true) {
+      let cloudnativePgControllers = await cmd.executeCommandSimple(`kubectl get pods -n cnpg-system -o json`);
+      cloudnativePgControllers = JSON.parse(cloudnativePgControllers).items;
+
+      if (cloudnativePgControllers.length !== 0 && cloudnativePgControllers.find((x) => x.status.phase === "Running")) {
+        console.log('cloud native controller is running')
+        break;
+      }
+      else {
+        console.log('cloud native controllers', JSON.stringify(cloudnativePgControllers));
+        await new Promise((x) => setTimeout(x, 500));
+      }
+    }
   }
 }
