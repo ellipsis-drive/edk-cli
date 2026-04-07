@@ -7,20 +7,21 @@ module.exports = {
     );
 
     // console.log(output);
-    if (!dryRun) {
-      while (true) {
-        let cluster = await cmd.executeCommandSimple(`aws eks describe-cluster --name ${clusterName}`); // eksctl get does not give enough info
-        cluster = JSON.parse(cluster);
+    
+    // if (!dryRun) {
+    //   while (true) {
+    //     let cluster = await cmd.executeCommandSimple(`aws eks describe-cluster --name ${clusterName}`); // eksctl get does not give enough info
+    //     cluster = JSON.parse(cluster);
   
-        if (cluster.cluster.status === "ACTIVE") {
-          break;
-        }
-        else {
-          console.log('cluster', cluster);
-          await new Promise((x) => setTimeout(x, 30000)); // check every 30 seconds since this step will probably take a while
-        }
-      }
-    }
+    //     if (cluster.cluster.status === "ACTIVE") {
+    //       break;
+    //     }
+    //     else {
+    //       console.log('cluster', cluster);
+    //       await new Promise((x) => setTimeout(x, 30000)); // check every 30 seconds since this step will probably take a while
+    //     }
+    //   }
+    // }
   },
 
   createServiceAccount: async (name, clusterName, policyArn) => {

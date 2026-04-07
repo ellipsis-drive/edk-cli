@@ -123,7 +123,7 @@ async function createVpc(config) {
 }
 
 async function setLicenseSecret(config) {
-  kubectl.setGitSecret(config.licenseKey);
+  await kubectl.setGitSecret(config.licenseKey);
 }
 
 async function applyPolicies(config) {
@@ -236,20 +236,20 @@ async function createOwl(config) {
 
   utilities.saveFile('../build/owl-data-config-map.yaml', clusterTemplate);
 
-  kubectl.apply('../owl/owl-pdb.yaml');
-  kubectl.create('../owl/owl-queries-config-map.yaml');
-  kubectl.create('../build/owl-data-config-map.yaml');
-  kubectl.create('../owl/icons-queries-config-map.yaml');
-  kubectl.apply('../owl/owl.yaml');
+  await kubectl.apply('../owl/owl-pdb.yaml');
+  await kubectl.create('../owl/owl-queries-config-map.yaml');
+  await kubectl.create('../build/owl-data-config-map.yaml');
+  await kubectl.create('../owl/icons-queries-config-map.yaml');
+  await kubectl.apply('../owl/owl.yaml');
 }
 
 async function createAlbatross(config) {
-  kubectl.apply('../albatross/cluster-master-service-account.yaml');
-  kubectl.apply('../albatross/rasterMaster/raster-master.yaml');
-  kubectl.apply('../albatross/vectorMaster/vector-master.yaml');
-  kubectl.apply('../albatross/pointCloudMaster/point-cloud-master.yaml');
-  kubectl.apply('../albatross/exportMaster/export-master.yaml');
-  kubectl.apply('../albatross/importMaster/import-master.yaml');
+  await kubectl.apply('../albatross/cluster-master-service-account.yaml');
+  await kubectl.apply('../albatross/rasterMaster/raster-master.yaml');
+  await kubectl.apply('../albatross/vectorMaster/vector-master.yaml');
+  await kubectl.apply('../albatross/pointCloudMaster/point-cloud-master.yaml');
+  await kubectl.apply('../albatross/exportMaster/export-master.yaml');
+  await kubectl.apply('../albatross/importMaster/import-master.yaml');
 }
 
 async function setupIngress(config) {
