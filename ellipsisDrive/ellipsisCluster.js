@@ -318,14 +318,14 @@ async function createPigeon(config) {
 }
 
 async function createRooster(config) {
-  kubectl.apply('../rooster/rooster-pdb.yaml');
-  kubectl.apply('../rooster/rooster-queries-config-map.yaml');
-  kubectl.apply('../rooster/rooster-service.yaml');
-  kubectl.apply('../rooster/rooster.yaml');
+  await kubectl.apply('../rooster/rooster-pdb.yaml');
+  await kubectl.apply('../rooster/rooster-queries-config-map.yaml');
+  await kubectl.apply('../rooster/rooster-service.yaml');
+  await kubectl.apply('../rooster/rooster.yaml');
 
-  kubectl.apply('../rooster/compressedListFeatures/file-server-api-vector-deployment.yaml');
-  kubectl.apply('../rooster/compressedListFeatures/file-server-api-vector-service.yaml');
-  kubectl.apply('../rooster/compressedListFeatures/file-server-api-vector-stateful-set.yaml');
+  await kubectl.apply('../rooster/compressedListFeatures/file-server-api-vector-deployment.yaml');
+  await kubectl.apply('../rooster/compressedListFeatures/file-server-api-vector-service.yaml');
+  await kubectl.apply('../rooster/compressedListFeatures/file-server-api-vector-stateful-set.yaml');
 }
 
 async function createPenguin(config) {
@@ -345,24 +345,24 @@ async function createPenguin(config) {
 
   utilities.saveFile('../build/penguin-ingress.yaml', clusterTemplate);
 
-  kubectl.apply('../build/penguin-ingress.yaml');
-  kubectl.apply('../penguin/penguin-service.yaml');
-  kubectl.apply('../penguin/penguin.yaml');
+  await kubectl.apply('../build/penguin-ingress.yaml');
+  await kubectl.apply('../penguin/penguin-service.yaml');
+  await kubectl.apply('../penguin/penguin.yaml');
 }
 
 async function createEmu(config) {
-  kubectl.apply('../emu/bucketManagement/bucket-management-deployment.yaml');
-  kubectl.apply('../emu/createPointCloudBounds/create-point-cloud-bounds-deployment.yaml');
-  kubectl.apply('../emu/createRasterBounds/create-raster-bounds-deployment.yaml');
-  kubectl.apply('../emu/createShapeBounds/create-shape-bounds-deployment.yaml');
-  kubectl.apply('../emu/emailSender/email-sender-deployment.yaml');
-  kubectl.apply('../emu/fileSystemManagement/file-system-management-deployment.yaml');
-  kubectl.apply('../emu/invalidationTaskAggregator/invalidation-task-aggregator-deployment.yaml');
-  kubectl.apply('../emu/oauthManagement/oauth-management-deployment.yaml');
-  kubectl.apply('../emu/processHardDeletes/process-hard-deletes-deployment.yaml');
-  kubectl.apply('../emu/processPathRename/process-path-rename-deployment.yaml');
-  kubectl.apply('../emu/searchUpdater/search-updater-deployment.yaml');
-  kubectl.apply('../emu/thumbnails/thumbnails-deployment.yaml');
-  kubectl.apply('../emu/userDeletionManagement/user-deletion-management-deployment.yaml');
-  kubectl.apply('../emu/userHistoryAppender/user-history-appender-deployment.yaml');
+  await kubectl.apply('../emu/bucketManagement/bucket-management-deployment.yaml');
+  await kubectl.apply('../emu/createPointCloudBounds/create-point-cloud-bounds-deployment.yaml');
+  await kubectl.apply('../emu/createRasterBounds/create-raster-bounds-deployment.yaml');
+  await kubectl.apply('../emu/createShapeBounds/create-shape-bounds-deployment.yaml');
+  await kubectl.apply('../emu/emailSender/email-sender-deployment.yaml');
+  await kubectl.apply('../emu/fileSystemManagement/file-system-management-deployment.yaml');
+  await kubectl.apply('../emu/invalidationTaskAggregator/invalidation-task-aggregator-deployment.yaml');
+  await kubectl.apply('../emu/oauthManagement/oauth-management-deployment.yaml');
+  await kubectl.apply('../emu/processHardDeletes/process-hard-deletes-deployment.yaml');
+  await kubectl.apply('../emu/processPathRename/process-path-rename-deployment.yaml');
+  await kubectl.apply('../emu/searchUpdater/search-updater-deployment.yaml');
+  await kubectl.apply('../emu/thumbnails/thumbnails-deployment.yaml');
+  await kubectl.apply('../emu/userDeletionManagement/user-deletion-management-deployment.yaml');
+  await kubectl.apply('../emu/userHistoryAppender/user-history-appender-deployment.yaml');
 }
