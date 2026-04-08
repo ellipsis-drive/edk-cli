@@ -25,8 +25,8 @@
   "googleClientId": "foobar",
   "googleClientSecret": "foobar",
 
-  "apiUrl": "kubernetes.api.ellipsis-drive.com",
-  "frontendUrl": "kubernetes.ellipsis-drive.com",
+  "apiUrl": "https://www.kubernetes.api.ellipsis-drive.com",
+  "frontendUrl": "https://www.kubernetes.ellipsis-drive.com",
   "masterZone": "eu-central-1",
   "masterZoneAbbreviation": "fra",
   "companyName": "kubernetes",
