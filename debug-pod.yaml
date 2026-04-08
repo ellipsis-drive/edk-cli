@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: debug-pod
+spec:
+  selector:
+    matchLabels:
+      ellipsis-drive: debug-pod
+  template:
+    metadata:
+      labels:
+        ellipsis-drive: debug-pod
+    spec:
+      containers:
+        - name: ubuntu
+          image: ubuntu:24.04
+          command: ["/bin/bash", "-c"]
+          args:
+            - |
+              apt-get update && \
+              DEBIAN_FRONTEND=noninteractive apt-get install -y postgresql-common vim curl wget && \
+              printf "\n" | /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh && \
+              apt-get install -y postgresql-18 && \
+              echo "psql -h owl-rw -U ellipsis_app -d ellipsis" >> /db.sh && \
+              chmod +x /db.sh && \
+              sleep infinity
+          stdin: true
+          tty: true
