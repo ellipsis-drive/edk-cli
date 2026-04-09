@@ -1,0 +1,46 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: init-folders
+spec:
+  containers:
+    - name: ubuntu
+      image: ubuntu:latest
+      command: ["/bin/bash", "-c"]
+      args:
+        - |
+          mkdir -p /mnt/etmpfs/blocks && \
+          mkdir -p /mnt/etmpfs/projections && \
+          mkdir -p /mnt/etmpfs/compute && \
+          mkdir -p /mnt/etmpfs/cluster/raster && \
+          mkdir -p /mnt/etmpfs/cluster/vector && \
+          mkdir -p /mnt/etmpfs/cluster/pointCloud && \
+          mkdir -p /mnt/etmpfs/precompute && \
+          mkdir -p /mnt/etmpfs/downloads/exports && \
+          mkdir -p /mnt/etmpfs/downloads/geometries && \
+          mkdir -p /mnt/etmpfs/downloads/pointClouds && \
+          mkdir -p /mnt/etmpfs/downloads/rasters && \
+          mkdir -p /mnt/etmpfs/shapes && \
+          mkdir -p /mnt/etmpfs/uploads/geometries/temp && \
+          mkdir -p /mnt/etmpfs/uploads/rasters/temp && \
+          mkdir -p /mnt/etmpfs/uploads/imports && \
+          mkdir -p /mnt/etmpfs/uploads/pointClouds/temp && \
+          mkdir -p /mnt/etmpfs/vectorClusterHelperFiles && \
+          mkdir -p /mnt/finch/blocks && \
+          mkdir -p /mnt/finch/projections && \
+          chown 1623:1623 -R /mnt/etmpfs && \
+          chown 1623:1623 -R /mnt/finch && \
+          echo "Done"
+      volumeMounts:
+      - name: etmpfs
+        mountPath: /mnt/etmpfs
+      - name: finch-1
+        mountPath: /mnt/finch
+  volumes:
+  - name: etmpfs
+    persistentVolumeClaim:
+      claimName: etmpfs
+  - name: finch-1
+    persistentVolumeClaim:
+      claimName: finch-1
+  restartPolicy: Never

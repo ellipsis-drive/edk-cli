@@ -197,6 +197,8 @@ async function applyStorage(config, vpc) {
 
   await kubectl.apply('../storage/finch-1-pvc.yaml');
   await kubectl.apply('../storage/etmpfs-pvc.yaml');
+
+  await kubectl.apply('../storage/init-folders.yaml');
 }
 
 async function createEfsAndPersistentVolume(vpc, baseName, region) {

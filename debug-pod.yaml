@@ -26,3 +26,15 @@ spec:
               sleep infinity
           stdin: true
           tty: true
+          volumeMounts:
+          - name: etmpfs
+            mountPath: /mnt/etmpfs
+          - name: finch-1
+            mountPath: /mnt/finch
+      volumes:
+      - name: etmpfs
+        persistentVolumeClaim:
+          claimName: etmpfs
+      - name: finch-1
+        persistentVolumeClaim:
+          claimName: finch-1
