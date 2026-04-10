@@ -199,11 +199,12 @@ async function applyStorage(config, vpc) {
   await kubectl.apply('../storage/etmpfs-pvc.yaml');
 
   let attempts = 0;
+  let success = false;
 
   while (attempts < 5) {
     await kubectl.apply('../storage/init-folders.yaml');
 
-    let success = await kubectl.waitForTermination('init-folders');
+    success = await kubectl.waitForTermination('init-folders');
 
     await kubectl.deletePod('init-folders');
 
@@ -212,6 +213,10 @@ async function applyStorage(config, vpc) {
     }
     
     attempts++;
+  }
+
+  if (!success) {
+    throw new Error('Failed to init folders');
   }
 }
 
