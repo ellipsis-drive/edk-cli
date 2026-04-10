@@ -36,6 +36,28 @@ module.exports = {
     await cmd.executeCommandSimple(`kubectl create configmap ${name} ${dataSource.type === 'file' ? `--from-env-file=${dataSource.fileName}` : ''}`);
   },
 
+  waitForTermination: async (podName) => {
+    while (true) {
+      let phase = await cmd.executeCommandSimple(`kubectl get pod ${podName} -o jsonpath='{.status.phase}'`);
+
+      if (phase === 'Succeeded') {
+        return true;
+      }
+      else if (phase === 'Failed') {
+        return false;
+      }
+      else if (phase === 'Unknown') {
+        return false;
+      }
+
+      await cmd.sleep(2000);
+    }
+  },
+
+  deletePod: async (podName) => {
+    await cmd.executeCommandSimple(`kubectl delete pod ${podName}`);
+  },
+
   waitForCloudnativePG: async () => {
     while (true) {
       let cloudnativePgControllers = await cmd.executeCommandSimple(`kubectl get pods -n cnpg-system -o json`);

@@ -198,7 +198,26 @@ async function applyStorage(config, vpc) {
   await kubectl.apply('../storage/finch-1-pvc.yaml');
   await kubectl.apply('../storage/etmpfs-pvc.yaml');
 
-  await kubectl.apply('../storage/init-folders.yaml');
+  let attempts = 0;
+  let success = false;
+
+  while (attempts < 5) {
+    await kubectl.apply('../storage/init-folders.yaml');
+
+    success = await kubectl.waitForTermination('init-folders');
+
+    await kubectl.deletePod('init-folders');
+
+    if (success) {
+      break;
+    }
+    
+    attempts++;
+  }
+
+  if (!success) {
+    throw new Error('Failed to init folders');
+  }
 }
 
 async function createEfsAndPersistentVolume(vpc, baseName, region) {
