@@ -48,7 +48,9 @@ spec:
           - name: etmpfs
             mountPath: /mnt/etmpfs
           - name: tmpfs
-            mountPath: /mnt/tmpfs  
+            mountPath: /mnt/tmpfs 
+          - name: finch-1
+            mountPath: /mnt/finch-1-eu-central-1
       imagePullSecrets:
         - name: ghcr-secret
       volumes:
@@ -59,3 +61,6 @@ spec:
           emptyDir:
             medium: Memory
             sizeLimit: 2Gi
+        - name: finch-1
+          persistentVolumeClaim:
+            claimName: finch-1
