@@ -12,7 +12,6 @@
       "skipFiles": [
         "<node_internals>/**"
       ],
-      "cwd": "${workspaceFolder}/ellipsisDrive",
       "program": "ellipsisDrive.js",
       "args": ["setup"]
     }

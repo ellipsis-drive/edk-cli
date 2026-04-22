@@ -1,12 +1,12 @@
 const fs = require('fs');
-const stripJsonComments = require('strip-json-comments').default;
+const { parse } = require('jsonc-parser');
 
 module.exports = () => {
-  let config = fs.readFileSync('../config.jsonc');
+  let config = fs.readFileSync('./config.jsonc');
 
   config = config.toString();
 
-  config = JSON.parse(stripJsonComments(config));
+  config = parse(config);
   
   return config;
 }

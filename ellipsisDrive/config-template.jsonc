@@ -1,11 +1,11 @@
 {
   // Hi
-  "kubernetesVersion": "1.34",
+  "kubernetesVersion": 1.34,
   "cloudProvider": "aws",
 
-  "clusterName": "Ellipsis-drive-kubernetes",
+  "clusterName": "Ellipsis-Drive-Kubernetes",
 
-  "licenseKey": "foobar",
+  "licenseKey": "",
 
   "loginSecret": "foobar",
   "oauthSecret": "foobar",

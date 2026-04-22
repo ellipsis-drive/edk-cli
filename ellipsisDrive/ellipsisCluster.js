@@ -2,10 +2,16 @@ const utilities = require('./utilities');
 const kubectl = require('./kubectl');
 const aws = require('./aws');
 const eksctl = require('./eksctl');
-const cmd = require('./cmd');
+const { parse: jsoncParse, modify, applyEdits } = require('jsonc-parser');
 
 module.exports = {
   create: async (config) => {
+    let configOk = validateConfig(config);
+
+    if (!configOk) {
+      return;
+    }
+
     let vpc = await createVpc(config);
 
     await createCluster(config, vpc)
@@ -37,6 +43,34 @@ module.exports = {
     await createClusterWorkers(config);
   },
 
+  configure: async () => {
+    const length = 64;
+    const keys = [
+      'loginSecret',
+      'oauthSecret',
+      'mainDbPassword',
+      'vectorDbPassword',
+      'cacheDbPassword',
+      'internalCallKey'
+    ];
+
+    let configText = utilities.loadFile('./config.jsonc');
+
+    let edits = [];
+    
+    for (let i = 0; i < keys.length; i++) {
+      let key = keys[i];
+
+      edits.push(...modify(configText, [key], utilities.generatePassword(length), {}));
+    }
+    
+    configText = applyEdits(configText, edits);
+    
+    utilities.saveFile('./config.jsonc', configText);
+  },
+
+  validateConfig: validateConfig,
+
   createVpc: createVpc,
   createCluster: createCluster,
   setLicenseSecret: setLicenseSecret,
@@ -57,8 +91,65 @@ module.exports = {
   createClusterWorkers: createClusterWorkers
 }
 
+function validateConfig(config) {
+  const optionalKeys = [
+    'googleClientId',
+    'googleClientSecret'
+  ];
+
+  const limitedStringKeys = [
+    'clusterName',
+    'companyName',
+    'deploymentName',
+    'masterZoneAbbreviation'
+  ];
+
+  let templateConfig = utilities.loadFile('./ellipsisDrive/config-template.jsonc');
+  templateConfig = jsoncParse(templateConfig);
+
+  let keys = Object.keys(templateConfig);
+
+  let errors = false;
+
+  for (let i = 0; i < keys.length; i++) {
+    let key = keys[i];
+
+    let value = config[key];
+
+    if ((!value || value === "") && !optionalKeys.includes(key)) {
+      errors = true;
+      console.log(`Missing or empty value for '${key}'`);
+    }
+
+    let isString = typeof value === 'string' || value instanceof String;
+
+    if (!isString) {
+      errors = true;
+      console.log(`'${key}' must be of type string`);
+    }
+
+    if (limitedStringKeys.includes(key)) {
+      let isOk = /^[a-z0-9-]+$/.test(value);
+
+      if (!isOk) {
+        errors = true;
+        console.log(`'${key}' may only contain a-z, 0-9 and hyphens`);
+      }
+    }
+  }
+
+  if (errors) {
+    console.log(`Errors found with the current config. Please fix these issues before proceeding`);
+    return false;
+  }
+  else {
+    console.log('Config is OK');
+    return true;
+  }
+}
+
 async function createCluster(config, vpc) {
-  let clusterTemplate = utilities.loadFile('../cluster.yaml.template');
+  let clusterTemplate = utilities.loadFile('./ellipsisDrive/cluster.yaml.template');
 
   let keys = [
     'clusterName',
@@ -71,9 +162,9 @@ async function createCluster(config, vpc) {
 
   clusterTemplate = utilities.substituteMulti(clusterTemplate, substitutes);
 
-  utilities.saveFile('../build/cluster.yaml', clusterTemplate);
+  utilities.saveFile('./build/cluster.yaml', clusterTemplate);
 
-  await eksctl.createCluster('../build/cluster.yaml', config['clusterName'], false);
+  await eksctl.createCluster('./build/cluster.yaml', config['clusterName'], false);
 }
 
 async function createVpc(config) {
