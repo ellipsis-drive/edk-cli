@@ -237,11 +237,11 @@ async function deleteCluster(config) {
         }
       }
       catch (e) {
-        if (e.message.includes('does not exist') || e.message.includes(' 404')) {
+        if (e.message.includes('does not exist') || e.message.includes('https response error StatusCode: 404')) {
           console.log('Already deleted, skipping this one');
         }
         else {
-          nextHistory.push(createEvent);
+          nextHistory.push(history[i]);
         }
       }
     }
