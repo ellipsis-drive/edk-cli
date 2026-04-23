@@ -105,11 +105,16 @@ module.exports = {
     let securityGroup = await cmd.executeCommandSimple(`aws ec2 create-security-group --vpc-id ${vpcId} --group-name efs-nfs-sg --description "Allow NFS traffic for EFS"`);
     securityGroup = JSON.parse(securityGroup);
 
+    utilities.addToHistoryFile({ type: 'securityGroup', id: securityGroup.GroupId });
     // let cluster = await cmd.executeCommandSimple(`aws eks describe-cluster --name ${kubernetesClusterName}`);
     // cluster = JSON.parse(cluster);
 
     await cmd.executeCommandSimple(`aws ec2 authorize-security-group-ingress --group-id ${securityGroup.GroupId} --protocol tcp --port 2049 --cidr ${VPCCIDR}`);
     return securityGroup.GroupId;
+  },
+
+  deleteSecurityGroup: async (id) => {
+    await cmd.executeCommandSimple(`aws ec2 delete-security-group --group-id ${id}`);
   },
 
   createSubnet: async (vpcId, availabilityZone, CIDR, public) => {

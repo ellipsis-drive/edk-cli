@@ -215,6 +215,10 @@ async function deleteCluster(config) {
             await aws.deleteRouteTable(id);
             break;
           }
+          case 'securityGroup': {
+            await aws.deleteSecurityGroup(id);
+            break;
+          }
           case 'internetGateway': {
             await aws.deleteInternetGateway(id);
             break;
