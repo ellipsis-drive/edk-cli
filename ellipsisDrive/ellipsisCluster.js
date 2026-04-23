@@ -208,6 +208,18 @@ async function deleteCluster(config) {
           await aws.deleteVpc(id);
           break;
         }
+        case 'routeTable': {
+          await aws.deleteRouteTable(id);
+          break;
+        }
+        case 'internetGateway': {
+          await aws.deleteInternetGateway(id);
+          break;
+        }
+        case 'subnet': {
+          await aws.deleteSubnet(id);
+          break;
+        }
         case 'eks': {
           await eksctl.deleteCluster(config.clusterName, config.masterZone);
           break;

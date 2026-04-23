@@ -115,13 +115,23 @@ module.exports = {
   createSubnet: async (vpcId, availabilityZone, CIDR, public) => {
     let subnet = await cmd.executeCommandSimple(`aws ec2 create-subnet --vpc-id ${vpcId} --cidr-block ${CIDR} --availability-zone ${availabilityZone} --tag-specifications ResourceType=subnet,Tags=[{Key=${public ? 'kubernetes.io/role/elb' : 'kubernetes.io/role/internal-elb'},Value=1}]`);
     subnet = JSON.parse(subnet);
+    utilities.addToHistoryFile({ type: 'subnet', id: subnet.Subnet.SubnetId });
     return subnet.Subnet.SubnetId;
+  },
+
+  deleteSubnet: async (id) => {
+    await cmd.executeCommandSimple(`aws ec2 delete-subnet --subnet-id ${id}`);
   },
 
   createInternetGateway: async () => {
     let internetGateway = await cmd.executeCommandSimple(`aws ec2 create-internet-gateway`);
     internetGateway = JSON.parse(internetGateway);
+    utilities.addToHistoryFile({ type: 'internetGateway', id: internetGateway.InternetGateway.InternetGatewayId });
     return internetGateway.InternetGateway.InternetGatewayId;
+  },
+
+  deleteInternetGateway: async (id) => {
+    await cmd.executeCommandSimple(`aws ec2 delete-internet-gateway --internet-gateway-id ${id}`);
   },
 
   attachInternetGateway: async (vpcId, internetGatewayId) => {
@@ -131,7 +141,12 @@ module.exports = {
   createRouteTable: async (vpcId) => {
     let routeTable = await cmd.executeCommandSimple(`aws ec2 create-route-table --vpc-id ${vpcId}`);
     routeTable = JSON.parse(routeTable);
+    utilities.addToHistoryFile({ type: 'routeTable', id: routeTable.RouteTable.RouteTableId });
     return routeTable.RouteTable.RouteTableId;
+  },
+
+  deleteRouteTable: async (id) => {
+    await cmd.executeCommandSimple(`aws ec2 delete-route-table --route-table-id ${id}`);
   },
 
   createRoute: async (routeTableId, destination) => {
