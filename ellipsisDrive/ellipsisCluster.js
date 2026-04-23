@@ -237,7 +237,7 @@ async function deleteCluster(config) {
         }
       }
       catch (e) {
-        if (e.message.includes('does not exist')) {
+        if (e.message.includes('does not exist') || e.message.includes(' 404')) {
           console.log('Already deleted, skipping this one');
         }
         else {
