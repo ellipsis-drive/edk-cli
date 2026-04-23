@@ -174,6 +174,8 @@ async function deleteCluster(config) {
 
   console.log(JSON.stringify(history));
 
+  let errors = [];
+
   for (let i = 0; i < history.length; i++) {
     let createEvent = JSON.parse(history[i]);
 
@@ -234,9 +236,13 @@ async function deleteCluster(config) {
         console.log('Already deleted, skipping this one');
       }
       else {
-        throw(e);
+        errors.push(e);
       }
     }
+  }
+
+  if (errors.length > 0) {
+    throw(errors[0]);
   }
 
   console.log('finished deleting the resources');
