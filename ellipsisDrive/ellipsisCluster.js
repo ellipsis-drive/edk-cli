@@ -1,3 +1,5 @@
+const fs = require('fs');
+
 const utilities = require('./utilities');
 const kubectl = require('./kubectl');
 const aws = require('./aws');
