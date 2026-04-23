@@ -131,6 +131,7 @@ module.exports = {
   },
 
   deleteInternetGateway: async (id) => {
+    await cmd.executeCommandSimple(`aws ec2 detach-internet-gateway --internet-gateway-id ${id}`);
     await cmd.executeCommandSimple(`aws ec2 delete-internet-gateway --internet-gateway-id ${id}`);
   },
 
