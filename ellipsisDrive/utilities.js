@@ -16,7 +16,7 @@ module.exports = {
   },
 
   addToHistoryFile: (object) => {
-    fs.appendFileSync(HISTORY_PATH, JSON.str(object));
+    fs.appendFileSync(HISTORY_PATH, JSON.stringify(object));
   },
 
   generatePassword: (length = 32) => {
