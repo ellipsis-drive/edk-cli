@@ -174,79 +174,81 @@ async function deleteCluster(config) {
 
   console.log(JSON.stringify(history));
 
-  let errors = [];
+  while (true) {
+    let nextHistory = [];
 
-  for (let i = 0; i < history.length; i++) {
-    let createEvent = JSON.parse(history[i]);
+    for (let i = 0; i < history.length; i++) {
+      let createEvent = JSON.parse(history[i]);
 
-    console.log('entry', createEvent);
+      console.log('entry', createEvent);
 
-    let type = createEvent.type;
-    let id = createEvent.id;
+      let type = createEvent.type;
+      let id = createEvent.id;
 
-    try {
-      switch (type) {
-        case 'efs': {
-          await aws.deleteEfs(id, config.masterZone);
-          break;
+      try {
+        switch (type) {
+          case 'efs': {
+            await aws.deleteEfs(id, config.masterZone);
+            break;
+          }
+          case 'certificate': {
+            await aws.deleteCertificate(id);
+            break;
+          }
+          // case 'cloudformationStack': {
+          //   await aws.deleteCloudformationStack(id);
+          //   break;
+          // }
+          case 'ip': {
+            await aws.releaseAddress(id);
+            break;
+          }
+          case 'NAT': {
+            await aws.deleteNATGateway(id);
+            break;
+          }
+          case 'vpc': {
+            await aws.deleteVpc(id);
+            break;
+          }
+          case 'routeTable': {
+            await aws.deleteRouteTable(id);
+            break;
+          }
+          case 'internetGateway': {
+            await aws.deleteInternetGateway(id);
+            break;
+          }
+          case 'attachInternetGateway': {
+            await aws.deattachInternetGateway(id, createEvent.vpcId);
+            break;
+          }
+          case 'subnet': {
+            await aws.deleteSubnet(id);
+            break;
+          }
+          case 'eks': {
+            await eksctl.deleteCluster(config.clusterName, config.masterZone);
+            break;
+          }
+          default:
+            throw('invalid type in the history of delete cluster', type);
+            break;
         }
-        case 'certificate': {
-          await aws.deleteCertificate(id);
-          break;
+      }
+      catch (e) {
+        if (e.message.includes('does not exist')) {
+          console.log('Already deleted, skipping this one');
         }
-        // case 'cloudformationStack': {
-        //   await aws.deleteCloudformationStack(id);
-        //   break;
-        // }
-        case 'ip': {
-          await aws.releaseAddress(id);
-          break;
+        else {
+          nextHistory.push(createEvent);
         }
-        case 'NAT': {
-          await aws.deleteNATGateway(id);
-          break;
-        }
-        case 'vpc': {
-          await aws.deleteVpc(id);
-          break;
-        }
-        case 'routeTable': {
-          await aws.deleteRouteTable(id);
-          break;
-        }
-        case 'internetGateway': {
-          await aws.deleteInternetGateway(id);
-          break;
-        }
-        case 'attachInternetGateway': {
-          await aws.deattachInternetGateway(id, createEvent.vpcId);
-          break;
-        }
-        case 'subnet': {
-          await aws.deleteSubnet(id);
-          break;
-        }
-        case 'eks': {
-          await eksctl.deleteCluster(config.clusterName, config.masterZone);
-          break;
-        }
-        default:
-          throw('invalid type in the history of delete cluster', type);
-          break;
       }
     }
-    catch (e) {
-      if (e.message.includes('does not exist')) {
-        console.log('Already deleted, skipping this one');
-      }
-      else {
-        errors.push(e);
-      }
-    }
-  }
 
-  if (errors.length > 0) {
-    throw(errors[0]);
+    if (nextHistory.length === 0) {
+      break;
+    }
   }
 
   console.log('finished deleting the resources');
