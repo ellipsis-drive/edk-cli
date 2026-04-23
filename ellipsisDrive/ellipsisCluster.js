@@ -221,6 +221,9 @@ async function deleteCluster(config) {
       if (e.message.includes('does not exist')) {
         console.log('Already deleted, skipping this one');
       }
+      else {
+        throw(e);
+      }
     }
   }
 
