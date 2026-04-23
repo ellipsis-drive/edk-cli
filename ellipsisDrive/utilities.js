@@ -2,13 +2,21 @@ const fs = require('fs');
 const getDirName = require('path').dirname;
 const crypto = require('crypto');
 
+const HISTORY_PATH = './ellipsisDrive/history.json';
+
 module.exports = {
+  historyPath: HISTORY_PATH,
+
   loadFile: (path) => {
     let text = fs.readFileSync(path);
 
     text = text.toString();
 
     return text;
+  },
+
+  addToHistoryFile: (object) => {
+    fs.appendFileSync(HISTORY_PATH, JSON.str(object));
   },
 
   generatePassword: (length = 32) => {

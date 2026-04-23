@@ -70,6 +70,7 @@ module.exports = {
   },
 
   validateConfig: validateConfig,
+  deleteCluster: deleteCluster,
 
   createVpc: createVpc,
   createCluster: createCluster,
@@ -146,6 +147,66 @@ function validateConfig(config) {
     console.log('Config is OK');
     return true;
   }
+}
+
+function deleteCluster() {
+  let history;
+  try {
+    history = utilities.loadFile(utilities.historyPath);
+    history = history.split('/n').reverse();
+  }
+  catch (e) {
+    console.error(e);
+
+    console.log('Could not load history, assuming there is nothing to delete');
+
+    history = [];
+  }
+
+  for (let i = 0; i < history.length; i++) {
+    let createEvent = JSON.parse(history[i]);
+
+    console.log('entry', createEvent);
+
+    let type = createEvent.type;
+    let id = createEvent.id;
+
+    switch (type) {
+      case 'efs': {
+        await aws.deleteEfs(id);
+        break;
+      }
+      case 'certificate': {
+        await aws.deleteCertificate(id);
+        break;
+      }
+      case 'cloudformationStack': {
+        await aws.deleteCloudformationStack(id);
+        break;
+      }
+      case 'ip': {
+        await aws.deleteElasticIp(id);
+        break;
+      }
+      case 'NAT': {
+        await aws.deleteNAT(id);
+        break;
+      }
+      case 'vpc': {
+        await aws.deleteVpc(id);
+        break;
+      }
+      case 'eks': {
+        await aws.deleteEks(id);
+        break;
+      }
+      default:
+        throw('invalid type in the history of delete cluster', type);
+        break;
+    }
+  }
+
+  console.log('finished deleting the resources');
 }
 
 async function createCluster(config, vpc) {

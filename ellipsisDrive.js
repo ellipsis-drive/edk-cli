@@ -32,6 +32,12 @@ async function ellipsisDrive() {
     // console.log('Setup done');
   });
 
+  const setup = program.command('delete').action(() => {
+    ellipsisCluster.deleteCluster();
+
+    console.log('Delete done');
+  });
+
   program.parse();
 }
 

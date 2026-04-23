@@ -1,4 +1,5 @@
 const cmd = require('./cmd');
+const utilities = require('./utilities');
 
 const VPCCIDR = '10.0.0.0/16';
 
@@ -44,7 +45,13 @@ module.exports = {
 
     efs = JSON.parse(efs);
 
+    utilities.addToHistoryFile({ type: 'efs', id: efs.FileSystemId });
+
     return efs.FileSystemId;
+  },
+
+  deleteEfs: async (id) => {
+    await cmd.executeCommandSimple(`aws efs delete-file-system --file-system-id ${id}`);
   },
 
   attachEfsToSubnet: async (fileSystemId, subnetId, securityGroupId) => {
