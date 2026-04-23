@@ -255,6 +255,7 @@ async function deleteCluster(config) {
     }
     else {
       history = nextHistory;
+      await new Promise((x) => setTimeout(x, 500));
     }
   }
 
