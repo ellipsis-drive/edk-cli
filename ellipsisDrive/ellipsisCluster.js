@@ -182,38 +182,45 @@ async function deleteCluster(config) {
     let type = createEvent.type;
     let id = createEvent.id;
 
-    switch (type) {
-      case 'efs': {
-        await aws.deleteEfs(id, config.masterZone);
-        break;
+    try {
+      switch (type) {
+        case 'efs': {
+          await aws.deleteEfs(id, config.masterZone);
+          break;
+        }
+        case 'certificate': {
+          await aws.deleteCertificate(id);
+          break;
+        }
+        // case 'cloudformationStack': {
+        //   await aws.deleteCloudformationStack(id);
+        //   break;
+        // }
+        case 'ip': {
+          await aws.releaseAddress(id);
+          break;
+        }
+        case 'NAT': {
+          await aws.deleteNATGateway(id);
+          break;
+        }
+        case 'vpc': {
+          await aws.deleteVpc(id);
+          break;
+        }
+        case 'eks': {
+          await eksctl.deleteCluster(config.clusterName, config.masterZone);
+          break;
+        }
+        default:
+          throw('invalid type in the history of delete cluster', type);
+          break;
       }
-      case 'certificate': {
-        await aws.deleteCertificate(id);
-        break;
+    }
+    catch (e) {
+      if (e.message.includes('does not exist')) {
+        console.log('Already deleted, skipping this one');
       }
-      // case 'cloudformationStack': {
-      //   await aws.deleteCloudformationStack(id);
-      //   break;
-      // }
-      case 'ip': {
-        await aws.releaseAddress(id);
-        break;
-      }
-      case 'NAT': {
-        await aws.deleteNATGateway(id);
-        break;
-      }
-      case 'vpc': {
-        await aws.deleteVpc(id);
-        break;
-      }
-      case 'eks': {
-        await eksctl.deleteCluster(config.clusterName, config.masterZone);
-        break;
-      }
-      default:
-        throw('invalid type in the history of delete cluster', type);
-        break;
     }
   }
 
