@@ -249,6 +249,9 @@ async function deleteCluster(config) {
     if (nextHistory.length === 0) {
       break;
     }
+    else {
+      history = nextHistory;
+    }
   }
 
   console.log('finished deleting the resources');
