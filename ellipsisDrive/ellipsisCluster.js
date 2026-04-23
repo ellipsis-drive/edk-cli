@@ -149,7 +149,7 @@ function validateConfig(config) {
   }
 }
 
-function deleteCluster() {
+function deleteCluster(config) {
   let history;
   try {
     history = utilities.loadFile(utilities.historyPath);
@@ -173,23 +173,23 @@ function deleteCluster() {
 
     switch (type) {
       case 'efs': {
-        await aws.deleteEfs(id);
+        await aws.deleteEfs(id, config.masterZone);
         break;
       }
       case 'certificate': {
         await aws.deleteCertificate(id);
         break;
       }
-      case 'cloudformationStack': {
-        await aws.deleteCloudformationStack(id);
-        break;
-      }
+      // case 'cloudformationStack': {
+      //   await aws.deleteCloudformationStack(id);
+      //   break;
+      // }
       case 'ip': {
-        await aws.deleteElasticIp(id);
+        await aws.releaseAddress(id);
         break;
       }
       case 'NAT': {
-        await aws.deleteNAT(id);
+        await aws.deleteNATGateway(id);
         break;
       }
       case 'vpc': {
@@ -197,7 +197,7 @@ function deleteCluster() {
         break;
       }
       case 'eks': {
-        await aws.deleteEks(id);
+        await eksctl.deleteCluster(config.clusterName, config.masterZone);
         break;
       }
       default:

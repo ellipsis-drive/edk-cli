@@ -27,7 +27,13 @@ module.exports = {
 
     certificate = JSON.parse(certificate);
 
+    utilities.addToHistoryFile({ type: 'certificate', id: certificate.CertificateArn });
+
     return certificate.CertificateArn;
+  },
+
+  deleteCertificate: async (id) => {
+    await cmd.executeCommandSimple(`aws acm delete-certificate --certificate-arn ${id}`);
   },
 
   createBucket: async (name, region) => {
@@ -50,8 +56,8 @@ module.exports = {
     return efs.FileSystemId;
   },
 
-  deleteEfs: async (id) => {
-    await cmd.executeCommandSimple(`aws efs delete-file-system --file-system-id ${id}`);
+  deleteEfs: async (id, region) => {
+    await cmd.executeCommandSimple(`aws efs delete-file-system --file-system-id ${id} --region ${region}`);
   },
 
   attachEfsToSubnet: async (fileSystemId, subnetId, securityGroupId) => {
@@ -83,7 +89,12 @@ module.exports = {
   createVpc: async () => {
     let vpc = await cmd.executeCommandSimple(`aws ec2 create-vpc --cidr-block ${VPCCIDR}`);
     vpc = JSON.parse(vpc);
+    utilities.addToHistoryFile({ type: 'vpc', id: vpc.Vpc.VpcId });
     return vpc.Vpc.VpcId;
+  },
+
+  deleteVpc: async (id) => {
+    await cmd.executeCommandSimple(`aws ec2 delete-vpc --vpc-id ${id}`);
   },
 
   enabledDnsHostnames: async (vpcId) => {
@@ -134,13 +145,23 @@ module.exports = {
   allocateAddress: async () => {
     let allocation = await cmd.executeCommandSimple(`aws ec2 allocate-address --domain vpc`);
     allocation = JSON.parse(allocation);
+    utilities.addToHistoryFile({ type: 'ip', id: allocation.AllocationId });
     return allocation.AllocationId;
+  },
+
+  releaseAddress: async (id) => {
+    await cmd.executeCommandSimple(`aws ec2 release-address ----allocation-id ${id}`);
   },
 
   createNATGateway: async (subnetId, allocationId) => {
     let natGateway = await cmd.executeCommandSimple(`aws ec2 create-nat-gateway --subnet-id ${subnetId} --allocation-id ${allocationId}`);
     natGateway = JSON.parse(natGateway);
+    utilities.addToHistoryFile({ type: 'NAT', id: natGateway.NatGateway.NatGatewayId });
     return natGateway.NatGateway.NatGatewayId;
+  },
+
+  deleteNATGateway: async (id) => {
+    await cmd.executeCommandSimple(`aws ec2 delete-nat-gateway --nat-gateway-id ${id}`);
   },
 
   waitForNAT: async (NATId) => {

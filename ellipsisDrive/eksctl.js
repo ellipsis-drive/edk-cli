@@ -1,10 +1,13 @@
 const cmd = require('./cmd');
+const utilities = require('./utilities');
 
 module.exports = {
   createCluster: async (clusterConfigPath, clusterName, dryRun = true) => {
     let output = await cmd.executeCommandSimple(
       `eksctl create cluster -f ${clusterConfigPath} ${dryRun ? '--dry-run' : ''}`
     );
+
+    utilities.addToHistoryFile({ type: 'eks', id: undefined });
 
     // console.log(output);
     
@@ -26,5 +29,11 @@ module.exports = {
 
   createServiceAccount: async (name, clusterName, policyArn) => {
     await cmd.executeCommandSimple(`eksctl create iamserviceaccount --name ${name} --namespace default --cluster ${clusterName} --attach-policy-arn ${policyArn} --approve`); 
+  },
+
+  deleteCluster: async (name, region) => {
+    let output = await cmd.executeCommandSimple(
+      `eksctl delete cluster --name ${name} --region ${region} --disable-nodegroup-eviction --wait`
+    );
   }
 }
