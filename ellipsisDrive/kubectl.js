@@ -58,6 +58,38 @@ module.exports = {
     await cmd.executeCommandSimple(`kubectl delete pod ${podName}`);
   },
 
+  deleteVolumes: async () => {
+    let clusters = await cmd.executeCommandSimple(`kubectl get cluster -o json`);
+
+    cluster = JSON.parse(clusters);
+
+    for (let i = 0; i < clusters.items.length; i++) {
+      let item = clusters.items[i];
+
+      await cmd.executeCommandSimple(`kubectl delete cluster ${item.metadata.name}`);
+    }
+
+    let statefulset = await cmd.executeCommandSimple(`kubectl get statefulset -o json`);
+
+    statefulset = JSON.parse(statefulset);
+
+    for (let i = 0; i < statefulset.items.length; i++) {
+      let item = statefulset.items[i];
+
+      await cmd.executeCommandSimple(`kubectl delete statefulset ${item.metadata.name}`);
+    }
+
+    let pvcs = await cmd.executeCommandSimple(`kubectl get pvc -o json`);
+
+    pvcs = JSON.parse(pvcs);
+
+    for (let i = 0; i < pvcs.items.filter((x) => x.spec.storageClassName === 'ebs-sc').length; i++) {
+      let item = statefulset.items.filter((x) => x.spec.storageClassName === 'ebs-sc')[i];
+
+      await cmd.executeCommandSimple(`kubectl delete pvc ${item.metadata.name}`);
+    }
+  },
+
   waitForCloudnativePG: async () => {
     while (true) {
       let cloudnativePgControllers = await cmd.executeCommandSimple(`kubectl get pods -n cnpg-system -o json`);

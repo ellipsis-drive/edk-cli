@@ -154,6 +154,8 @@ function validateConfig(config) {
 }
 
 async function deleteCluster(config) {
+  await kubectl.deleteVolumes();
+
   let history;
   try {
     history = utilities.loadFile(utilities.historyPath);
