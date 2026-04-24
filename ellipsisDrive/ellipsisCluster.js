@@ -443,9 +443,9 @@ async function createEfsAndPersistentVolume(vpc, baseName, region) {
 
   clusterTemplate = utilities.substituteMulti(clusterTemplate, substitutes);
 
-  utilities.saveFile(`./ellipsisDrive/build/${baseName}-pv.yaml`, clusterTemplate);
+  utilities.saveFile(`./build/${baseName}-pv.yaml`, clusterTemplate);
 
-  await kubectl.apply(`./ellipsisDrive/build/${baseName}-pv.yaml`);
+  await kubectl.apply(`./build/${baseName}-pv.yaml`);
 }
 
 async function applyVarious(config) {
@@ -468,11 +468,11 @@ async function createOwl(config) {
 
   clusterTemplate = utilities.substituteMulti(clusterTemplate, substitutes);
 
-  utilities.saveFile('./ellipsisDrive/build/owl-data-config-map.yaml', clusterTemplate);
+  utilities.saveFile('./build/owl-data-config-map.yaml', clusterTemplate);
 
   await kubectl.apply('./ellipsisDrive/owl/owl-pdb.yaml');
   await kubectl.create('./ellipsisDrive/owl/owl-queries-config-map.yaml');
-  await kubectl.create('./ellipsisDrive/build/owl-data-config-map.yaml');
+  await kubectl.create('./build/owl-data-config-map.yaml');
   await kubectl.create('./ellipsisDrive/owl/icons-queries-config-map.yaml');
   await kubectl.apply('./ellipsisDrive/owl/owl.yaml');
 }
@@ -513,9 +513,9 @@ async function setupEllipsisConfigmap(config) {
 
   clusterTemplate = utilities.substituteMulti(clusterTemplate, substitutes);
 
-  utilities.saveFile('./ellipsisDrive/build/ellipsis.env', clusterTemplate);
+  utilities.saveFile('./build/ellipsis.env', clusterTemplate);
 
-  await kubectl.createConfigmap('ellipsis', { type: 'file', fileName: './ellipsisDrive/build/ellipsis.env' });
+  await kubectl.createConfigmap('ellipsis', { type: 'file', fileName: './build/ellipsis.env' });
 }
 
 async function createPigeon(config) {
@@ -533,12 +533,12 @@ async function createPigeon(config) {
 
   clusterTemplate = utilities.substituteMulti(clusterTemplate, substitutes);
 
-  utilities.saveFile('./ellipsisDrive/build/api-ingress.yaml', clusterTemplate);
+  utilities.saveFile('./build/api-ingress.yaml', clusterTemplate);
 
   await kubectl.apply('./ellipsisDrive/pigeon/api/api-pdb.yaml');
   await kubectl.apply('./ellipsisDrive/pigeon/api/api-deployment.yaml');
   await kubectl.apply('./ellipsisDrive/pigeon/api/api-service.yaml');
-  await kubectl.apply('./ellipsisDrive/build/api-ingress.yaml');
+  await kubectl.apply('./build/api-ingress.yaml');
 
   await kubectl.apply('./ellipsisDrive/pigeon/actionsWriter/actions-writer-deployment.yaml');
 
@@ -578,9 +578,9 @@ async function createPenguin(config) {
 
   clusterTemplate = utilities.substituteMulti(clusterTemplate, substitutes);
 
-  utilities.saveFile('./ellipsisDrive/build/penguin-ingress.yaml', clusterTemplate);
+  utilities.saveFile('./build/penguin-ingress.yaml', clusterTemplate);
 
-  await kubectl.apply('./ellipsisDrive/build/penguin-ingress.yaml');
+  await kubectl.apply('./build/penguin-ingress.yaml');
   await kubectl.apply('./ellipsisDrive/penguin/penguin-service.yaml');
   await kubectl.apply('./ellipsisDrive/penguin/penguin.yaml');
 }
