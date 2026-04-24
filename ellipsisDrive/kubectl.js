@@ -60,7 +60,7 @@ module.exports = {
 
   deleteVolumes: async () => {
     let clusters = await cmd.executeCommandSimple(`kubectl get cluster -o json`);
-
+    console.log(cluster)
     cluster = JSON.parse(clusters);
 
     for (let i = 0; i < clusters.items.length; i++) {
