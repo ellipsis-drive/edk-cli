@@ -3,4 +3,5 @@ kind: StorageClass
 metadata:
   name: ebs-sc
 provisioner: ebs.csi.eks.amazonaws.com
+reclaimPolicy: Delete
 volumeBindingMode: WaitForFirstConsumer

@@ -44,6 +44,12 @@ module.exports = {
     if (!buckets.Buckets.find((x) => x.Name === name)) {
       await cmd.executeCommandSimple(`aws s3api create-bucket --bucket ${name} --region ${region} --create-bucket-configuration LocationConstraint=${region}`);
     }
+
+    utilities.addToHistoryFile({ type: 'bucket', id: name });
+  },
+
+  deleteBucket: async (name, region) => {
+    await cmd.executeCommandSimple(`aws s3api delete-bucket --bucket ${name} --region ${region}`);
   },
 
   createEfs: async (region) => {
