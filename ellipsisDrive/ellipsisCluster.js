@@ -154,12 +154,7 @@ function validateConfig(config) {
 }
 
 async function deleteCluster(config) {
-  try {
-    await kubectl.deleteVolumes();
-  }
-  catch (e) {
-    console.log('Could not load existing cluster, assuming there are no pvc that need to be cleaned');
-  }
+  await kubectl.deleteVolumes();
 
   let history;
   try {

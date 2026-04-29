@@ -59,6 +59,13 @@ module.exports = {
   },
 
   deleteVolumes: async () => {
+    try {
+      await cmd.executeCommandSimple(`kubectl get pods`);
+    }
+    catch {
+      console.log('No kubernetes cluster seems to exist yet, skipping pvc deletion')
+    }
+
     let clusters = await cmd.executeCommandSimple(`kubectl get cluster -o json`);
 
     clusters = JSON.parse(clusters);
