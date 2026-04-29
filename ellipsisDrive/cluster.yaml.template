@@ -3,14 +3,14 @@ kind: ClusterConfig
 
 metadata:
   name: <<<clusterName>>>
-  region: eu-central-1
+  region: <<<masterZone>>>
   version: "<<<kubernetesVersion>>>"
 
 vpc:
   subnets:
     private:
-      eu-central-1b: { id: <<<subnetId1>>> }
-      eu-central-1a: { id: <<<subnetId2>>> }
+      <<<masterZone>>>b: { id: <<<subnetId1>>> }
+      <<<masterZone>>>a: { id: <<<subnetId2>>> }
 
 upgradePolicy: 
   supportType: STANDARD
