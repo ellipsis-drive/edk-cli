@@ -63,17 +63,29 @@ module.exports = {
       await cmd.executeCommandSimple(`kubectl get pods`);
     }
     catch {
-      console.log('No kubernetes cluster seems to exist yet, skipping pvc deletion')
+      console.log('No kubernetes cluster seems to exist yet, skipping pvc deletion');
+      return;
     }
 
-    let clusters = await cmd.executeCommandSimple(`kubectl get cluster -o json`);
+    let clusters;
+    try {
+      clusters = await cmd.executeCommandSimple(`kubectl get cluster -o json`);
 
-    clusters = JSON.parse(clusters);
+      clusters = JSON.parse(clusters);
 
-    for (let i = 0; i < clusters.items.length; i++) {
-      let item = clusters.items[i];
+      for (let i = 0; i < clusters.items.length; i++) {
+        let item = clusters.items[i];
 
-      await cmd.executeCommandSimple(`kubectl delete cluster ${item.metadata.name}`);
+        await cmd.executeCommandSimple(`kubectl delete cluster ${item.metadata.name}`);
+      }
+    }
+    catch (e) {
+      if (e.message.includes("the server doesn't have a resource type")) {
+        console.log('Has no clusters, skipping this one');
+      }
+      else {
+        throw (e);
+      }
     }
 
     let statefulset = await cmd.executeCommandSimple(`kubectl get statefulset -o json`);
