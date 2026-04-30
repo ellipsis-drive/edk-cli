@@ -5,6 +5,7 @@ metadata:
   labels:
     ellipsis-drive: tile-service-cache
 spec:
+  serviceName: tile-service-cache
   replicas: 1
   selector:
     matchLabels:
@@ -14,32 +15,27 @@ spec:
       labels:
         ellipsis-drive: tile-service-cache
     spec:
+      securityContext:
+        fsGroup: 1623
+        runAsGroup: 1623
+        runAsNonRoot: true
+        runAsUser: 1623
       containers:
-      - name: tile-service-cache
-        image: ghcr.io/ellipsis-drive/tile-service-cache:latest
-        resources:
-          requests:
-            cpu: 100m
-        env:
-          - name: INTERNAL_MAIL
-            valueFrom:
-              secretKeyRef:
-                name: internal-mail
-                key: username
-          - name: INTERNAL_MAIL_PASS
-            valueFrom:
-              secretKeyRef:
-                name: internal-mail
-                key: password
-        envFrom:
+        - name: tile-service-cache
+          image: ghcr.io/ellipsis-drive/tile-service-cache:latest
+          resources:
+            requests:
+              cpu: 100m
+          ports:
+            - containerPort: 8738
+          envFrom:
           - configMapRef:
               name: ellipsis
-        volumeMounts:
-          - name: tile-service-cache
-            mountPath: /mnt/tileServiceCache
+          volumeMounts:
+            - name: tile-service-cache
+              mountPath: /mnt/tileServiceCache
       imagePullSecrets:
         - name: ghcr-secret
-
   volumeClaimTemplates:
     - metadata:
         name: tile-service-cache
