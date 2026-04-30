@@ -1,36 +1,26 @@
 apiVersion: apps/v1
-kind: Deployment
+kind: StatefulSet
 metadata:
-  name: invalidator
+  name: tile-service-cache
   labels:
-    ellipsis-drive: invalidator
+    ellipsis-drive: tile-service-cache
 spec:
   replicas: 1
   selector:
     matchLabels:
-      ellipsis-drive: invalidator
+      ellipsis-drive: tile-service-cache
   template:
     metadata:
       labels:
-        ellipsis-drive: invalidator
+        ellipsis-drive: tile-service-cache
     spec:
       containers:
-      - name: invalidator
-        image: ghcr.io/ellipsis-drive/invalidator:latest
+      - name: tile-service-cache
+        image: ghcr.io/ellipsis-drive/tile-service-cache:latest
         resources:
           requests:
             cpu: 100m
         env:
-          - name: POSTGRES_APP_PASS
-            valueFrom:
-              secretKeyRef:
-                name: owl-db-password
-                key: password
-          - name: POSTGRES_APP_PASS_LOCAL
-            valueFrom:
-              secretKeyRef:
-                name: pigeon-db-password
-                key: password
           - name: INTERNAL_MAIL
             valueFrom:
               secretKeyRef:
@@ -44,5 +34,19 @@ spec:
         envFrom:
           - configMapRef:
               name: ellipsis
+        volumeMounts:
+          - name: tile-service-cache
+            mountPath: /mnt/tileServiceCache
       imagePullSecrets:
         - name: ghcr-secret
+
+  volumeClaimTemplates:
+    - metadata:
+        name: tile-service-cache
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        storageClassName: ebs-sc
+        resources:
+          requests:
+            storage: 10Gi

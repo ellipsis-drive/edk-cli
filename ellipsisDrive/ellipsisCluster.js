@@ -558,6 +558,9 @@ async function createPigeon(config) {
   await kubectl.apply('./ellipsisDrive/pigeon/cache-db/cache-db-pdb.yaml');
   await kubectl.apply('./ellipsisDrive/pigeon/cache-db/cache-queries-config-map.yaml');
   await kubectl.apply('./ellipsisDrive/pigeon/cache-db/cache-db-cloudnativepg.yaml');
+
+  await kubectl.apply('./ellipsisDrive/pigeon/tileServiceCache/tile-service-cache-stateful-set.yaml');
+  await kubectl.apply('./ellipsisDrive/pigeon/tileServiceCache/tile-service-cache-service.yaml');
 }
 
 async function createRooster(config) {
