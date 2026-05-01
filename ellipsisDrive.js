@@ -1,6 +1,5 @@
 const { Command } = require('commander');
 const program = new Command();
-const fs = require('fs');
 
 const loadConfig = require('./ellipsisDrive/loadConfig');
 const ellipsisCluster = require('./ellipsisDrive/ellipsisCluster');
@@ -41,7 +40,7 @@ async function ellipsisDrive() {
   });
 
   const version = program.command('version').action(() => {
-    let version = fs.readFileSync('version.txt');
+    const version = require('./package.json').version;
     console.log(`Ellipsis Drive Kubernetes Command Line Interface (EDK CLI)`);
     console.log(`Version ${version}`);
   });
