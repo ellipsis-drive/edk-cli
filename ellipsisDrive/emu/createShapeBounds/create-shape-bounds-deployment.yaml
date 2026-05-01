@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: create-shape-bounds
-        image: ghcr.io/ellipsis-drive/create-shape-bounds:latest
+        image: ghcr.io/ellipsis-drive/create-shape-bounds:1.0.0
         resources:
           requests:
             cpu: 100m

@@ -17,7 +17,7 @@ spec:
       serviceAccountName: cluster-master-service-account
       containers:
       - name: export-master
-        image: ghcr.io/ellipsis-drive/export-master:latest
+        image: ghcr.io/ellipsis-drive/export-master:1.0.0
         # resources:
         #   requests:
         #     cpu: 500m
