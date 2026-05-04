@@ -105,7 +105,17 @@ module.exports = {
     for (let i = 0; i < pvcs.items.filter((x) => x.spec.storageClassName === 'ebs-sc').length; i++) {
       let item = pvcs.items.filter((x) => x.spec.storageClassName === 'ebs-sc')[i];
 
-      await cmd.executeCommandSimple(`kubectl delete pvc ${item.metadata.name}`);
+      try {
+        await cmd.executeCommandSimple(`kubectl delete pvc ${item.metadata.name}`);
+      }
+      catch (e) {
+        if (e.message.includes("not found")) {
+          console.log('Has no clusters, skipping this one');
+        }
+        else {
+          throw (e);
+        }
+      }
     }
   },
 
