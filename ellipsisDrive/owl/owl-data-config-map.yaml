@@ -23,7 +23,7 @@ data:
 
 
     INSERT INTO users (uuid, username, password, email, coins, registration_date, commercial, location_id, disabled)
-    VALUES (UUID_GENERATE_V4(), 'admin', '$2b$10$FKp4SeBmKu26RwLjJnDNt.pzrwKdybnLlAa0SOSwrD4IuqAoHIari', 'daniel@ellipsis-drive.com', 0, NOW(), true, 1, false);
+    VALUES (UUID_GENERATE_V4(), 'admin', '$2b$10$FKp4SeBmKu26RwLjJnDNt.pzrwKdybnLlAa0SOSwrD4IuqAoHIari', '<<<internalMailUsername>>>', 0, NOW(), true, 1, false);
 
     INSERT INTO user_plans (user_id, storage_limit, storage_fee, service_fee, next_service_fee, max_negative, last_changed, paid_till, storage_discount_factor, processing_units_fee, cold_storage_factor)
     VALUES (1, 10000, 0, 0, 0, -10000, NOW(), NOW() + INTERVAL '1 MONTH', 0, 0, 1);
@@ -32,7 +32,7 @@ data:
     VALUES (1, date_trunc('month', NOW()), 0, 0, 10000, 0, 0, 0, 1000000000, 0, 0), (1, date_trunc('month', NOW() + INTERVAL '1 MONTH'), 0, 0, 10000, 0, 0, 0, 1000000000, 0, 0);
 
     INSERT INTO users (uuid, username, password, email, coins, registration_date, location_id)
-    VALUES (UUID_GENERATE_V4(), 'backoffice', '$2b$10$FKp4SeBmKu26RwLjJnDNt.pzrwKdybnLlAa0SOSwrD4IuqAoHIari', 'rens@ellipsis-newsletter.com', 0, NOW(), 1);
+    VALUES (UUID_GENERATE_V4(), 'backoffice', '$2b$10$FKp4SeBmKu26RwLjJnDNt.pzrwKdybnLlAa0SOSwrD4IuqAoHIari', '<<<noReplyMailUsername>>>', 0, NOW(), 1);
 
     INSERT INTO user_plans (user_id, storage_limit, storage_fee, service_fee, next_service_fee, max_negative, last_changed, paid_till, storage_discount_factor, processing_units_fee, cold_storage_factor)
     VALUES (2, 10000, 0, 0, 0, -10000, NOW(), NOW() + INTERVAL '1 MONTH', 0, 0, 1);

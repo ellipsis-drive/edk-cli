@@ -471,7 +471,14 @@ async function createBuckets(config) {
 async function createOwl(config) {
   let clusterTemplate = utilities.loadFile('./ellipsisDrive/owl/owl-data-config-map.yaml');
 
-  let substitutes = [{ key: 'masterZone', value: config['masterZone'] }, { key: 'apiUrl', value: config['apiUrl'] }]; 
+  let keys = [
+    'masterZone',
+    'apiUrl',
+    'internalMailUsername',
+    'noReplyMailUsername'
+  ];
+
+  let substitutes = keys.map((x) => { return { key: x, value: config[x] }; });
 
   clusterTemplate = utilities.substituteMulti(clusterTemplate, substitutes);
 
