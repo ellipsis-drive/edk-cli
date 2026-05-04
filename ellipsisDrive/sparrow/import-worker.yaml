@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: import-worker
-        image: ghcr.io/ellipsis-drive/import-worker:latest
+        image: ghcr.io/ellipsis-drive/import-worker:1.0.0
         resources:
           requests:
             cpu: 4

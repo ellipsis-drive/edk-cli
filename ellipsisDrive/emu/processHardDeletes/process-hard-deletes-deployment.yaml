@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: process-hard-deletes
-        image: ghcr.io/ellipsis-drive/process-hard-deletes:latest
+        image: ghcr.io/ellipsis-drive/process-hard-deletes:1.0.0
         # resources:
         #   requests:
         #     cpu: 250m

@@ -22,7 +22,7 @@ spec:
         runAsUser: 1623
       containers:
         - name: rooster-1-list-features
-          image: ghcr.io/ellipsis-drive/file-server-api-vector:latest
+          image: ghcr.io/ellipsis-drive/file-server-api-vector:1.0.0
           resources:
             requests:
               cpu: 500m

@@ -17,7 +17,7 @@ spec:
       serviceAccountName: cluster-master-service-account
       containers:
       - name: point-cloud-master
-        image: ghcr.io/ellipsis-drive/point-cloud-master:latest
+        image: ghcr.io/ellipsis-drive/point-cloud-master:1.0.0
         # resources:
         #   requests:
         #     cpu: 500m

@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: thumbnails
-        image: ghcr.io/ellipsis-drive/thumbnails:latest
+        image: ghcr.io/ellipsis-drive/thumbnails:1.0.0
         resources:
           requests:
             cpu: 1

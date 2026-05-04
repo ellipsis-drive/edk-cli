@@ -17,7 +17,7 @@ spec:
       serviceAccountName: s3-access-sa
       containers:
       - name: file-system-management
-        image: ghcr.io/ellipsis-drive/file-system-management:latest
+        image: ghcr.io/ellipsis-drive/file-system-management:1.0.0
         resources:
           requests:
             cpu: 100m

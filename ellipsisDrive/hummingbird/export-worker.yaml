@@ -17,7 +17,7 @@ spec:
       serviceAccountName: s3-access-sa
       containers:
       - name: export-worker
-        image: ghcr.io/ellipsis-drive/export-worker:latest
+        image: ghcr.io/ellipsis-drive/export-worker:1.0.0
         resources:
           requests:
             cpu: 4

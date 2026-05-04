@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: raster-worker
-        image: ghcr.io/ellipsis-drive/raster-worker:latest
+        image: ghcr.io/ellipsis-drive/raster-worker:1.0.0
         resources:
           requests:
             cpu: 4

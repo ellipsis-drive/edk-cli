@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: create-point-cloud-bounds
-        image: ghcr.io/ellipsis-drive/create-point-cloud-bounds:latest
+        image: ghcr.io/ellipsis-drive/create-point-cloud-bounds:1.0.0
         resources:
           requests:
             cpu: 100m

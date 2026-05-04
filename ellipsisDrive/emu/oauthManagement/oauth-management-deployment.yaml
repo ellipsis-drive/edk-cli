@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: oauth-management
-        image: ghcr.io/ellipsis-drive/oauth-management:latest
+        image: ghcr.io/ellipsis-drive/oauth-management:1.0.0
         # resources:
         #   requests:
         #     cpu: 250m

@@ -22,7 +22,7 @@ spec:
         runAsUser: 1623
       containers:
         - name: tile-service-cache
-          image: ghcr.io/ellipsis-drive/tile-service-cache:latest
+          image: ghcr.io/ellipsis-drive/tile-service-cache:1.0.0
           resources:
             requests:
               cpu: 100m

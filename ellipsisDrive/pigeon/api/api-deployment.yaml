@@ -17,7 +17,7 @@ spec:
       serviceAccountName: s3-access-sa
       containers:
       - name: api
-        image: ghcr.io/ellipsis-drive/api:latest
+        image: ghcr.io/ellipsis-drive/api:1.0.0
         resources:
           requests:
             cpu: 500m

@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: user-deletion-management
-        image: ghcr.io/ellipsis-drive/user-deletion-management:latest
+        image: ghcr.io/ellipsis-drive/user-deletion-management:1.0.0
         # resources:
         #   requests:
         #     cpu: 250m

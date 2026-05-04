@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: invalidator
-        image: ghcr.io/ellipsis-drive/invalidator:latest
+        image: ghcr.io/ellipsis-drive/invalidator:1.0.0
         resources:
           requests:
             cpu: 100m

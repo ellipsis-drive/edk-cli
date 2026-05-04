@@ -17,7 +17,7 @@ spec:
       serviceAccountName: s3-access-sa
       containers:
       - name: vector-worker
-        image: ghcr.io/ellipsis-drive/vector-worker:latest
+        image: ghcr.io/ellipsis-drive/vector-worker:1.0.0
         resources:
           requests:
             cpu: 2

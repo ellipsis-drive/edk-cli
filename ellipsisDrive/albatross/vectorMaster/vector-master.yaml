@@ -17,7 +17,7 @@ spec:
       serviceAccountName: cluster-master-service-account
       containers:
       - name: vector-master
-        image: ghcr.io/ellipsis-drive/vector-master:latest
+        image: ghcr.io/ellipsis-drive/vector-master:1.0.0
         # resources:
         #   requests:
         #     cpu: 500m

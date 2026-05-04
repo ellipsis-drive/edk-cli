@@ -17,7 +17,7 @@ spec:
       serviceAccountName: cluster-master-service-account
       containers:
       - name: raster-master
-        image: ghcr.io/ellipsis-drive/raster-master:latest
+        image: ghcr.io/ellipsis-drive/raster-master:1.0.0
         # resources:
         #   requests:
         #     cpu: 500m

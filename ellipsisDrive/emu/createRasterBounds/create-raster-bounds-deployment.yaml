@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: create-raster-bounds
-        image: ghcr.io/ellipsis-drive/create-raster-bounds:latest
+        image: ghcr.io/ellipsis-drive/create-raster-bounds:1.0.0
         resources:
           requests:
             cpu: 100m

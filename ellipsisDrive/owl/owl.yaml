@@ -6,7 +6,7 @@ metadata:
     ellipsis-drive: owl
 spec:
   instances: 3
-  imageName: ghcr.io/ellipsis-drive/owl:18
+  imageName: ghcr.io/cloudnative-pg/postgresql:18
 
   imagePullSecrets:
   - name: ghcr-secret

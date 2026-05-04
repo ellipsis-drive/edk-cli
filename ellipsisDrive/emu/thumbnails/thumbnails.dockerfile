@@ -1,4 +1,4 @@
-FROM ghcr.io/puppeteer/puppeteer:latest
+FROM ghcr.io/puppeteer/puppeteer:24.42.0
 
 COPY --chown=pptruser:pptruser package*.json .
 

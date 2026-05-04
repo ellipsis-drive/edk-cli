@@ -13,7 +13,7 @@ spec:
     spec:
       containers:
       - name: penguin
-        image: ghcr.io/ellipsis-drive/penguin:latest
+        image: ghcr.io/ellipsis-drive/penguin:1.0.0
         resources:
           requests:
             cpu: 100m

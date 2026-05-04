@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: search-updater
-        image: ghcr.io/ellipsis-drive/search-updater:latest
+        image: ghcr.io/ellipsis-drive/search-updater:1.0.0
         resources:
           requests:
             cpu: 100m

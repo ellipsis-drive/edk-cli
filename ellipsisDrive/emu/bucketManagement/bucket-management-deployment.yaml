@@ -17,7 +17,7 @@ spec:
       serviceAccountName: s3-access-sa
       containers:
       - name: bucket-management
-        image: ghcr.io/ellipsis-drive/bucket-management:latest
+        image: ghcr.io/ellipsis-drive/bucket-management:1.0.0
         resources:
           requests:
             cpu: 100m

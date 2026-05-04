@@ -1,4 +1,4 @@
-FROM nathanerkamp/python
+FROM ghcr.io/ellipsis-drive/gdal-python
 
 COPY --chown=python:python requirements.txt .
 

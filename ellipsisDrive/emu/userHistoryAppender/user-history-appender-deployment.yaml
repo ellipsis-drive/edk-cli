@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: user-history-appender
-        image: ghcr.io/ellipsis-drive/user-history-appender:latest
+        image: ghcr.io/ellipsis-drive/user-history-appender:1.0.0
         # resources:
         #   requests:
         #     cpu: 250m

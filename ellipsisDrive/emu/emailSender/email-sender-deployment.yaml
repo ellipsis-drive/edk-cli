@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: email-sender
-        image: ghcr.io/ellipsis-drive/email-sender:latest
+        image: ghcr.io/ellipsis-drive/email-sender:1.0.0
         resources:
           requests:
             cpu: 100m

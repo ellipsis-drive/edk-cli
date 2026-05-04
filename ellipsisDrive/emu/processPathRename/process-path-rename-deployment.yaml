@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: process-path-rename
-        image: ghcr.io/ellipsis-drive/process-path-rename:latest
+        image: ghcr.io/ellipsis-drive/process-path-rename:1.0.0
         resources:
           requests:
             cpu: 50m

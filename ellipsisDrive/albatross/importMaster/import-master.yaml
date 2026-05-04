@@ -17,7 +17,7 @@ spec:
       serviceAccountName: cluster-master-service-account
       containers:
       - name: import-master
-        image: ghcr.io/ellipsis-drive/import-master:latest
+        image: ghcr.io/ellipsis-drive/import-master:1.0.0
         # resources:
         #   requests:
         #     cpu: 500m
