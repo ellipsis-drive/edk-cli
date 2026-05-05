@@ -16,7 +16,13 @@ module.exports = {
 
     fs.closeSync(fs.openSync(utilities.historyPath, 'w'));
 
-    let vpc = await createVpc(config);
+    let vpc;
+    if (config['vpc']) {
+      vpc = config['vpc'];
+    }
+    else {
+      vpc = await createVpc(config);
+    }
 
     await createCluster(config, vpc)
 
@@ -99,7 +105,8 @@ module.exports = {
 function validateConfig(config) {
   const optionalKeys = [
     'googleClientId',
-    'googleClientSecret'
+    'googleClientSecret',
+    'vpc'
   ];
 
   const limitedStringKeys = [
@@ -128,7 +135,7 @@ function validateConfig(config) {
 
     let isString = typeof value === 'string' || value instanceof String;
 
-    if (!isString) {
+    if (!isString && key !== 'vpc') {
       errors = true;
       console.log(`'${key}' must be of type string`);
     }
@@ -139,6 +146,36 @@ function validateConfig(config) {
       if (!isOk) {
         errors = true;
         console.log(`'${key}' may only contain a-z, 0-9 and hyphens`);
+      }
+    }
+
+    if (key === 'vpc') {
+      let validVpc = !Array.isArray(value) && typeof vpc === 'object';
+
+      if (!validVpc) {
+        errors = true;
+        console.log(`'${key}' must be of type object`);
+      }
+      else {
+        const vpcKeys = [
+          'vpcId',
+          'publicSubnetId1',
+          'privateSubnetId1',
+          'publicSubnetId2',
+          'privateSubnetId2',
+          'subnet1AvailabilityZone',
+          'subnet2AvailabilityZone',
+          'securityGroupId'
+        ];
+
+        for (let i = 0; i < vpcKeys.length; i++) {
+          let isString = typeof value === 'string' || value instanceof String;
+
+          if (!isString) {
+            errors = true;
+            console.log(`'vpc.${key}' must be of type string`);
+          }
+        }
       }
     }
   }
@@ -283,7 +320,12 @@ async function createCluster(config, vpc) {
 
   let substitutes = keys.map((x) => { return { key: x, value: config[x] }; });
 
-  substitutes.push({ key: 'subnetId1', value: vpc.privateSubnetId1 }, { key: 'subnetId2', value: vpc.privateSubnetId2 });
+  substitutes.push(
+    { key: 'subnetId1', value: vpc.privateSubnetId1 }, 
+    { key: 'subnetId2', value: vpc.privateSubnetId2 },
+    { key: 'subnet1AvailabilityZone', value: vpc.subnet1AvailabilityZone }, 
+    { key: 'subnet2AvailabilityZone', value: vpc.subnet2AvailabilityZone }
+  );
 
   clusterTemplate = utilities.substituteMulti(clusterTemplate, substitutes);
 
@@ -297,10 +339,12 @@ async function createVpc(config) {
 
   await aws.enabledDnsHostnames(vpcId);
 
-  let publicSubnetId1 = await aws.createSubnet(vpcId, config.masterZone + 'b', '10.0.1.0/20', true);
-  let privateSubnetId1 = await aws.createSubnet(vpcId, config.masterZone + 'b', '10.0.16.0/20', false);
-  let publicSubnetId2 = await aws.createSubnet(vpcId, config.masterZone + 'a', '10.0.128.0/20', true);
-  let privateSubnetId2 = await aws.createSubnet(vpcId, config.masterZone + 'a', '10.0.144.0/20', false);
+  let subnet1AvailabilityZone = 'b';
+  let subnet2AvailabilityZone = 'a';
+  let publicSubnetId1 = await aws.createSubnet(vpcId, config.masterZone + subnet1AvailabilityZone, '10.0.1.0/20', true);
+  let privateSubnetId1 = await aws.createSubnet(vpcId, config.masterZone + subnet1AvailabilityZone, '10.0.16.0/20', false);
+  let publicSubnetId2 = await aws.createSubnet(vpcId, config.masterZone + subnet2AvailabilityZone, '10.0.128.0/20', true);
+  let privateSubnetId2 = await aws.createSubnet(vpcId, config.masterZone + subnet2AvailabilityZone, '10.0.144.0/20', false);
 
   let internetGatewayId = await aws.createInternetGateway();
 
@@ -336,6 +380,8 @@ async function createVpc(config) {
     privateSubnetId1: privateSubnetId1,
     publicSubnetId2: publicSubnetId2,
     privateSubnetId2: privateSubnetId2,
+    subnet1AvailabilityZone: subnet1AvailabilityZone,
+    subnet2AvailabilityZone: subnet2AvailabilityZone,
     securityGroupId: securityGroupId
   };
 }
