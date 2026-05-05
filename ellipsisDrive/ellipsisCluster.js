@@ -169,11 +169,11 @@ function validateConfig(config) {
         ];
 
         for (let i = 0; i < vpcKeys.length; i++) {
-          let isString = typeof value === 'string' || value instanceof String;
+          let isString = typeof value[vpcKeys[i]] === 'string' || value[vpcKeys[i]] instanceof String;
 
           if (!isString) {
             errors = true;
-            console.log(`'vpc.${key}' must be of type string`);
+            console.log(`'vpc.${vpcKeys[i]}' must be of type string`);
           }
         }
       }
