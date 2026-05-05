@@ -32,5 +32,15 @@
   "masterZoneAbbreviation": "fra",
   "companyName": "kubernetes",
   "deploymentName": "kubernetes-test",
-  "enablePlans": "false"
+  "enablePlans": "false",
+  "vpc": {
+    "vpcId": "foobar",
+    "publicSubnetId1": "foobar",
+    "privateSubnetId1": "foobar",
+    "publicSubnetId2": "foobar",
+    "privateSubnetId2": "foobar",
+    "subnet1AvailabilityZone": "foobar",
+    "subnet2AvailabilityZone": "foobar",
+    "securityGroupId": "foobar"
+  }
 }
