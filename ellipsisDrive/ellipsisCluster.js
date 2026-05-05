@@ -150,7 +150,7 @@ function validateConfig(config) {
     }
 
     if (key === 'vpc') {
-      let validVpc = !Array.isArray(value) && typeof vpc === 'object';
+      let validVpc = !Array.isArray(value) && typeof value === 'object';
 
       if (!validVpc) {
         errors = true;
