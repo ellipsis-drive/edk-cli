@@ -35,13 +35,10 @@ module.exports = {
         console.log('pull the new versions from the master branch of the git');
 
         const request = https.get("https://raw.githubusercontent.com/ellipsis-drive/edk-cli/master/ellipsisDrive/versions.js", function (response) {
-            if (!error && response.statusCode == 200) {
+            if (response && response.statusCode == 200) {
                 fs.writeFile('./versions.js', body, 'utf8', (err) => {
                     throw(err);
                 })
-            }
-            else if (error) {
-                throw(error);
             }
             else {
                 throw(`Response status code was ${response.statusCode}`);
