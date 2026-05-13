@@ -511,6 +511,7 @@ async function createOwl(config) {
   await kubectl.apply('./ellipsisDrive/owl/owl-pdb.yaml');
   await kubectl.create('./ellipsisDrive/owl/owl-queries-config-map.yaml');
   await kubectl.create('./build/owl-data-config-map.yaml');
+  await kubectl.create('./build/owl-updates-config-map.yaml');
   await kubectl.create('./ellipsisDrive/owl/icons-queries-config-map.yaml');
   await kubectl.apply('./ellipsisDrive/owl/owl.yaml');
 }
@@ -586,7 +587,7 @@ async function createPigeon(config) {
   await applyVersionedYaml(config, './ellipsisDrive/pigeon/flask/flask-deployment.yaml', 'flask');
   await kubectl.apply('./ellipsisDrive/pigeon/flask/flask-service.yaml');
 
-  let configMapTemplate = utilities.loadFile('./ellipsisDrive/pigeon/cache-db/pigeon-updates-config-map.yaml');
+  let configMapTemplate = utilities.loadFile('./ellipsisDrive/pigeon/cache-db/cache-updates-config-map.yaml');
 
   let queries = versionManagement.getQueries('cache-db', config['ellipsisDriveVersion']);
 
@@ -599,6 +600,7 @@ async function createPigeon(config) {
   await kubectl.apply('./ellipsisDrive/pigeon/cache-db/cache-db-pdb.yaml');
   await kubectl.apply('./ellipsisDrive/pigeon/cache-db/cache-queries-config-map.yaml');
   await kubectl.apply('./ellipsisDrive/pigeon/cache-db/cache-db-cloudnativepg.yaml');
+  await kubectl.apply('./build/pigeon-updates-config-map.yaml');
 
   await applyVersionedYaml(config, './ellipsisDrive/pigeon/tileServiceCache/tile-service-cache-stateful-set.yaml', 'tile-service-cache');
   await kubectl.apply('./ellipsisDrive/pigeon/tileServiceCache/tile-service-cache-service.yaml');
