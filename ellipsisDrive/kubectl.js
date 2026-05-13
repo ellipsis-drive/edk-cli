@@ -146,7 +146,8 @@ module.exports = {
   },
 
   execQuery: async (database, query) => {
-    await cmd.executeCommandSimple(`kubectl exec ${database}-1 -- psql -h ${database}-rw -U ellipsis -d ellipsis_app`, false, null, query);
+    let secret = database === 'owl' ? 'owl-db-password' : 'pigeon-db-password';
+    await cmd.executeCommandSimple(`kubectl exec ${database}-1 -- env PGPASSWORD=$(kubectl get secret ${secret} -o jsonpath='{.data.password}' | base64 --decode) psql -h ${database}-rw -U ellipsis_app -d ellipsis`, false, null, query);
   },
 
   getEllipsisDriveConfig: async () => {
