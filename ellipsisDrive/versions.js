@@ -45,7 +45,7 @@ const VERSIONS = [
         upgrade: async function() {
             console.log('upgrading to version 1.0.1');
 
-            for (const [key, value] of this.images) {
+            for (const [key, value] in this.images) {
                 await kubectl.setImage(`deployment/${key} ${key}=${key}:${value}`);
                 await kubectl.rolloutRestart(`deployment ${key}`);
             }
@@ -64,12 +64,12 @@ const VERSIONS = [
         upgrade: async function() {
             console.log('upgrading to version 1.0.2');
 
-            for (const [key, value] of this.images) {
+            for (const [key, value] in this.images) {
                 await kubectl.setImage(`deployment/${key} ${key}=${key}:${value}`);
                 await kubectl.rolloutRestart(`deployment ${key}`);
             }
 
-            for (const [key, value] of this.queries) {
+            for (const [key, value] in this.queries) {
                 await kubectl.execQuery(key, value.join('\n'));
             }
         }
