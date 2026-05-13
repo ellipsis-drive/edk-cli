@@ -159,7 +159,7 @@ module.exports = {
       --save-config \
       --dry-run=client \
       --from-literal=config='${JSON.stringify(ellipsisDriveConfig)}' \
-      - o yaml | \
+      -o yaml | \
       kubectl apply -f -`
     );
   }
