@@ -31,19 +31,17 @@ module.exports = {
         }
     },
 
-    pull: () => {
+    pull: async () => {
         console.log('pull the new versions from the master branch of the git');
 
-        const request = https.get("https://raw.githubusercontent.com/ellipsis-drive/edk-cli/master/ellipsisDrive/versions.js", function (response) {
-            if (response && response.statusCode == 200) {
-                fs.writeFile('./versions.js', body, 'utf8', (err) => {
-                    throw(err);
-                })
-            }
-            else {
-                throw(`Response status code was ${response.statusCode}`);
-            }
-        });
+        let { statusCode, body } = await fetch("https://raw.githubusercontent.com/ellipsis-drive/edk-cli/master/ellipsisDrive/versions.js");
+
+        if (statusCode == 200) {
+            fs.promises.writeFile('./versions.js', body, 'utf8');
+        }
+        else {
+            throw (`Response status code was ${statusCode}`);
+        }
     },
 
     getQueries: (database, ellipsisDriveVersion) => {
