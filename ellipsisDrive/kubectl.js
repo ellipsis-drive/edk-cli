@@ -155,7 +155,7 @@ module.exports = {
   },
 
   setEllipsisDriveConfig: async (ellipsisDriveConfig) => {
-    await cmd.executeCommandSimple(`kubectl create secret generic ${ELLIPSIS_DRIVE_SECRET_NAME} --from-literal=config="${JSON.stringify(ellipsisDriveConfig)}"`);
+    await cmd.executeCommandSimple(`kubectl create secret generic ${ELLIPSIS_DRIVE_SECRET_NAME} --from-literal=config='${JSON.stringify(ellipsisDriveConfig)}'`);
   },
 
   editEllipsisDriveConfig: async (ellipsisDriveConfig) => {
