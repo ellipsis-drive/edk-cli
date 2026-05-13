@@ -34,13 +34,14 @@ module.exports = {
     pull: async () => {
         console.log('pull the new versions from the master branch of the git');
 
-        let { statusCode, body } = await fetch("https://raw.githubusercontent.com/ellipsis-drive/edk-cli/master/ellipsisDrive/versions.js");
+        let response = await fetch("https://raw.githubusercontent.com/ellipsis-drive/edk-cli/master/ellipsisDrive/versions.js");
 
-        if (statusCode == 200) {
+        if (response.ok) {
+            let body = await response.text();
             fs.promises.writeFile('./versions.js', body, 'utf8');
         }
         else {
-            throw (`Response status code was ${statusCode}`);
+            throw (`Response status code was ${response.status}`);
         }
     },
 
