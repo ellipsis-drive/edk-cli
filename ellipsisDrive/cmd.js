@@ -4,8 +4,8 @@ const moment = require('moment');
 module.exports = {
   executeCommand: executeCommand,
 
-  executeCommandSimple: async (command, noLog = false, abortSignal = null) => {
-    return await executeCommand('sh', ['-c', command], false, noLog, abortSignal);
+  executeCommandSimple: async (command, noLog = false, abortSignal = null, input = null) => {
+    return await executeCommand('sh', ['-c', command], false, noLog, abortSignal, input);
   },
 
   executeCommandSudo: async (command) => {
@@ -69,7 +69,7 @@ module.exports = {
   sleep: sleep
 };
 
-async function executeCommand(cmd, args, shell = false, noLog = false, abortSignal = null) {
+async function executeCommand(cmd, args, shell = false, noLog = false, abortSignal = null, input = null) {
   let commandLog = cmd;
   let log = !noLog;
 
@@ -100,6 +100,12 @@ async function executeCommand(cmd, args, shell = false, noLog = false, abortSign
   }
 
   let childProcess = spawn(cmd, args, {}, shell);
+
+  if (input) {
+    childProcess.stdin.write(input);
+    childProcess.stdin.end();
+  }
+
   let processDone = false;
 
   let promises = [];

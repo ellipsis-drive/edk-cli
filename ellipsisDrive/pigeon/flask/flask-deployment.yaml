@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: flask
-        image: ghcr.io/ellipsis-drive/flask:1.0.0
+        image: ghcr.io/ellipsis-drive/flask:<<<version>>>
         resources:
           requests:
             cpu: 500m

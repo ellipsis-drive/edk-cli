@@ -1,5 +1,7 @@
 const cmd = require('./cmd');
 
+const ELLIPSIS_DRIVE_SECRET_NAME = 'ellipsis-drive-config';
+
 module.exports = {
   apply: async (path, serverSide = false) => {
     await cmd.executeCommandSimple(`kubectl apply ${serverSide ? '--server-side' : ''} -f ${path}`);
@@ -133,5 +135,26 @@ module.exports = {
         await new Promise((x) => setTimeout(x, 500));
       }
     }
-  }
+  },
+
+  setImage: async (imageChange) => {
+    await cmd.executeCommandSimple(`kubectl set image ${imageChange}`);
+  },
+
+  rolloutRestart: async (restart) => {
+    await cmd.executeCommandSimple(`kubectl rollout restart ${restart}`);
+  },
+
+  execQuery: async (database, query) => {
+    await cmd.executeCommandSimple(`kubectl exec ${database}-1 -- psql -h ${database}-rw -U ellipsis -d ellipsis_app`, false, null, query);
+  },
+
+  getEllipsisDriveConfig: async () => {
+    let ellipsisDriveConfig = await cmd.executeCommandSimple(`kubectl get secret ${ELLIPSIS_DRIVE_SECRET_NAME} --template={{.data.config}} | base64 --decode`);
+    return JSON.parse(ellipsisDriveConfig);
+  },
+
+  setEllipsisDriveConfig: async (ellipsisDriveConfig) => {
+    await cmd.executeCommandSimple(`kubectl create secret generic ${ELLIPSIS_DRIVE_SECRET_NAME} --from-literal=config="${JSON.stringify(ellipsisDriveConfig)}"`)
+  },
 }
