@@ -483,7 +483,7 @@ async function createBuckets(config) {
 }
 
 async function createOwl(config) {
-  let clusterTemplate = utilities.loadFile('./ellipsisDrive/owl/owl-data-config-map.yaml');
+  let dataConfigMapTemplate = utilities.loadFile('./ellipsisDrive/owl/owl-data-config-map.yaml');
 
   let keys = [
     'masterZone',
@@ -492,21 +492,21 @@ async function createOwl(config) {
     'noReplyMailUsername'
   ];
 
-  let substitutes = keys.map((x) => { return { key: x, value: config[x] }; });
+  let dataConfigMapsubstitutes = keys.map((x) => { return { key: x, value: config[x] }; });
 
-  clusterTemplate = utilities.substituteMulti(clusterTemplate, substitutes);
+  dataConfigMapTemplate = utilities.substituteMulti(dataConfigMapTemplate, dataConfigMapsubstitutes);
 
-  utilities.saveFile('./build/owl-data-config-map.yaml', clusterTemplate);
+  utilities.saveFile('./build/owl-data-config-map.yaml', dataConfigMapTemplate);
 
-  let clusterTemplate = utilities.loadFile('./ellipsisDrive/owl/owl-updates-config-map.yaml');
+  let updatesConfigMapTemplate = utilities.loadFile('./ellipsisDrive/owl/owl-updates-config-map.yaml');
 
   let queries = versionManagement.getQueries('owl', config['ellipsisDriveVersion']);
 
-  let substitutes = [{ key: 'updates', value: queries }];
+  let updatesConfigMapSubstitutes = [{ key: 'updates', value: queries }];
 
-  clusterTemplate = utilities.substituteMulti(clusterTemplate, substitutes);
+  updatesConfigMapTemplate = utilities.substituteMulti(updatesConfigMapTemplate, updatesConfigMapSubstitutes);
 
-  utilities.saveFile('./build/owl-updates-config-map.yaml', clusterTemplate);
+  utilities.saveFile('./build/owl-updates-config-map.yaml', updatesConfigMapTemplate);
 
   await kubectl.apply('./ellipsisDrive/owl/owl-pdb.yaml');
   await kubectl.create('./ellipsisDrive/owl/owl-queries-config-map.yaml');
@@ -559,19 +559,19 @@ async function setupEllipsisConfigmap(config) {
 async function createPigeon(config) {
   let certificateArn = await aws.createCertificate(config.apiUrl);
 
-  let clusterTemplate = utilities.loadFile('./ellipsisDrive/pigeon/api/api-ingress.yaml');
+  let ingressTemplate = utilities.loadFile('./ellipsisDrive/pigeon/api/api-ingress.yaml');
 
   let keys = [
     'apiUrl'
   ];
 
-  let substitutes = keys.map((x) => { return { key: x, value: config[x] }; });
+  let ingressSubstitutes = keys.map((x) => { return { key: x, value: config[x] }; });
 
-  substitutes.push({ key: 'apiCertificate', value: certificateArn });
+  ingressSubstitutes.push({ key: 'apiCertificate', value: certificateArn });
 
-  clusterTemplate = utilities.substituteMulti(clusterTemplate, substitutes);
+  ingressTemplate = utilities.substituteMulti(ingressTemplate, ingressSubstitutes);
 
-  utilities.saveFile('./build/api-ingress.yaml', clusterTemplate);
+  utilities.saveFile('./build/api-ingress.yaml', ingressTemplate);
 
   await kubectl.apply('./ellipsisDrive/pigeon/api/api-pdb.yaml');
   await applyVersionedYaml(config, './ellipsisDrive/pigeon/api/api-deployment.yaml', 'api');
@@ -586,15 +586,15 @@ async function createPigeon(config) {
   await applyVersionedYaml(config, './ellipsisDrive/pigeon/flask/flask-deployment.yaml', 'flask');
   await kubectl.apply('./ellipsisDrive/pigeon/flask/flask-service.yaml');
 
-  let clusterTemplate = utilities.loadFile('./ellipsisDrive/pigeon/cache-db/pigeon-updates-config-map.yaml');
+  let configMapTemplate = utilities.loadFile('./ellipsisDrive/pigeon/cache-db/pigeon-updates-config-map.yaml');
 
   let queries = versionManagement.getQueries('cache-db', config['ellipsisDriveVersion']);
 
-  let substitutes = [{ key: 'updates', value: queries }];
+  let configMapSubstitutes = [{ key: 'updates', value: queries }];
 
-  clusterTemplate = utilities.substituteMulti(clusterTemplate, substitutes);
+  configMapTemplate = utilities.substituteMulti(configMapTemplate, configMapSubstitutes);
 
-  utilities.saveFile('./build/pigeon-updates-config-map.yaml', clusterTemplate);
+  utilities.saveFile('./build/pigeon-updates-config-map.yaml', configMapTemplate);
 
   await kubectl.apply('./ellipsisDrive/pigeon/cache-db/cache-db-pdb.yaml');
   await kubectl.apply('./ellipsisDrive/pigeon/cache-db/cache-queries-config-map.yaml');
