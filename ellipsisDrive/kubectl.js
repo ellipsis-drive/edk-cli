@@ -155,6 +155,10 @@ module.exports = {
   },
 
   setEllipsisDriveConfig: async (ellipsisDriveConfig) => {
-    await cmd.executeCommandSimple(`kubectl create secret generic ${ELLIPSIS_DRIVE_SECRET_NAME} --from-literal=config="${JSON.stringify(ellipsisDriveConfig)}"`)
+    await cmd.executeCommandSimple(`kubectl create secret generic ${ELLIPSIS_DRIVE_SECRET_NAME} --from-literal=config="${JSON.stringify(ellipsisDriveConfig)}"`);
+  },
+
+  editEllipsisDriveConfig: async (ellipsisDriveConfig) => {
+    await cmd.executeCommandSimple(`kubectl get secret ${ELLIPSIS_DRIVE_SECRET_NAME} -o json | jq --arg config "$(echo -n ${JSON.stringify(ellipsisDriveConfig)} | base64 -w 0)" '.data["config"]=$config' | kubectl apply -f -`);
   },
 }
