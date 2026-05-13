@@ -38,7 +38,7 @@ module.exports = {
 
         if (response.ok) {
             let body = await response.text();
-            fs.promises.writeFile('./versions.js', body, 'utf8');
+            fs.promises.writeFile('./ellipsisDrive/versions.js', body, 'utf8');
         }
         else {
             throw (`Response status code was ${response.status}`);
