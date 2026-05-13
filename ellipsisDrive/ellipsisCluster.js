@@ -518,11 +518,11 @@ async function createOwl(config) {
 
 async function createAlbatross(config) {
   await kubectl.apply('./ellipsisDrive/albatross/cluster-master-service-account.yaml');
-  await applyVersionedYaml(config, './ellipsisDrive/dodo/vector-master.yaml', 'vector-master');
-  await applyVersionedYaml(config, './ellipsisDrive/dodo/raster-master.yaml', 'raster-master');
-  await applyVersionedYaml(config, './ellipsisDrive/dodo/point-cloud-master.yaml', 'point-cloud-master');
-  await applyVersionedYaml(config, './ellipsisDrive/dodo/export-master.yaml', 'export-master');
-  await applyVersionedYaml(config, './ellipsisDrive/dodo/import-master.yaml', 'import-master');
+  await applyVersionedYaml(config, './ellipsisDrive/albatross/vectorMaster/vector-master.yaml', 'vector-master');
+  await applyVersionedYaml(config, './ellipsisDrive/albatross/rasterMaster/raster-master.yaml', 'raster-master');
+  await applyVersionedYaml(config, './ellipsisDrive/albatross/pointCloudMaster/point-cloud-master.yaml', 'point-cloud-master');
+  await applyVersionedYaml(config, './ellipsisDrive/albatross/exportMaster/export-master.yaml', 'export-master');
+  await applyVersionedYaml(config, './ellipsisDrive/albatross/importMaster/import-master.yaml', 'import-master');
 }
 
 async function setupIngress(config) {
@@ -595,12 +595,12 @@ async function createPigeon(config) {
 
   configMapTemplate = utilities.substituteMulti(configMapTemplate, configMapSubstitutes);
 
-  utilities.saveFile('./build/pigeon-updates-config-map.yaml', configMapTemplate);
+  utilities.saveFile('./build/cache-updates-config-map.yaml', configMapTemplate);
 
   await kubectl.apply('./ellipsisDrive/pigeon/cache-db/cache-db-pdb.yaml');
   await kubectl.apply('./ellipsisDrive/pigeon/cache-db/cache-queries-config-map.yaml');
   await kubectl.apply('./ellipsisDrive/pigeon/cache-db/cache-db-cloudnativepg.yaml');
-  await kubectl.apply('./build/pigeon-updates-config-map.yaml');
+  await kubectl.apply('./build/cache-updates-config-map.yaml');
 
   await applyVersionedYaml(config, './ellipsisDrive/pigeon/tileServiceCache/tile-service-cache-stateful-set.yaml', 'tile-service-cache');
   await kubectl.apply('./ellipsisDrive/pigeon/tileServiceCache/tile-service-cache-service.yaml');
@@ -657,10 +657,10 @@ async function createEmu(config) {
 
 async function createClusterWorkers(config) {
   await applyVersionedYaml(config, './ellipsisDrive/dodo/vector-worker.yaml', 'vector-worker');
-  await applyVersionedYaml(config, './ellipsisDrive/dodo/raster-worker.yaml', 'raster-worker');
-  await applyVersionedYaml(config, './ellipsisDrive/dodo/point-cloud-worker.yaml', 'point-cloud-worker');
-  await applyVersionedYaml(config, './ellipsisDrive/dodo/export-worker.yaml', 'export-worker');
-  await applyVersionedYaml(config, './ellipsisDrive/dodo/import-worker.yaml', 'import-worker');
+  await applyVersionedYaml(config, './ellipsisDrive/hawk/raster-worker.yaml', 'raster-worker');
+  await applyVersionedYaml(config, './ellipsisDrive/heron/point-cloud-worker.yaml', 'point-cloud-worker');
+  await applyVersionedYaml(config, './ellipsisDrive/hummingbird/export-worker.yaml', 'export-worker');
+  await applyVersionedYaml(config, './ellipsisDrive/sparrow/import-worker.yaml', 'import-worker');
 }
 
 async function applyVersionedYaml(config, file, package) {
