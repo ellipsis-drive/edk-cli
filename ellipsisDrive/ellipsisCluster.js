@@ -103,7 +103,7 @@ module.exports = {
     let oldEllipsisDriveVersion = currentConfig['ellipsisDriveVersion'];
     await versionManagement.upgrade(oldEllipsisDriveVersion, newEllipsisDriveVersion);
     let newConfig = { ...currentConfig, ellipsisDriveVersion: newEllipsisDriveVersion };
-    await kubectl.editEllipsisDriveConfig(newConfig);
+    await kubectl.setEllipsisDriveConfig(newConfig);
   },
   pull: () => {
     versionManagement.pull();
