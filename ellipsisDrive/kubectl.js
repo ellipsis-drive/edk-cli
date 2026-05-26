@@ -1,6 +1,7 @@
 const cmd = require('./cmd');
 
 const ELLIPSIS_DRIVE_SECRET_NAME = 'ellipsis-drive-config';
+const ELLIPSIS_DRIVE_HISTORY_NAME = 'ellipsis-drive-history';
 
 module.exports = {
   apply: async (path, serverSide = false) => {
@@ -160,6 +161,21 @@ module.exports = {
       --save-config \
       --dry-run=client \
       --from-literal=config='${JSON.stringify(ellipsisDriveConfig)}' \
+      -o yaml | \
+      kubectl apply -f -`
+    );
+  },
+
+  getHistory: async () => {
+    let ellipsisDriveConfig = await cmd.executeCommandSimple(`kubectl get configmap ${ELLIPSIS_DRIVE_HISTORY_NAME} --template={{.data.config}}`);
+    return JSON.parse(ellipsisDriveConfig);
+  },
+
+  setHistory: async (history) => {
+    await cmd.executeCommandSimple(`kubectl create configmap ${ELLIPSIS_DRIVE_HISTORY_NAME} \
+      --save-config \
+      --dry-run=client \
+      --from-literal=config='${history}' \
       -o yaml | \
       kubectl apply -f -`
     );
