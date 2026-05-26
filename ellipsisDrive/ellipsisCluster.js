@@ -181,7 +181,6 @@ async function deleteCluster(config) {
   }
   catch (e) {
     console.log('Could not load history from the kubernetes cluster');
-    throw(e)
 
     try {
       history = utilities.loadFile(utilities.historyPath);
