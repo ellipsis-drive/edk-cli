@@ -168,7 +168,7 @@ module.exports = {
 
   getHistory: async () => {
     let ellipsisDriveConfig = await cmd.executeCommandSimple(`kubectl get configmap ${ELLIPSIS_DRIVE_HISTORY_NAME} --template={{.data.config}}`);
-    return JSON.parse(ellipsisDriveConfig);
+    return ellipsisDriveConfig;
   },
 
   setHistory: async (history) => {
