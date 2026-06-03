@@ -21,7 +21,7 @@ spec:
         - containerPort: 80
         volumeMounts:
         - name: penguin-config
-          mountPath: "/usr/share/nginx/html"
+          mountPath: "/usr/share/nginx/html/config.js"
           subPath: config.js
       imagePullSecrets:
         - name: ghcr-secret
