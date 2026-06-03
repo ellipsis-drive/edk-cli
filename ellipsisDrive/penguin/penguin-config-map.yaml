@@ -6,7 +6,7 @@ data:
   config.js: |
     window.__APP_CONFIG__ = {
       displayName: 'Ellipsis Drive',
-      apiUrl: '<<<apiUrl>>>/v3',
+      apiUrl: 'https://<<<apiUrl>>>/v3',
       version: '1.0.0',
       featureFlags: {
         allowPlanTypes: true,
