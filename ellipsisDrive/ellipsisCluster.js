@@ -617,6 +617,20 @@ async function createRooster(config) {
 }
 
 async function createPenguin(config) {
+  let configTemplate = utilities.loadFile('./ellipsisDrive/penguin/penguin-config-map.yaml');
+
+  let configKeys = [
+    'apiUrl'
+  ];
+
+  let configSubstitutes = configKeys.map((x) => { return { key: x, value: config[x] }; });
+
+  configTemplate = utilities.substituteMulti(configTemplate, configSubstitutes);
+
+  utilities.saveFile('./build/penguin-config-map.yaml', configTemplate);
+
+  await kubectl.apply('./build/penguin-config-map.yaml');
+  
   let certificateArn = await aws.createCertificate(config.frontendUrl);
 
   let clusterTemplate = utilities.loadFile('./ellipsisDrive/penguin/penguin-ingress.yaml');
