@@ -1,0 +1,77 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: penguin-config
+data:
+  config.js: |
+    window.__APP_CONFIG__ = {
+      displayName: 'Ellipsis Drive',
+      apiUrl: '<<<apiUrl>>>/v3',
+      version: '1.0.0',
+      featureFlags: {
+        allowPlanTypes: true,
+        hubspotFields: true,
+        cookies: true,
+        hideRegularLogin: false,
+        ToS: true,
+        checkRegisterInput: true,
+
+
+        backoffice: {
+          monthlyFee: true,
+          balance: true,
+          billingAddress: true,
+          transactions: true,
+          maxNegative: true,
+          storageDiscount: true,
+          serviceFee: true,
+          pricing: true,
+          creditCard: true,
+          blocked: true,
+          invitedBy: true,
+          login: true
+        },
+        planDetails: true,
+        changeStoragePlan: true,
+
+
+        sampleShareDemo: true,
+        insureTechDemo: true,
+        autoDemo: true,
+
+
+        process: false,
+        promoteConstellation: false,
+
+
+        inviteNudge: true,
+        creditCardNudge: true,
+
+
+        ellipsisPromo: true,
+
+
+        fees: true,
+
+
+        highresDem: true,
+        asTimestamp: false,
+
+
+        hideDisplayNameOnDev: true
+      },
+      idProviders: [
+        {
+          type: 'google',
+          protocol: {
+            type: 'OpenID',
+            args: {
+              method: 'GET',
+              url: '/google/login',
+              callback: '/google/callback'
+            }
+          },
+          displayName: 'Google'
+        }
+      ]
+    };

@@ -19,5 +19,17 @@ spec:
             cpu: 100m
         ports:
         - containerPort: 80
+        volumeMounts:
+        - name: penguin-config
+          mountPath: "/usr/share/nginx/html/public"
+          subPath: config.js
       imagePullSecrets:
         - name: ghcr-secret
+
+volumes:
+  - name: penguin-config
+    configMap:
+      name: penguin-config
+      items:
+      - key: "config.js"
+      path: "config.js"
