@@ -9,8 +9,8 @@ metadata:
 vpc:
   subnets:
     private:
-      <<<masterZone>>>b: { id: <<<subnetId1>>> }
-      <<<masterZone>>>a: { id: <<<subnetId2>>> }
+      <<<masterZone>>><<<subnet1AvailabilityZone>>>: { id: <<<subnetId1>>> }
+      <<<masterZone>>><<<subnet2AvailabilityZone>>>: { id: <<<subnetId2>>> }
 
 upgradePolicy: 
   supportType: STANDARD
