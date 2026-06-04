@@ -51,8 +51,8 @@ module.exports = {
 
         let queries = ["-- Running database updates"];
         for (let i = 0; i < versions.length; i++) {
-            if (versions[i].queries) {
-                queries.push(versions[i].queries);
+            if (versions[i].queries[database]) {
+                queries.push(...versions[i].queries[database]);
             }
         }
 
