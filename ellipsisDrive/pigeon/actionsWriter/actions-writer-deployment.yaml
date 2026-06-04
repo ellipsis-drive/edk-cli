@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: actions-writer
-        image: ghcr.io/ellipsis-drive/actions-writer:<<<verssion>>>
+        image: ghcr.io/ellipsis-drive/actions-writer:<<<version>>>
         resources:
           requests:
             cpu: 50m
