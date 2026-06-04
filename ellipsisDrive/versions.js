@@ -32,7 +32,7 @@ const VERSIONS = [
             'actions-writer': '1.0.0',
             'api': '1.0.0',
             'flask': '1.0.0',
-            'invaldiator': '1.0.0',
+            'invalidator': '1.0.0',
             'tile-service-cache': '1.0.0',
             'file-server-api-vector': '1.0.0'
         }
