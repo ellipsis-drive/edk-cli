@@ -28,7 +28,7 @@ const VERSIONS = [
             'thumbnails': '1.0.0',
             'user-deletion-management': '1.0.0',
             'user-history-appender': '1.0.0',
-            'penguin': '0.0.0',
+            'penguin': '1.0.0',
             'actions-writer': '1.0.0',
             'api': '1.0.0',
             'flask': '1.0.0',
