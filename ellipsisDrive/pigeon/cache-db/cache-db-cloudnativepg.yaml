@@ -22,6 +22,8 @@ spec:
         configMapRefs:
         - name: pigeon-init-database
           key: database.sql
+        - name: pigeon-updates
+          key: updates.sql
 
   resources:
     requests:

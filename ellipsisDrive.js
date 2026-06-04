@@ -45,6 +45,15 @@ async function ellipsisDrive() {
     console.log(`Version ${version}`);
   });
 
+  const update = program.command('update').action(() => {
+    let config = loadConfig();
+    ellipsisCluster.upgrade(config['ellipsisDriveVersion']);
+  });
+
+  update.command('pull').action(() => {
+    ellipsisCluster.pull();
+  });
+
   program.parse();
 }
 

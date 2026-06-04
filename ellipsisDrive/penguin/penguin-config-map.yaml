@@ -1,0 +1,77 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: penguin-config
+data:
+  config.js: |
+    window.__APP_CONFIG__ = {
+      displayName: '<<<deploymentName>>>',
+      apiUrl: 'https://<<<apiUrl>>>/v3',
+      version: '1.0.0',
+      featureFlags: {
+        allowPlanTypes: false,
+        hubspotFields: false,
+        cookies: false,
+        hideRegularLogin: false,
+        ToS: false,
+        checkRegisterInput: false,
+
+
+        backoffice: {
+          monthlyFee: false,
+          balance: false,
+          billingAddress: false,
+          transactions: false,
+          maxNegative: false,
+          storageDiscount: false,
+          serviceFee: false,
+          pricing: false,
+          creditCard: false,
+          blocked: false,
+          invitedBy: false,
+          login: false
+        },
+        planDetails: false,
+        changeStoragePlan: false,
+
+
+        sampleShareDemo: false,
+        insureTechDemo: false,
+        autoDemo: false,
+
+
+        process: false,
+        promoteConstellation: false,
+
+
+        inviteNudge: false,
+        creditCardNudge: false,
+
+
+        ellipsisPromo: false,
+
+
+        fees: false,
+
+
+        highresDem: false,
+        asTimestamp: false,
+
+
+        hideDisplayNameOnDev: false
+      },
+      idProviders: [
+        {
+          type: 'google',
+          protocol: {
+            type: 'OpenID',
+            args: {
+              method: 'GET',
+              url: '/google/login',
+              callback: '/google/callback'
+            }
+          },
+          displayName: 'Google'
+        }
+      ]
+    };

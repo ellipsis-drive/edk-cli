@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: point-cloud-worker
-        image: ghcr.io/ellipsis-drive/point-cloud-worker:1.0.0
+        image: ghcr.io/ellipsis-drive/point-cloud-worker:<<<version>>>
         resources:
           requests:
             cpu: 4

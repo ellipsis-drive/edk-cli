@@ -4,6 +4,7 @@ const utilities = require('./utilities');
 const kubectl = require('./kubectl');
 const aws = require('./aws');
 const eksctl = require('./eksctl');
+const versionManagement = require('./versionManagement');
 const { parse: jsoncParse, modify, applyEdits } = require('jsonc-parser');
 
 module.exports = {
@@ -51,6 +52,11 @@ module.exports = {
     await createRooster(config);
     await createPenguin(config);
     await createClusterWorkers(config);
+
+    await kubectl.setEllipsisDriveConfig(config);
+
+    let history = utilities.loadFile(utilities.historyPath);
+    await kubectl.setHistory(history);
   },
 
   configure: async () => {
@@ -99,7 +105,18 @@ module.exports = {
   createRooster: createRooster,
   createPenguin: createPenguin,
   createEmu: createEmu,
-  createClusterWorkers: createClusterWorkers
+  createClusterWorkers: createClusterWorkers,
+
+  upgrade: async (newEllipsisDriveVersion) => { 
+    let currentConfig = await kubectl.getEllipsisDriveConfig();
+    let oldEllipsisDriveVersion = currentConfig['ellipsisDriveVersion'];
+    await versionManagement.upgrade(oldEllipsisDriveVersion, newEllipsisDriveVersion);
+    let newConfig = { ...currentConfig, ellipsisDriveVersion: newEllipsisDriveVersion };
+    await kubectl.setEllipsisDriveConfig(newConfig);
+  },
+  pull: async () => {
+    await versionManagement.pull();
+  }
 }
 
 function validateConfig(config) {
@@ -195,19 +212,28 @@ async function deleteCluster(config) {
 
   let history;
   try {
-    history = utilities.loadFile(utilities.historyPath);
+    history = await kubectl.getHistory();
+    utilities.saveFile(utilities.historyPath, history);
     history = history.split('\n').filter((x) => x).reverse();
   }
   catch (e) {
-    console.error(e);
+    console.log('Could not load history from the kubernetes cluster');
 
-    if (e.message.includes('ENOENT')) {
-      console.log('Could not load history, assuming there is nothing to delete');
-
-      history = [];
+    try {
+      history = utilities.loadFile(utilities.historyPath);
+      history = history.split('\n').filter((x) => x).reverse();
     }
-    else {
-      throw('Could not load the history file');
+    catch (e) {
+      console.error(e);
+
+      if (e.message.includes('ENOENT')) {
+        console.log('Could not load history, assuming there is nothing to delete');
+
+        history = [];
+      }
+      else {
+        throw ('Could not load the history file');
+      }
     }
   }
 
@@ -515,7 +541,7 @@ async function createBuckets(config) {
 }
 
 async function createOwl(config) {
-  let clusterTemplate = utilities.loadFile('./ellipsisDrive/owl/owl-data-config-map.yaml');
+  let dataConfigMapTemplate = utilities.loadFile('./ellipsisDrive/owl/owl-data-config-map.yaml');
 
   let keys = [
     'masterZone',
@@ -524,26 +550,37 @@ async function createOwl(config) {
     'noReplyMailUsername'
   ];
 
-  let substitutes = keys.map((x) => { return { key: x, value: config[x] }; });
+  let dataConfigMapsubstitutes = keys.map((x) => { return { key: x, value: config[x] }; });
 
-  clusterTemplate = utilities.substituteMulti(clusterTemplate, substitutes);
+  dataConfigMapTemplate = utilities.substituteMulti(dataConfigMapTemplate, dataConfigMapsubstitutes);
 
-  utilities.saveFile('./build/owl-data-config-map.yaml', clusterTemplate);
+  utilities.saveFile('./build/owl-data-config-map.yaml', dataConfigMapTemplate);
+
+  let updatesConfigMapTemplate = utilities.loadFile('./ellipsisDrive/owl/owl-updates-config-map.yaml');
+
+  let queries = versionManagement.getQueries('owl', config['ellipsisDriveVersion']);
+
+  let updatesConfigMapSubstitutes = [{ key: 'updates', value: queries }];
+
+  updatesConfigMapTemplate = utilities.substituteMulti(updatesConfigMapTemplate, updatesConfigMapSubstitutes);
+
+  utilities.saveFile('./build/owl-updates-config-map.yaml', updatesConfigMapTemplate);
 
   await kubectl.apply('./ellipsisDrive/owl/owl-pdb.yaml');
   await kubectl.create('./ellipsisDrive/owl/owl-queries-config-map.yaml');
   await kubectl.create('./build/owl-data-config-map.yaml');
+  await kubectl.create('./build/owl-updates-config-map.yaml');
   await kubectl.create('./ellipsisDrive/owl/icons-queries-config-map.yaml');
   await kubectl.apply('./ellipsisDrive/owl/owl.yaml');
 }
 
 async function createAlbatross(config) {
   await kubectl.apply('./ellipsisDrive/albatross/cluster-master-service-account.yaml');
-  await kubectl.apply('./ellipsisDrive/albatross/rasterMaster/raster-master.yaml');
-  await kubectl.apply('./ellipsisDrive/albatross/vectorMaster/vector-master.yaml');
-  await kubectl.apply('./ellipsisDrive/albatross/pointCloudMaster/point-cloud-master.yaml');
-  await kubectl.apply('./ellipsisDrive/albatross/exportMaster/export-master.yaml');
-  await kubectl.apply('./ellipsisDrive/albatross/importMaster/import-master.yaml');
+  await applyVersionedYaml(config, './ellipsisDrive/albatross/vectorMaster/vector-master.yaml', 'vector-master');
+  await applyVersionedYaml(config, './ellipsisDrive/albatross/rasterMaster/raster-master.yaml', 'raster-master');
+  await applyVersionedYaml(config, './ellipsisDrive/albatross/pointCloudMaster/point-cloud-master.yaml', 'point-cloud-master');
+  await applyVersionedYaml(config, './ellipsisDrive/albatross/exportMaster/export-master.yaml', 'export-master');
+  await applyVersionedYaml(config, './ellipsisDrive/albatross/importMaster/import-master.yaml', 'import-master');
 }
 
 async function setupIngress(config) {
@@ -581,38 +618,49 @@ async function setupEllipsisConfigmap(config) {
 async function createPigeon(config) {
   let certificateArn = await aws.createCertificate(config.apiUrl);
 
-  let clusterTemplate = utilities.loadFile('./ellipsisDrive/pigeon/api/api-ingress.yaml');
+  let ingressTemplate = utilities.loadFile('./ellipsisDrive/pigeon/api/api-ingress.yaml');
 
   let keys = [
     'apiUrl'
   ];
 
-  let substitutes = keys.map((x) => { return { key: x, value: config[x] }; });
+  let ingressSubstitutes = keys.map((x) => { return { key: x, value: config[x] }; });
 
-  substitutes.push({ key: 'apiCertificate', value: certificateArn });
+  ingressSubstitutes.push({ key: 'apiCertificate', value: certificateArn });
 
-  clusterTemplate = utilities.substituteMulti(clusterTemplate, substitutes);
+  ingressTemplate = utilities.substituteMulti(ingressTemplate, ingressSubstitutes);
 
-  utilities.saveFile('./build/api-ingress.yaml', clusterTemplate);
+  utilities.saveFile('./build/api-ingress.yaml', ingressTemplate);
 
   await kubectl.apply('./ellipsisDrive/pigeon/api/api-pdb.yaml');
-  await kubectl.apply('./ellipsisDrive/pigeon/api/api-deployment.yaml');
+  await applyVersionedYaml(config, './ellipsisDrive/pigeon/api/api-deployment.yaml', 'api');
   await kubectl.apply('./ellipsisDrive/pigeon/api/api-service.yaml');
   await kubectl.apply('./build/api-ingress.yaml');
 
-  await kubectl.apply('./ellipsisDrive/pigeon/actionsWriter/actions-writer-deployment.yaml');
+  await applyVersionedYaml(config, './ellipsisDrive/pigeon/actionsWriter/actions-writer-deployment.yaml', 'actions-writer');
 
-  await kubectl.apply('./ellipsisDrive/pigeon/invalidator/invalidator-deployment.yaml');
+  await applyVersionedYaml(config, './ellipsisDrive/pigeon/invalidator/invalidator-deployment.yaml', 'invalidator');
 
   await kubectl.apply('./ellipsisDrive/pigeon/flask/flask-pdb.yaml');
-  await kubectl.apply('./ellipsisDrive/pigeon/flask/flask-deployment.yaml');
+  await applyVersionedYaml(config, './ellipsisDrive/pigeon/flask/flask-deployment.yaml', 'flask');
   await kubectl.apply('./ellipsisDrive/pigeon/flask/flask-service.yaml');
+
+  let configMapTemplate = utilities.loadFile('./ellipsisDrive/pigeon/cache-db/cache-updates-config-map.yaml');
+
+  let queries = versionManagement.getQueries('cache-db', config['ellipsisDriveVersion']);
+
+  let configMapSubstitutes = [{ key: 'updates', value: queries }];
+
+  configMapTemplate = utilities.substituteMulti(configMapTemplate, configMapSubstitutes);
+
+  utilities.saveFile('./build/cache-updates-config-map.yaml', configMapTemplate);
 
   await kubectl.apply('./ellipsisDrive/pigeon/cache-db/cache-db-pdb.yaml');
   await kubectl.apply('./ellipsisDrive/pigeon/cache-db/cache-queries-config-map.yaml');
   await kubectl.apply('./ellipsisDrive/pigeon/cache-db/cache-db-cloudnativepg.yaml');
+  await kubectl.apply('./build/cache-updates-config-map.yaml');
 
-  await kubectl.apply('./ellipsisDrive/pigeon/tileServiceCache/tile-service-cache-stateful-set.yaml');
+  await applyVersionedYaml(config, './ellipsisDrive/pigeon/tileServiceCache/tile-service-cache-stateful-set.yaml', 'tile-service-cache');
   await kubectl.apply('./ellipsisDrive/pigeon/tileServiceCache/tile-service-cache-service.yaml');
 }
 
@@ -623,10 +671,25 @@ async function createRooster(config) {
   await kubectl.apply('./ellipsisDrive/rooster/rooster.yaml');
 
   await kubectl.apply('./ellipsisDrive/rooster/compressedListFeatures/file-server-api-vector-service.yaml');
-  await kubectl.apply('./ellipsisDrive/rooster/compressedListFeatures/file-server-api-vector-stateful-set.yaml');
+  await applyVersionedYaml(config, './ellipsisDrive/rooster/compressedListFeatures/file-server-api-vector-stateful-set.yaml', 'file-server-api-vector');
 }
 
 async function createPenguin(config) {
+  let configTemplate = utilities.loadFile('./ellipsisDrive/penguin/penguin-config-map.yaml');
+
+  let configKeys = [
+    'apiUrl',
+    'deploymentName'
+  ];
+
+  let configSubstitutes = configKeys.map((x) => { return { key: x, value: config[x] }; });
+
+  configTemplate = utilities.substituteMulti(configTemplate, configSubstitutes);
+
+  utilities.saveFile('./build/penguin-config-map.yaml', configTemplate);
+
+  await kubectl.apply('./build/penguin-config-map.yaml');
+  
   let certificateArn = await aws.createCertificate(config.frontendUrl);
 
   let clusterTemplate = utilities.loadFile('./ellipsisDrive/penguin/penguin-ingress.yaml');
@@ -645,30 +708,46 @@ async function createPenguin(config) {
 
   await kubectl.apply('./build/penguin-ingress.yaml');
   await kubectl.apply('./ellipsisDrive/penguin/penguin-service.yaml');
-  await kubectl.apply('./ellipsisDrive/penguin/penguin.yaml');
+  await applyVersionedYaml(config, './ellipsisDrive/penguin/penguin.yaml', 'penguin');
 }
 
 async function createEmu(config) {
-  await kubectl.apply('./ellipsisDrive/emu/bucketManagement/bucket-management-deployment.yaml');
-  await kubectl.apply('./ellipsisDrive/emu/createPointCloudBounds/create-point-cloud-bounds-deployment.yaml');
-  await kubectl.apply('./ellipsisDrive/emu/createRasterBounds/create-raster-bounds-deployment.yaml');
-  await kubectl.apply('./ellipsisDrive/emu/createShapeBounds/create-shape-bounds-deployment.yaml');
-  await kubectl.apply('./ellipsisDrive/emu/emailSender/email-sender-deployment.yaml');
-  await kubectl.apply('./ellipsisDrive/emu/fileSystemManagement/file-system-management-deployment.yaml');
-  await kubectl.apply('./ellipsisDrive/emu/invalidationTaskAggregator/invalidation-task-aggregator-deployment.yaml');
-  await kubectl.apply('./ellipsisDrive/emu/oauthManagement/oauth-management-deployment.yaml');
-  await kubectl.apply('./ellipsisDrive/emu/processHardDeletes/process-hard-deletes-deployment.yaml');
-  await kubectl.apply('./ellipsisDrive/emu/processPathRename/process-path-rename-deployment.yaml');
-  await kubectl.apply('./ellipsisDrive/emu/searchUpdater/search-updater-deployment.yaml');
-  await kubectl.apply('./ellipsisDrive/emu/thumbnails/thumbnails-deployment.yaml');
-  await kubectl.apply('./ellipsisDrive/emu/userDeletionManagement/user-deletion-management-deployment.yaml');
-  await kubectl.apply('./ellipsisDrive/emu/userHistoryAppender/user-history-appender-deployment.yaml');
+  await applyVersionedYaml(config, './ellipsisDrive/emu/bucketManagement/bucket-management-deployment.yaml', 'bucket-management');
+  await applyVersionedYaml(config, './ellipsisDrive/emu/createPointCloudBounds/create-point-cloud-bounds-deployment.yaml', 'create-point-cloud-bounds');
+  await applyVersionedYaml(config, './ellipsisDrive/emu/createRasterBounds/create-raster-bounds-deployment.yaml', 'create-raster-bounds');
+  await applyVersionedYaml(config, './ellipsisDrive/emu/createShapeBounds/create-shape-bounds-deployment.yaml', 'create-shape-bounds');
+  await applyVersionedYaml(config, './ellipsisDrive/emu/emailSender/email-sender-deployment.yaml', 'email-sender');
+  await applyVersionedYaml(config, './ellipsisDrive/emu/fileSystemManagement/file-system-management-deployment.yaml', 'file-system-management');
+  await applyVersionedYaml(config, './ellipsisDrive/emu/invalidationTaskAggregator/invalidation-task-aggregator-deployment.yaml', 'invalidation-task-aggregator');
+  await applyVersionedYaml(config, './ellipsisDrive/emu/oauthManagement/oauth-management-deployment.yaml', 'oauth-management');
+  await applyVersionedYaml(config, './ellipsisDrive/emu/processHardDeletes/process-hard-deletes-deployment.yaml', 'process-hard-deletes');
+  await applyVersionedYaml(config, './ellipsisDrive/emu/processPathRename/process-path-rename-deployment.yaml', 'process-path-rename');
+  await applyVersionedYaml(config, './ellipsisDrive/emu/searchUpdater/search-updater-deployment.yaml', 'search-updater');
+  await applyVersionedYaml(config, './ellipsisDrive/emu/thumbnails/thumbnails-deployment.yaml', 'thumbnails');
+  await applyVersionedYaml(config, './ellipsisDrive/emu/userDeletionManagement/user-deletion-management-deployment.yaml', 'user-deletion-management');
+  await applyVersionedYaml(config, './ellipsisDrive/emu/userHistoryAppender/user-history-appender-deployment.yaml', 'user-history-appender');
 }
 
 async function createClusterWorkers(config) {
-  await kubectl.apply('./ellipsisDrive/dodo/vector-worker.yaml');
-  await kubectl.apply('./ellipsisDrive/hawk/raster-worker.yaml');
-  await kubectl.apply('./ellipsisDrive/heron/point-cloud-worker.yaml');
-  await kubectl.apply('./ellipsisDrive/hummingbird/export-worker.yaml');
-  await kubectl.apply('./ellipsisDrive/sparrow/import-worker.yaml');
+  await applyVersionedYaml(config, './ellipsisDrive/dodo/vector-worker.yaml', 'vector-worker');
+  await applyVersionedYaml(config, './ellipsisDrive/hawk/raster-worker.yaml', 'raster-worker');
+  await applyVersionedYaml(config, './ellipsisDrive/heron/point-cloud-worker.yaml', 'point-cloud-worker');
+  await applyVersionedYaml(config, './ellipsisDrive/hummingbird/export-worker.yaml', 'export-worker');
+  await applyVersionedYaml(config, './ellipsisDrive/sparrow/import-worker.yaml', 'import-worker');
+}
+
+async function applyVersionedYaml(config, file, package) {
+  let version = versionManagement.getPackageVersion(package, config['ellipsisDriveVersion']);
+
+  let clusterTemplate = utilities.loadFile(file);
+
+  let substitutes = [{ key: 'version', value: version }];
+
+  clusterTemplate = utilities.substituteMulti(clusterTemplate, substitutes);
+
+  let targetFile = `./build/${file.split('/').slice(-1)[0]}`;
+
+  utilities.saveFile(targetFile, clusterTemplate);
+
+  await kubectl.apply(targetFile);
 }

@@ -13,11 +13,22 @@ spec:
     spec:
       containers:
       - name: penguin
-        image: ghcr.io/ellipsis-drive/penguin:1.0.0
+        image: ghcr.io/ellipsis-drive/penguin:<<<version>>>
         resources:
           requests:
             cpu: 100m
         ports:
         - containerPort: 80
+        volumeMounts:
+        - name: penguin-config
+          mountPath: "/usr/share/nginx/html/config.js"
+          subPath: config.js
       imagePullSecrets:
         - name: ghcr-secret
+      volumes:
+        - name: penguin-config
+          configMap:
+            name: penguin-config
+            items:
+            - key: "config.js"
+              path: "config.js"

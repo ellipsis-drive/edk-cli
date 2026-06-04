@@ -29,6 +29,8 @@ spec:
           key: queries.sql
         - name: icons-init-database
           key: queries.sql
+        - name: owl-updates
+          key: updates.sql
 
   resources:
     requests:
