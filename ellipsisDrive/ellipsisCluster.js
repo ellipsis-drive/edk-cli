@@ -48,6 +48,9 @@ module.exports = {
     await createClusterWorkers(config);
 
     await kubectl.setEllipsisDriveConfig(config);
+
+    let history = utilities.loadFile(utilities.historyPath);
+    await kubectl.setHistory(history);
   },
 
   configure: async () => {
@@ -172,19 +175,28 @@ async function deleteCluster(config) {
 
   let history;
   try {
-    history = utilities.loadFile(utilities.historyPath);
+    history = await kubectl.getHistory();
+    utilities.saveFile(utilities.historyPath, history);
     history = history.split('\n').filter((x) => x).reverse();
   }
   catch (e) {
-    console.error(e);
+    console.log('Could not load history from the kubernetes cluster');
 
-    if (e.message.includes('ENOENT')) {
-      console.log('Could not load history, assuming there is nothing to delete');
-
-      history = [];
+    try {
+      history = utilities.loadFile(utilities.historyPath);
+      history = history.split('\n').filter((x) => x).reverse();
     }
-    else {
-      throw('Could not load the history file');
+    catch (e) {
+      console.error(e);
+
+      if (e.message.includes('ENOENT')) {
+        console.log('Could not load history, assuming there is nothing to delete');
+
+        history = [];
+      }
+      else {
+        throw ('Could not load the history file');
+      }
     }
   }
 
