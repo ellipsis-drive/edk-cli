@@ -5,60 +5,60 @@ metadata:
 data:
   config.js: |
     window.__APP_CONFIG__ = {
-      displayName: 'Ellipsis Drive',
+      displayName: '<<<deploymentName>>>',
       apiUrl: 'https://<<<apiUrl>>>/v3',
       version: '1.0.0',
       featureFlags: {
-        allowPlanTypes: true,
-        hubspotFields: true,
-        cookies: true,
+        allowPlanTypes: false,
+        hubspotFields: false,
+        cookies: false,
         hideRegularLogin: false,
-        ToS: true,
-        checkRegisterInput: true,
+        ToS: false,
+        checkRegisterInput: false,
 
 
         backoffice: {
-          monthlyFee: true,
-          balance: true,
-          billingAddress: true,
-          transactions: true,
-          maxNegative: true,
-          storageDiscount: true,
-          serviceFee: true,
-          pricing: true,
-          creditCard: true,
-          blocked: true,
-          invitedBy: true,
-          login: true
+          monthlyFee: false,
+          balance: false,
+          billingAddress: false,
+          transactions: false,
+          maxNegative: false,
+          storageDiscount: false,
+          serviceFee: false,
+          pricing: false,
+          creditCard: false,
+          blocked: false,
+          invitedBy: false,
+          login: false
         },
-        planDetails: true,
-        changeStoragePlan: true,
+        planDetails: false,
+        changeStoragePlan: false,
 
 
-        sampleShareDemo: true,
-        insureTechDemo: true,
-        autoDemo: true,
+        sampleShareDemo: false,
+        insureTechDemo: false,
+        autoDemo: false,
 
 
         process: false,
         promoteConstellation: false,
 
 
-        inviteNudge: true,
-        creditCardNudge: true,
+        inviteNudge: false,
+        creditCardNudge: false,
 
 
-        ellipsisPromo: true,
+        ellipsisPromo: false,
 
 
-        fees: true,
+        fees: false,
 
 
-        highresDem: true,
+        highresDem: false,
         asTimestamp: false,
 
 
-        hideDisplayNameOnDev: true
+        hideDisplayNameOnDev: false
       },
       idProviders: [
         {

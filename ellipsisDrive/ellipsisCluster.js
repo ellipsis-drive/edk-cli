@@ -620,7 +620,8 @@ async function createPenguin(config) {
   let configTemplate = utilities.loadFile('./ellipsisDrive/penguin/penguin-config-map.yaml');
 
   let configKeys = [
-    'apiUrl'
+    'apiUrl',
+    'deploymentName'
   ];
 
   let configSubstitutes = configKeys.map((x) => { return { key: x, value: config[x] }; });
