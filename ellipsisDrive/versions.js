@@ -22,7 +22,7 @@ const VERSIONS = [
             'file-system-management': '1.0.0',
             'invalidation-task-aggregator': '1.0.0',
             'oauth-management': '1.0.0',
-            'process-hard-deleted': '1.0.0',
+            'process-hard-deletes': '1.0.0',
             'process-path-rename': '1.0.0',
             'search-updater': '1.0.0',
             'thumbnails': '1.0.0',
