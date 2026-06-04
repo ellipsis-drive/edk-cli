@@ -80,12 +80,6 @@ const VERSIONS = [
             'api': '1.2.0',
             'penguin': '1.1.0'
         },
-        queries: {
-            owl: [
-                "DELETE FROM ui_theme WHERE type = 'favicon' AND environment = 'default';",
-                "INSERT INTO ui_theme (type, value, environment) VALUES('favicon', 'iVBORw0KGgoAAAANSUhEUgAAACAAAAAgAgMAAAAOFJJnAAABgmlDQ1BzUkdCIElFQzYxOTY2LTIuMQAAKJF1kb9LQlEUxz9qYT8MgxoaHCSsqaIspJYGoyyoBjXo16LPpwZqj/eMiNagVSiIWvo11F9Qa9AcBEURRHM0FrVUvM5LQYk8l3PP537vPYd7zwV7NKNkjZpeyObyejgU9M7OzXudL9TioYkB6mOKoU1FxqJUtY87bFa86bZqVT/3rzUmVEMBW53wsKLpeeFx4cnVvGbxtnCrko4lhE+Fu3S5oPCtpceL/GxxqshfFuvR8AjYm4W9qQqOV7CS1rPC8nJ82cyKUrqP9RKXmpuJSGwX92AQJkQQLxOMMkKAPoZkDtCNnx5ZUSW/9zd/mmXJVWTWWENniRRp8nSJuiLVVYlJ0VUZGdas/v/tq5Hs9xeru4JQ+2Sabx3g3ILvgml+Hprm9xE4HuEiV85fPoDBd9ELZc23D+4NOLssa/EdON+Etgctpsd+JYe4PZmE1xNomoOWa2hYKPastM/xPUTX5auuYHcPOuW8e/EHiK5n9fzWIEAAAAAJUExURf8AAAAAAMlFJgtRdvkAAAADdFJOU///ANfKDUEAAAAJcEhZcwAALiMAAC4jAXilP3YAAAApSURBVBiVY1gFBQxEMRYwAIEWkLECxOACSy2AqSGKoYWTsYKODKK9DAAvZJud3ifhhgAAAABJRU5ErkJggg==', 'default');"
-            ]
-        },
         upgrade: async function () {
             console.log('upgrading to version 1.2.0');
 
