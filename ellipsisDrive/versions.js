@@ -46,7 +46,7 @@ const VERSIONS = [
             console.log('upgrading to version 1.0.1');
 
             for (const [key, value] of Object.entries(this.images)) {
-                await kubectl.setImage(`deployment/${key} ${key}=${key}:${value}`);
+                await kubectl.setImage(`deployment/${key} ${key}=ghcr.io/ellipsis-drive/${key}:${value}`);
                 await kubectl.rolloutRestart(`deployment ${key}`);
             }
         }
@@ -65,7 +65,7 @@ const VERSIONS = [
             console.log('upgrading to version 1.0.2');
 
             for (const [key, value] of Object.entries(this.images)) {
-                await kubectl.setImage(`deployment/${key} ${key}=${key}:${value}`);
+                await kubectl.setImage(`deployment/${key} ${key}=ghcr.io/ellipsis-drive/${key}:${value}`);
                 await kubectl.rolloutRestart(`deployment ${key}`);
             }
 
@@ -84,7 +84,7 @@ const VERSIONS = [
             console.log('upgrading to version 1.2.0');
 
             for (const [key, value] of Object.entries(this.images)) {
-                await kubectl.setImage(`deployment/${key} ${key}=${key}:${value}`);
+                await kubectl.setImage(`deployment/${key} ${key}=ghcr.io/ellipsis-drive/${key}:${value}`);
                 await kubectl.rolloutRestart(`deployment ${key}`);
             }
         }
@@ -119,7 +119,7 @@ async function standardUpdate(version) {
 
     if (version.images) {
         for (const [key, value] of Object.entries(version.images)) {
-            await kubectl.setImage(`deployment/${key} ${key}=${key}:${value}`);
+            await kubectl.setImage(`deployment/${key} ${key}=ghcr.io/ellipsis-drive/${key}:${value}`);
             await kubectl.rolloutRestart(`deployment ${key}`);
         }
     }
