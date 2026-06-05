@@ -102,6 +102,15 @@ const VERSIONS = [
         upgrade: async function () {
             await standardUpdate(this);
         }
+    },
+    {
+        version: '1.2.2',
+        images: {
+            'penguin': '1.2.0'
+        },
+        upgrade: async function () {
+            await standardUpdate(this);
+        }
     }
 ];
 
