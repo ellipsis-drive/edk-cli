@@ -104,7 +104,7 @@ const VERSIONS = [
             ]
         },
         upgrade: async function () {
-            console.log('upgrading to version 1.2.0');
+            console.log('upgrading to version 1.2.1');
 
             for (const [key, value] of Object.entries(this.images)) {
                 await kubectl.setImage(`deployment/${key} ${key}=${key}:${value}`);
