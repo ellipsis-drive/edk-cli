@@ -100,7 +100,7 @@ const VERSIONS = [
                 'ALTER TABLE map_timestamps ALTER COLUMN version TYPE INT;',
                 'ALTER TABLE map_timestamps ADD COLUMN viewable BOOLEAN DEFAULT FALSE;',
                 'ALTER TABLE raster_uploads ADD COLUMN map_timestamp_version INT DEFAULT 0;',
-                'UPDATE map_timestamps SET viewable = TRUE WHERE status = 'active';'
+                "UPDATE map_timestamps SET viewable = TRUE WHERE status = 'active';"
             ]
         },
         upgrade: async function () {
