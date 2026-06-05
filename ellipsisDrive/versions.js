@@ -105,18 +105,18 @@ const VERSIONS = [
     }
 ];
 
-async function standardUpdate(this) {
-    console.log(`upgrading to version ${this.version}`);
+async function standardUpdate(version) {
+    console.log(`upgrading to version ${version.version}`);
 
-    if (this.images) {
-        for (const [key, value] of Object.entries(this.images)) {
+    if (version.images) {
+        for (const [key, value] of Object.entries(version.images)) {
             await kubectl.setImage(`deployment/${key} ${key}=${key}:${value}`);
             await kubectl.rolloutRestart(`deployment ${key}`);
         }
     }
 
-    if (this.queries) {
-        for (const [key, value] of Object.entries(this.queries)) {
+    if (version.queries) {
+        for (const [key, value] of Object.entries(version.queries)) {
             await kubectl.execQuery(key, value.join('\n'));
         }
     }
