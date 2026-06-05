@@ -87,36 +87,40 @@ const VERSIONS = [
                 await kubectl.setImage(`deployment/${key} ${key}=${key}:${value}`);
                 await kubectl.rolloutRestart(`deployment ${key}`);
             }
-
-            for (const [key, value] of Object.entries(this.queries)) {
-                await kubectl.execQuery(key, value.join('\n'));
-            }
         }
     },
     {
         version: '1.2.1',
         queries: {
             owl: [
-                'ALTER TABLE map_timestamps ALTER COLUMN version TYPE INT;',
-                'ALTER TABLE map_timestamps ADD COLUMN viewable BOOLEAN DEFAULT FALSE;',
-                'ALTER TABLE raster_uploads ADD COLUMN map_timestamp_version INT DEFAULT 0;',
+                "ALTER TABLE map_timestamps ALTER COLUMN version TYPE INT;",
+                "ALTER TABLE map_timestamps ADD COLUMN viewable BOOLEAN DEFAULT FALSE;",
+                "ALTER TABLE raster_uploads ADD COLUMN map_timestamp_version INT DEFAULT 0;",
                 "UPDATE map_timestamps SET viewable = TRUE WHERE status = 'active';"
             ]
         },
         upgrade: async function () {
-            console.log('upgrading to version 1.2.1');
-
-            for (const [key, value] of Object.entries(this.images)) {
-                await kubectl.setImage(`deployment/${key} ${key}=${key}:${value}`);
-                await kubectl.rolloutRestart(`deployment ${key}`);
-            }
-
-            for (const [key, value] of Object.entries(this.queries)) {
-                await kubectl.execQuery(key, value.join('\n'));
-            }
+            await standardUpdate(this);
         }
     }
 ];
+
+async function standardUpdate(this) {
+    console.log(`upgrading to version ${this.version}`);
+
+    if (this.images) {
+        for (const [key, value] of Object.entries(this.images)) {
+            await kubectl.setImage(`deployment/${key} ${key}=${key}:${value}`);
+            await kubectl.rolloutRestart(`deployment ${key}`);
+        }
+    }
+
+    if (this.queries) {
+        for (const [key, value] of Object.entries(this.queries)) {
+            await kubectl.execQuery(key, value.join('\n'));
+        }
+    }
+}
 
 module.exports = {
     versions: VERSIONS
