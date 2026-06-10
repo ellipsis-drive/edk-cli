@@ -58,7 +58,7 @@ async function ellipsisDrive() {
     let editOpts = {
       target: 'pigeon-db-password',
       kind: 'secret',
-      edits: [{ action : "edit", target: "password", value: "foobar"}]
+      edits: [{ action : "edit", target: "password", value: "foobarbaz"}]
     };
 
     await ellipsisCluster.edit(editOpts);
