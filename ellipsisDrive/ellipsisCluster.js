@@ -418,7 +418,7 @@ async function findDependentResources(target) {
   let targetName = target.name;
   let targetKind = target.kind;
   
-  let resourcesList = await kubectl.exec('get deployment,statefulset,daemonset - o json');
+  let resourcesList = await kubectl.exec('get deployment,statefulset,daemonset -o json');
   resourcesList = JSON.parse(resourcesList);
 
   let dependents = [];
