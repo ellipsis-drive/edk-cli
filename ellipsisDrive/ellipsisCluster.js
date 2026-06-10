@@ -450,7 +450,7 @@ async function findDependentResources(target) {
     if (!usesTarget && podTemplate.containers) {
       usesTarget = podTemplate.containers.filter((x) => {
         (x.envFrom && x.envFrom.find((y) => (targetKind === 'configMap') ? (y.configMapRef && y.configMapRef.name === targetName) : (y.secretRef && y.secretRef.name === targetName))) || 
-          (x.env && x.env.find((y) => y.valueFrom && (targetKind === 'configMap') ? (y.valueFrom.configMapKeyRef && y.valueFrom.configMapKeyRef.name === targetName) : (y.valueFrom.secretKeyRef && y.valueFrom.secretKeyRef.name === targetName)));
+          (x.env && x.env.find((y) => (targetKind === 'configMap') ? (y.valueFrom && y.valueFrom.configMapKeyRef && y.valueFrom.configMapKeyRef.name === targetName) : (y.valueFrom && y.valueFrom.secretKeyRef && y.valueFrom.secretKeyRef.name === targetName)));
       }) > 0;
     }
 
