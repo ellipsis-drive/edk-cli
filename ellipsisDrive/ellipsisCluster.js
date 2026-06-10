@@ -452,7 +452,7 @@ async function findDependentResources(target) {
     console.log('env check')
     if (!usesTarget && podTemplate.containers) {
       console.log(targetKind, targetName, podTemplate.containers[0].envFrom, podTemplate.containers[0].env);
-      usesTarget = podTemplate.containers.filter((x) => {
+      let usesTarget2 = podTemplate.containers.filter((x) => {
         // if (x.envFrom) {
         //   console.log((x.envFrom.find((y) => (targetKind === 'ConfigMap') ? (y.configMapRef && y.configMapRef.name === targetName) : (y.secretRef && y.secretRef.name === targetName))))
         //   console.log(
@@ -462,11 +462,12 @@ async function findDependentResources(target) {
         // }
 
         return 
+        true ||
           (x.envFrom && x.envFrom.filter((y) => (targetKind === 'ConfigMap') ? (y.configMapRef && y.configMapRef.name === targetName) : (y.secretRef && y.secretRef.name === targetName)).length > 0) || 
             (x.env && x.env.filter((y) => (targetKind === 'ConfigMap') ? (y.valueFrom && y.valueFrom.configMapKeyRef && y.valueFrom.configMapKeyRef.name === targetName) : (y.valueFrom && y.valueFrom.secretKeyRef && y.valueFrom.secretKeyRef.name === targetName)).length > 0);
-      }).length > 0;
+      });
 
-      console.log(usesTarget);
+      console.log(usesTarget2);
     }
 
     if (usesTarget) {
