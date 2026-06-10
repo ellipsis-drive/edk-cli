@@ -433,11 +433,13 @@ async function findDependentResources(target) {
     let podTemplate = resource.spec?.template?.spec;
 
     if (!podTemplate) {
+      console.log('no pod template found');
       return;
     }
 
     let usesTarget = false;
 
+    console.log('volume check')
     if (podTemplate.volumes) {
       if (targetKind === 'ConfigMap') {
         usesTarget = podTemplate.volumes.filter((x) => x.configMap && x.configMap.name === targetName) > 0;
@@ -447,6 +449,7 @@ async function findDependentResources(target) {
       }
     }
 
+    console.log('env check')
     if (!usesTarget && podTemplate.containers) {
       usesTarget = podTemplate.containers.filter((x) => {
         (x.envFrom && x.envFrom.find((y) => (targetKind === 'ConfigMap') ? (y.configMapRef && y.configMapRef.name === targetName) : (y.secretRef && y.secretRef.name === targetName))) || 
