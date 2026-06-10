@@ -162,6 +162,10 @@ module.exports = {
       throw (`invalid target resource to edit: ${targetResource}`);
     }
 
+    if (!targetResource.data) {
+      targetResource.data = {};
+    }
+
     for (let i = 0; i < edits.length; i++) {
       if (!utilities.isValid(edits[i], 'object')) {
         throw (`edits[i] must be a valid json`);
