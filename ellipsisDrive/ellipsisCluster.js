@@ -456,7 +456,7 @@ async function findDependentResources(target) {
         if (x.envFrom) {
           console.log((x.envFrom.find((y) => (targetKind === 'ConfigMap') ? (y.configMapRef && y.configMapRef.name === targetName) : (y.secretRef && y.secretRef.name === targetName))))
           console.log(
-            (x.envFrom && x.envFrom.find((y) => (targetKind === 'ConfigMap') ? (y.configMapRef && y.configMapRef.name === targetName) : (y.secretRef && y.secretRef.name === targetName)))
+            (x.envFrom && x.envFrom.filter((y) => (targetKind === 'ConfigMap') ? (y.configMapRef && y.configMapRef.name === targetName) : (y.secretRef && y.secretRef.name === targetName)).length > 0)
           )
         }
 
