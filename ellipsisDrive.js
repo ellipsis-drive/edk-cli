@@ -54,14 +54,14 @@ async function ellipsisDrive() {
     ellipsisCluster.pull();
   });
 
-  const edit = program.command('edit').action(() => {
+  const edit = program.command('edit').action(async () => {
     let editOpts = {
       target: 'ellipsis',
-      kind: 'configMap',
+      kind: 'ConfigMap',
       edits: [{ action : "add", target: "new_env", value: "hi"}]
     };
 
-    ellipsisCluster.edit(editOpts);
+    await ellipsisCluster.edit(editOpts);
   });
 
   program.parse();
