@@ -116,7 +116,350 @@ module.exports = {
   },
   pull: async () => {
     await versionManagement.pull();
+  },
+
+  edit: async (opts) => {
+    try {
+      await kubectl.exec(`get pods`);
+    }
+    catch {
+      throw('No kubernetes cluster exists, aborting editting');
+    }
+
+    let target = opts.target;
+    let kind = opts.kind;
+    let edits = isValid(utilities.opts.edits, 'jsonString') ? JSON.parse(utilities.opts.edits) : utilities.opts.edits;
+
+    if (!utilities.isValid(target, 'string')) {
+      throw (`target must be a valid string`);
+    }
+
+    if (!utilities.isValid(kind, 'string')) {
+      throw (`kind must be a valid string`);
+    }
+
+    if (!utilities.isValid(edits, 'array')) {
+      throw (`edits must be a valid json array`);
+    }
+
+    console.log(`target ${target} of kind ${kind}`);
+
+    if (kind !== 'configMap' && kind !== 'secret') {
+      throw (`Can only edit targets of kind configMap and secret`);
+    }
+
+    let isSecret = kind === 'secret';
+
+    let targetResource;
+    if (isSecret) {
+      targetResource = await kubectl.getSecret(target);
+    }
+    else {
+      targetResource = await kubectl.getConfigMap(target);
+    }
+
+    if (!targetResource) {
+      throw (`invalid target resource to edit: ${targetResource}`);
+    }
+
+    for (let i = 0; i < edits.length; i++) {
+      if (!utilities.isValid(edits[i], 'object')) {
+        throw (`edits[i] must be a valid json`);
+      }
+
+      let editAction = edits[i].action;
+      let targetKey = edits[i].target;
+      let value = edits[i].value;
+
+      if (!utilities.isValid(editAction, 'string')) {
+        throw (`edits[i].action must be a valid string`);
+      }
+
+      if (!utilities.isValid(targetKey, 'string')) {
+        throw (`edits[i].target must be a valid string`);
+      }
+
+      switch (editAction) {
+        case 'add': {
+          console.log(`${editAction} to ${target}`);
+
+          if (!utilities.isValid(value, 'string')) {
+            throw (`edits[i].value must be a valid string`);
+          }
+
+          if (targetResource.data[targetKey]) {
+            throw (`edits[i].target already exists which conflicts with action ${editAction}`);
+          }
+
+          targetResource.data[targetKey] = isSecret ? stringToBase64(value) : value;
+          break;
+        }
+        case 'edit': {
+          console.log(`${editAction} to ${target}`);
+
+          if (!utilities.isValid(value, 'string')) {
+            throw (`edits[i].value must be a valid string`);
+          }
+
+          if (!targetResource.data[targetKey]) {
+            throw (`edits[i].target doesn't exists which conflicts with action ${editAction}`);
+          }
+
+          targetResource.data[targetKey] = isSecret ? stringToBase64(value) : value;
+          break;
+        }
+        case 'delete': {
+          console.log(`${editAction} to ${target}`);
+
+          if (!targetResource.data[targetKey]) {
+            throw (`edits[i].target doesn't exists which conflicts with action ${editAction}`);
+          }
+
+          delete targetResource.data[targetKey];
+          break;
+        }
+        default:
+          throw (`invalid edit action: ${editAction}`);
+          break;
+      }
+    }
+
+    await kubectl.editResource(targetResource);
+
+    let dependents = await findDependentResources(targetResource);
+
+    for (let i = 0; i < dependents.length; i++) {
+      await kubectl.rolloutRestart(`${dependents[i].kind} ${dependents[i].name}`)
+    }
+  },
+
+  scale: async (opts) => {
+    try {
+      await kubectl.exec(`get pods`);
+    }
+    catch {
+      throw ('No kubernetes cluster exists, aborting editting');
+      return;
+    }
+
+    let action = opts.action;
+    let target = opts.target;
+    let kind = opts.kind;
+    let editOpts = isValid(utilities.opts.editOpts, 'jsonString') ? JSON.parse(utilities.opts.editOpts) : utilities.opts.editOpts;
+
+    if (!utilities.isValid(action, 'string')) {
+      throw (`action must be a valid string`);
+      return;
+    }
+
+    if (!utilities.isValid(target, 'string')) {
+      throw (`target must be a valid string`);
+      return;
+    }
+
+    if (!utilities.isValid(kind, 'string')) {
+      throw (`kind must be a valid string`);
+      return;
+    }
+
+    if (editOpts !== null && editOpts !== undefined && !utilities.isValid(editOpts, 'object')) {
+      throw (`editOpts must be a valid json object if defined`);
+      return;
+    }
+
+    switch (action) {
+      case 'scale': {
+        console.log(`${action} the ${target} of kind ${kind}`);
+
+        if (kind !== 'deployment' && kind !== 'statefulset') {
+          throw (`can only ${action} targets of kind deployment and statefulset`);
+          return;
+        }
+
+        let resourcesList = await kubectl.exec(`get ${kind} ${target} - o json`);
+        resourcesList = JSON.parse(resourcesList);
+
+        if (!resourcesList.items || resourcesList.items.length === 0) {
+          throw (`target with name ${target} if kind ${kind} could not be found`);
+          return;
+        }
+
+        let quantity = utilities.intStringtoInt(editOpts.quantity);
+
+        if (!editOpts || !utilities.isValid(quantity, 'int')) {
+          throw (`editOpts.quantity must be a valid int for action ${action}`);
+          return;
+        }
+
+        await kubectl.scale(target, quantity);
+        break;
+      }
+      case 'edit': {
+        console.log(`${action} the ${target} of kind ${kind}`);
+
+        if (kind !== 'configMap' && kind !== 'secret') {
+          throw (`can only ${action} targets of kind configMap and secret`);
+          return;
+        }
+
+        let isSecret = kind === 'secret';
+
+        let targetResource;
+        if (isSecret) {
+          targetResource = await kubectl.getSecret(target);
+        }
+        else {
+          targetResource = await kubectl.getConfigMap(target);
+        }
+
+        if (!targetResource) {
+          throw (`invalid target resource to edit: ${targetResource}`);
+          break;
+        }
+
+        if (!editOpts || !utilities.isValid(editOpts.edits, 'array')) {
+          throw (`editOpts.edits must be a valid array`);
+          break;
+        }
+
+        for (let i = 0; i < editOpts.edits.length; i++) {
+          if (!utilities.isValid(editOpts.edits[i], 'object')) {
+            throw (`editOpts.edits[i] must be a valid json`);
+            break;
+          }
+
+          let editAction = editOpts.edits[i].action;
+          let targetKey = editOpts.edits[i].target;
+          let value = editOpts.edits[i].value;
+
+          if (!utilities.isValid(editAction, 'string')) {
+            throw (`editOpts.edits[i].action must be a valid string`);
+            break;
+          }
+
+          if (!utilities.isValid(targetKey, 'string')) {
+            throw (`editOpts.edits[i].target must be a valid string`);
+            break;
+          }
+
+          switch (editAction) {
+            case 'add': {
+              console.log(`${editAction} to ${target}`);
+
+              if (!utilities.isValid(value, 'string')) {
+                throw (`editOpts.edits[i].value must be a valid string`);
+                break;
+              }
+
+              if (targetResource.data[targetKey]) {
+                throw (`editOpts.edits[i].target already exists which conflicts with action ${editAction}`);
+                break;
+              }
+
+              targetResource.data[targetKey] = isSecret ? stringToBase64(value) : value;
+              break;
+            }
+            case 'edit': {
+              console.log(`${editAction} to ${target}`);
+
+              if (!utilities.isValid(value, 'string')) {
+                throw (`editOpts.edits[i].value must be a valid string`);
+                break;
+              }
+
+              if (!targetResource.data[targetKey]) {
+                throw (`editOpts.edits[i].target doesn't exists which conflicts with action ${editAction}`);
+                break;
+              }
+
+              targetResource.data[targetKey] = isSecret ? stringToBase64(value) : value;
+              break;
+            }
+            case 'delete': {
+              console.log(`${editAction} to ${target}`);
+
+              if (!targetResource.data[targetKey]) {
+                throw (`editOpts.edits[i].target doesn't exists which conflicts with action ${editAction}`);
+                break;
+              }
+
+              delete targetResource.data[targetKey];
+              break;
+            }
+            default:
+              throw (`invalid edit action: ${editAction}`);
+              break;
+          }
+        }
+
+        await kubectl.editResource(targetResource);
+
+        let dependents = await findDependentResources(targetResource);
+
+        for (let i = 0; i < dependents.length; i++) {
+          await kubectl.rolloutRestart(`${dependents[i].kind} ${dependents[i].name}`)
+        }
+
+        break;
+      }
+      default:
+        throw (`invalid action to edit: ${action}`);
+        break;
+    }
+  },
+}
+
+async function findDependentResources(target) {
+  let targetName = target.name;
+  let targetKind = target.kind;
+  
+  let resourcesList = await kubectl.exec('get deployment, statefulset, daemonset - o json');
+  resourcesList = JSON.parse(resourcesList);
+
+  let dependents = [];
+
+  if (!resourcesList.items || resourcesList.items.length === 0) {
+    return dependents;
   }
+
+  resourcesList.items.forEach((resource) => {
+    let kind = resource.kind.toLowerCase();
+    let name = resource.metadata.name;
+    let podTemplate = resource.spec?.template?.spec;
+
+    if (!podTemplate) {
+      return;
+    }
+
+    let usesTarget = false;
+
+    if (podTemplate.volumes) {
+      if (targetKind === 'configMap') {
+        usesTarget = podTemplate.volumes.filter((x) => x.configMap && x.configMap.name === targetName) > 0;
+      }
+      else {
+        usesTarget = podTemplate.volumes.filter((x) => x.secret && x.secretName === targetName) > 0;
+      }
+    }
+
+    if (!usesTarget && podTemplate.containers) {
+      usesTarget = podTemplate.containers.filter((x) => {
+        (x.envFrom && x.envFrom.find((y) => (targetKind === 'configMap') ? (y.configMapRef && y.configMapRef.name === targetName) : (y.secretRef && y.secretRef.name === targetName))) || 
+          (x.env && x.env.find((y) => y.valueFrom && (targetKind === 'configMap') ? (y.valueFrom.configMapKeyRef && y.valueFrom.configMapKeyRef.name === targetName) : (y.valueFrom.secretKeyRef && y.valueFrom.secretKeyRef.name === targetName)));
+      }) > 0;
+    }
+
+    if (usesTarget) {
+      dependents.push({ kind: kind, name: name });
+    }
+  });
+
+  console.log(`Found ${dependents.length} dependent resources:`, dependents);
+  return dependents;
+}
+
+function stringToBase64(string) {
+  return Buffer.from(string).toString('base64');
 }
 
 function validateConfig(config) {

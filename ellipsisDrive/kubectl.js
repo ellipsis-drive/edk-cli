@@ -4,6 +4,11 @@ const ELLIPSIS_DRIVE_SECRET_NAME = 'ellipsis-drive-config';
 const ELLIPSIS_DRIVE_HISTORY_NAME = 'ellipsis-drive-history';
 
 module.exports = {
+  exec: async (command) => {
+    let result = await cmd.executeCommandSimple(`kubectl ${command}`);
+    return result;
+  },
+
   apply: async (path, serverSide = false) => {
     await cmd.executeCommandSimple(`kubectl apply ${serverSide ? '--server-side' : ''} -f ${path}`);
   },
@@ -179,5 +184,33 @@ module.exports = {
       -o yaml | \
       kubectl apply -f -`
     );
+  },
+
+  scale: async (deployment, quantity, type = 'deployment') => {
+    await cmd.executeCommandSimple(`kubectl scale --replicas=${quantity} ${type}/${deployment}`);
+  },
+
+  getConfigMap: async (name) => {
+    let configMaps = await cmd.executeCommandSimple(`kubectl get configMap -o json`);
+
+    configMaps = JSON.parse(configMaps);
+
+    let configMap = configMaps.items.find((x) => x.metadata.name === name)
+
+    return configMap;
+  },
+
+  getSecret: async (name) => {
+    let secrets = await cmd.executeCommandSimple(`kubectl get secrets -o json`);
+
+    secrets = JSON.parse(secrets);
+
+    let secret = secrets.items.find((x) => x.metadata.name === name)
+
+    return secret;
+  },
+
+  editResource: async (edit) => {
+    await cmd.executeCommandSimple(`kubectl apply -f -`, false, null, edit);
   }
 }

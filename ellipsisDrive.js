@@ -54,6 +54,16 @@ async function ellipsisDrive() {
     ellipsisCluster.pull();
   });
 
+  const edit = program.command('edit').action(() => {
+    let editOpts = {
+      target: 'ellipsis',
+      kind: 'configMap',
+      edits: [{ action : "add", target: "new_env", value: "hi"}]
+    };
+
+    ellipsisCluster.edit(editOpts);
+  });
+
   program.parse();
 }
 
