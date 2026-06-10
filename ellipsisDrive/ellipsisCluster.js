@@ -451,7 +451,7 @@ async function findDependentResources(target) {
 
     console.log('env check')
     if (!usesTarget && podTemplate.containers) {
-      console.log(x.envFrom);
+      console.log(podTemplate.containers);
       usesTarget = podTemplate.containers.filter((x) => {
         (x.envFrom && x.envFrom.find((y) => (targetKind === 'ConfigMap') ? (y.configMapRef && y.configMapRef.name === targetName) : (y.secretRef && y.secretRef.name === targetName))) || 
           (x.env && x.env.find((y) => (targetKind === 'ConfigMap') ? (y.valueFrom && y.valueFrom.configMapKeyRef && y.valueFrom.configMapKeyRef.name === targetName) : (y.valueFrom && y.valueFrom.secretKeyRef && y.valueFrom.secretKeyRef.name === targetName)));
