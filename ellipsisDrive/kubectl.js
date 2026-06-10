@@ -207,6 +207,6 @@ module.exports = {
   },
 
   editResource: async (edit) => {
-    await cmd.executeCommandSimple(`kubectl apply -f -`, false, null, edit);
+    await cmd.executeCommandSimple(`kubectl apply -f -`, false, null, JSON.stringify(edit));
   }
 }
