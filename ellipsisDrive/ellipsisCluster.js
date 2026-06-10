@@ -145,8 +145,8 @@ module.exports = {
 
     console.log(`target ${target} of kind ${kind}`);
 
-    if (kind !== 'configMap' && kind !== 'secret') {
-      throw (`Can only edit targets of kind configMap and secret`);
+    if (kind !== 'ConfigMap' && kind !== 'secret') {
+      throw (`Can only edit targets of kind ConfigMap and secret`);
     }
 
     let isSecret = kind === 'secret';

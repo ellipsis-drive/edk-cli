@@ -191,17 +191,17 @@ module.exports = {
   },
 
   getConfigMap: async (name) => {
-    let configMaps = await cmd.executeCommandSimple(`kubectl get configMap ${name} -o json`);
+    let configMap = await cmd.executeCommandSimple(`kubectl get configMap ${name} -o json`);
 
-    configMaps = JSON.parse(configMaps);
+    configMap = JSON.parse(configMap);
 
     return configMap;
   },
 
   getSecret: async (name) => {
-    let secrets = await cmd.executeCommandSimple(`kubectl get secrets ${name} -o json`);
+    let secret = await cmd.executeCommandSimple(`kubectl get secrets ${name} -o json`);
 
-    secrets = JSON.parse(secrets);
+    secret = JSON.parse(secret);
 
     return secret;
   },
