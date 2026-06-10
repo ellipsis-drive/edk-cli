@@ -463,7 +463,7 @@ async function findDependentResources(target) {
         return 
           (x.envFrom && x.envFrom.find((y) => (targetKind === 'ConfigMap') ? (y.configMapRef && y.configMapRef.name === targetName) : (y.secretRef && y.secretRef.name === targetName))) || 
           (x.env && x.env.find((y) => (targetKind === 'ConfigMap') ? (y.valueFrom && y.valueFrom.configMapKeyRef && y.valueFrom.configMapKeyRef.name === targetName) : (y.valueFrom && y.valueFrom.secretKeyRef && y.valueFrom.secretKeyRef.name === targetName)));
-      }) > 0;
+      }).length > 0;
     }
 
     if (usesTarget) {
