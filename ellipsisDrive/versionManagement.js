@@ -10,7 +10,7 @@ module.exports = {
             .reverse();
 
         for (let i = 0; i < versions.length; i++) {
-            if (versions[i].images[package]) {
+            if (versions[i].images && versions[i].images[package]) {
                 return versions[i].images[package];
             }
         }
