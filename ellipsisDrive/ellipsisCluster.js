@@ -129,7 +129,7 @@ module.exports = {
 
     let target = opts.target;
     let kind = opts.kind;
-    let edits = isValid(utilities.opts.edits, 'jsonString') ? JSON.parse(utilities.opts.edits) : utilities.opts.edits;
+    let edits = isValid(opts.edits, 'jsonString') ? JSON.parse(opts.edits) : opts.edits;
 
     if (!utilities.isValid(target, 'string')) {
       throw (`target must be a valid string`);
