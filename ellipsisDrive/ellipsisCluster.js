@@ -439,7 +439,7 @@ async function findDependentResources(target) {
     let usesTarget = false;
 
     if (podTemplate.volumes) {
-      if (targetKind === 'configMap') {
+      if (targetKind === 'ConfigMap') {
         usesTarget = podTemplate.volumes.filter((x) => x.configMap && x.configMap.name === targetName) > 0;
       }
       else {
@@ -449,8 +449,8 @@ async function findDependentResources(target) {
 
     if (!usesTarget && podTemplate.containers) {
       usesTarget = podTemplate.containers.filter((x) => {
-        (x.envFrom && x.envFrom.find((y) => (targetKind === 'configMap') ? (y.configMapRef && y.configMapRef.name === targetName) : (y.secretRef && y.secretRef.name === targetName))) || 
-          (x.env && x.env.find((y) => (targetKind === 'configMap') ? (y.valueFrom && y.valueFrom.configMapKeyRef && y.valueFrom.configMapKeyRef.name === targetName) : (y.valueFrom && y.valueFrom.secretKeyRef && y.valueFrom.secretKeyRef.name === targetName)));
+        (x.envFrom && x.envFrom.find((y) => (targetKind === 'ConfigMap') ? (y.configMapRef && y.configMapRef.name === targetName) : (y.secretRef && y.secretRef.name === targetName))) || 
+          (x.env && x.env.find((y) => (targetKind === 'ConfigMap') ? (y.valueFrom && y.valueFrom.configMapKeyRef && y.valueFrom.configMapKeyRef.name === targetName) : (y.valueFrom && y.valueFrom.secretKeyRef && y.valueFrom.secretKeyRef.name === targetName)));
       }) > 0;
     }
 
