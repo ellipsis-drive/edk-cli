@@ -58,7 +58,7 @@ async function ellipsisDrive() {
     let editOpts = {
       target: 'ellipsis',
       kind: 'ConfigMap',
-      edits: [{ action : "add", target: "new_env", value: "hi"}]
+      edits: [{ action : "edit", target: "new_env", value: "hi"}]
     };
 
     await ellipsisCluster.edit(editOpts);
