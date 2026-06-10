@@ -657,7 +657,7 @@ async function deleteCluster(config) {
         }
       }
       catch (e) {
-        if (e.message.includes('does not exist') || e.message.includes('https response error StatusCode: 404') || e.message.includes('Could not find')) {
+        if (e.message.includes('does not exist') || e.message.includes('https response error StatusCode: 404') || e.message.includes('Could not find') || e.message.includes('not found')) {
           console.log('Already deleted, skipping this one');
         }
         else {
