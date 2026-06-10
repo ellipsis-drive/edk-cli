@@ -415,7 +415,7 @@ module.exports = {
 }
 
 async function findDependentResources(target) {
-  let targetName = target.name;
+  let targetName = target.metadata.name;
   let targetKind = target.kind;
   
   let resourcesList = await kubectl.exec('get deployment,statefulset,daemonset -o json');
