@@ -1,5 +1,6 @@
 const fs = require('fs');
 
+const isValid = require('./utilities').isValid;
 const utilities = require('./utilities');
 const kubectl = require('./kubectl');
 const aws = require('./aws');
