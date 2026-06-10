@@ -32,6 +32,13 @@ spec:
         - name: owl-updates
           key: updates.sql
 
+  managed:
+    roles:
+      - name: ellipsis_app
+        login: true
+        passwordSecret:
+          name: owl-db-password
+
   resources:
     requests:
       memory: "1024Mi"

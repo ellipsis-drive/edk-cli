@@ -23,6 +23,13 @@ spec:
         - name: rooster-init-database
           key: database.sql
 
+  managed:
+    roles:
+      - name: ellipsis_app
+        login: true
+        passwordSecret:
+          name: rooster-db-password
+
   resources:
     requests:
       memory: "1024Mi"
