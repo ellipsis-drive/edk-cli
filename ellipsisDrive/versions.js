@@ -163,15 +163,15 @@ async function editResource(opts) {
     let kind = opts.kind;
     let edits = isValid(opts.edits, 'jsonString') ? JSON.parse(opts.edits) : opts.edits;
 
-    if (!utilities.isValid(target, 'string')) {
+    if (!isValid(target, 'string')) {
         throw new Error (`target must be a valid string`);
     }
 
-    if (!utilities.isValid(kind, 'string')) {
+    if (!isValid(kind, 'string')) {
         throw new Error (`kind must be a valid string`);
     }
 
-    if (!utilities.isValid(edits, 'array')) {
+    if (!isValid(edits, 'array')) {
         throw new Error (`edits must be a valid json array`);
     }
 
@@ -200,7 +200,7 @@ async function editResource(opts) {
     }
 
     for (let i = 0; i < edits.length; i++) {
-        if (!utilities.isValid(edits[i], 'object')) {
+        if (!isValid(edits[i], 'object')) {
         throw new Error (`edits[i] must be a valid json`);
         }
 
@@ -208,11 +208,11 @@ async function editResource(opts) {
         let targetKey = edits[i].target;
         let value = edits[i].value;
 
-        if (!utilities.isValid(editAction, 'string')) {
+        if (!isValid(editAction, 'string')) {
         throw new Error (`edits[i].action must be a valid string`);
         }
 
-        if (!utilities.isValid(targetKey, 'string')) {
+        if (!isValid(targetKey, 'string')) {
         throw new Error (`edits[i].target must be a valid string`);
         }
 
@@ -220,7 +220,7 @@ async function editResource(opts) {
         case 'set': {
             console.log(`${editAction} to ${target}`);
 
-            if (!utilities.isValid(value, 'string')) {
+            if (!isValid(value, 'string')) {
             throw new Error (`edits[i].value must be a valid string`);
             }
 
@@ -244,6 +244,68 @@ async function editResource(opts) {
     }
 
     await cmd.executeCommandSimple(`kubectl apply -f -`, false, null, JSON.stringify(edit));
+}
+
+function isValid(arg, type, optional) {
+    let defined = arg !== undefined && arg !== null;
+    let valid = false;
+
+    if (defined) {
+        if (!type) {
+            type = 'int';
+        }
+
+        switch (type) {
+            case 'int':
+            case 'integer':
+                valid = Number.isInteger(arg) && Number.isSafeInteger(arg);
+                break;
+            case 'float':
+                valid = typeof arg === 'number' && !Number.isNaN(arg) && arg < Number.MAX_VALUE && arg > -Number.MAX_VALUE;
+                break;
+            case 'string':
+                valid = typeof arg === 'string' || arg instanceof String;
+                break;
+            case 'object':
+                valid = !Array.isArray(arg) && typeof arg === 'object';
+                break;
+            case 'boolean':
+            case 'bool':
+                valid = typeof arg === 'boolean';
+                break;
+            case 'array':
+                valid = Array.isArray(arg);
+                break;
+            case 'uuid':
+                valid = typeof arg === 'string' || arg instanceof String;
+                if (valid) {
+                    valid = arg.match(v4) ? true : false;
+                }
+                break;
+            case 'date':
+                valid = moment(arg, moment.ISO_8601, true).isValid();
+                break;
+            case 'jsonString':
+                try {
+                    JSON.parse(arg);
+                    valid = true;
+                }
+                catch {
+                    valid = false;
+                }
+                break;
+        }
+    }
+
+    if (optional) {
+        return {
+            valid: !defined || valid,
+            defined: defined
+        };
+    }
+    else {
+        return valid;
+    }
 }
 
 module.exports = {
