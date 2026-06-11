@@ -264,7 +264,7 @@ async function editResource(opts) {
         }
     }
 
-    await cmd.executeCommandSimple(`kubectl apply -f -`, false, null, JSON.stringify(edits));
+    await cmd.executeCommandSimple(`kubectl apply -f -`, false, null, JSON.stringify(targetResource));
 }
 
 function isValid(arg, type, optional) {
