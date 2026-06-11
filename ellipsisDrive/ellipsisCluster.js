@@ -1,5 +1,6 @@
 const fs = require('fs');
 
+const isValid = require('./utilities').isValid;
 const utilities = require('./utilities');
 const kubectl = require('./kubectl');
 const aws = require('./aws');
@@ -116,7 +117,166 @@ module.exports = {
   },
   pull: async () => {
     await versionManagement.pull();
+  },
+
+  edit: async (opts) => {
+    try {
+      await kubectl.exec(`get pods`);
+    }
+    catch {
+      throw new Error('No kubernetes cluster exists, aborting editting');
+    }
+
+    let target = opts.target;
+    let kind = opts.kind;
+    let edits = isValid(opts.edits, 'jsonString') ? JSON.parse(opts.edits) : opts.edits;
+
+    if (!isValid(target, 'string')) {
+      throw new Error (`target must be a valid string`);
+    }
+
+    if (!isValid(kind, 'string')) {
+      throw new Error (`kind must be a valid string`);
+    }
+
+    if (!isValid(edits, 'array')) {
+      throw new Error (`edits must be a valid json array`);
+    }
+
+    if (edits.length === 0) {
+      throw new Error(`No edits given to apply`);
+    }
+
+    console.log(`target ${target} of kind ${kind}`);
+
+    if (kind !== 'ConfigMap' && kind !== 'secret') {
+      throw new Error (`Can only edit targets of kind ConfigMap and secret`);
+    }
+
+    let isSecret = kind === 'secret';
+
+    let targetResource;
+    if (isSecret) {
+      targetResource = await kubectl.getSecret(target);
+    }
+    else {
+      targetResource = await kubectl.getConfigMap(target);
+    }
+
+    if (!targetResource) {
+      throw new Error (`invalid target resource to edit: ${targetResource}`);
+    }
+
+    if (!targetResource.data) {
+      targetResource.data = {};
+    }
+
+    for (let i = 0; i < edits.length; i++) {
+      if (!isValid(edits[i], 'object')) {
+        throw new Error (`edits[i] must be a valid json`);
+      }
+
+      let editAction = edits[i].action;
+      let targetKey = edits[i].target;
+      let value = edits[i].value;
+
+      if (!isValid(editAction, 'string')) {
+        throw new Error (`edits[i].action must be a valid string`);
+      }
+
+      if (!isValid(targetKey, 'string')) {
+        throw new Error (`edits[i].target must be a valid string`);
+      }
+
+      switch (editAction) {
+        case 'set': {
+          console.log(`${editAction} ${targetKey}`);
+
+          if (!isValid(value, 'string')) {
+            throw new Error (`edits[i].value must be a valid string`);
+          }
+
+          targetResource.data[targetKey] = isSecret ? stringToBase64(value) : value;
+          break;
+        }
+        case 'delete': {
+          console.log(`${editAction} ${targetKey}`);
+
+          if (!targetResource.data[targetKey]) {
+            throw new Error (`edits[i].target doesn't exists which conflicts with action ${editAction}`);
+          }
+
+          delete targetResource.data[targetKey];
+          break;
+        }
+        default:
+          throw new Error (`invalid edit action: ${editAction}`);
+          break;
+      }
+    }
+
+    await kubectl.editResource(targetResource);
+
+    let dependents = await findDependentResources(targetResource);
+
+    for (let i = 0; i < dependents.length; i++) {
+      await kubectl.rolloutRestart(`${dependents[i].kind} ${dependents[i].name}`)
+    }
   }
+}
+
+async function findDependentResources(target) {
+  let targetName = target.metadata.name;
+  let targetKind = target.kind;
+  
+  let resourcesList = await kubectl.exec('get deployment,statefulset,daemonset -o json');
+  resourcesList = JSON.parse(resourcesList);
+
+  let dependents = [];
+
+  if (!resourcesList.items || resourcesList.items.length === 0) {
+    return dependents;
+  }
+
+  resourcesList.items.forEach((resource) => {
+    let kind = resource.kind.toLowerCase();
+    let name = resource.metadata.name;
+    let podTemplate = resource.spec?.template?.spec;
+
+    if (!podTemplate) {
+      console.log('no pod template found');
+      return;
+    }
+
+    let usesTarget = false;
+
+    if (podTemplate.volumes) {
+      if (targetKind === 'ConfigMap') {
+        usesTarget = podTemplate.volumes.filter((x) => x.configMap && x.configMap.name === targetName) > 0;
+      }
+      else {
+        usesTarget = podTemplate.volumes.filter((x) => x.secret && x.secretName === targetName) > 0;
+      }
+    }
+
+    if (!usesTarget && podTemplate.containers) {
+      usesTarget = podTemplate.containers.filter((x) => {
+        return (x.envFrom && x.envFrom.filter((y) => (targetKind === 'ConfigMap') ? (y.configMapRef && y.configMapRef.name === targetName) : (y.secretRef && y.secretRef.name === targetName)).length > 0) || 
+          (x.env && x.env.filter((y) => (targetKind === 'ConfigMap') ? (y.valueFrom && y.valueFrom.configMapKeyRef && y.valueFrom.configMapKeyRef.name === targetName) : (y.valueFrom && y.valueFrom.secretKeyRef && y.valueFrom.secretKeyRef.name === targetName)).length > 0);
+      }).length > 0;
+    }
+
+    if (usesTarget) {
+      dependents.push({ kind: kind, name: name });
+    }
+  });
+
+  console.log(`Found ${dependents.length} dependent resources:`, dependents);
+  return dependents;
+}
+
+function stringToBase64(string) {
+  return Buffer.from(string).toString('base64');
 }
 
 function validateConfig(config) {
@@ -232,7 +392,7 @@ async function deleteCluster(config) {
         history = [];
       }
       else {
-        throw ('Could not load the history file');
+        throw new Error ('Could not load the history file');
       }
     }
   }
@@ -309,7 +469,7 @@ async function deleteCluster(config) {
             break;
           }
           default:
-            throw('invalid type in the history of delete cluster', type);
+            throw new Error('invalid type in the history of delete cluster', type);
             break;
         }
       }

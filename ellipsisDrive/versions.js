@@ -1,4 +1,5 @@
-const kubectl = require('./kubectl');
+// THIS FILE GETS PULLED BY OLD RELEASES BE VERY CAREFUL ABOUT DEPENDENCIES
+const cmd = require('./cmd');
 
 const VERSIONS = [
     {
@@ -43,12 +44,7 @@ const VERSIONS = [
             'api': '1.0.1'
         },
         upgrade: async function() {
-            console.log('upgrading to version 1.0.1');
-
-            for (const [key, value] of Object.entries(this.images)) {
-                await kubectl.setImage(`deployment/${key} ${key}=ghcr.io/ellipsis-drive/${key}:${value}`);
-                await kubectl.rolloutRestart(`deployment ${key}`);
-            }
+            await standardUpdate(this);
         }
     },
     {
@@ -62,16 +58,7 @@ const VERSIONS = [
             ]
         },
         upgrade: async function() {
-            console.log('upgrading to version 1.0.2');
-
-            for (const [key, value] of Object.entries(this.images)) {
-                await kubectl.setImage(`deployment/${key} ${key}=ghcr.io/ellipsis-drive/${key}:${value}`);
-                await kubectl.rolloutRestart(`deployment ${key}`);
-            }
-
-            for (const [key, value] of Object.entries(this.queries)) {
-                await kubectl.execQuery(key, value.join('\n'));
-            }
+            await standardUpdate(this);
         }
     },
     {
@@ -81,12 +68,7 @@ const VERSIONS = [
             'penguin': '1.1.0'
         },
         upgrade: async function () {
-            console.log('upgrading to version 1.2.0');
-
-            for (const [key, value] of Object.entries(this.images)) {
-                await kubectl.setImage(`deployment/${key} ${key}=ghcr.io/ellipsis-drive/${key}:${value}`);
-                await kubectl.rolloutRestart(`deployment ${key}`);
-            }
+            await standardUpdate(this);
         }
     },
     {
@@ -111,6 +93,31 @@ const VERSIONS = [
         upgrade: async function () {
             await standardUpdate(this);
         }
+    },
+    {
+        version: '1.3.0',
+        images: {
+            'raster-master': '1.1.0',
+            'vector-master': '1.1.0',
+            'point-cloud-master': '1.1.0',
+            'export-master': '1.1.0',
+            'import-master': '1.1.0'
+        },
+        upgrade: async function () {
+            await editResource({kind: "ConfigMap", target: "ellipsis", edits: [
+                { action: "set", target: "MIN_RASTER_WORKERS", value: "0"},
+                { action: "set", target: "MIN_VECTOR_WORKERS", value: "0" },
+                { action: "set", target: "MIN_POINT_CLOUD_WORKERS", value: "0" },
+                { action: "set", target: "MIN_EXPORT_WORKERS", value: "0" },
+                { action: "set", target: "MIN_IMPORT_WORKERS", value: "0" },
+                { action: "set", target: "MAX_RASTER_WORKERS", value: "2" },
+                { action: "set", target: "MAX_VECTOR_WORKERS", value: "2" },
+                { action: "set", target: "MAX_POINT_CLOUD_WORKERS", value: "2" },
+                { action: "set", target: "MAX_EXPORT_WORKERS", value: "2" },
+                { action: "set", target: "MAX_IMPORT_WORKERS", value: "2" }
+            ]});
+            await standardUpdate(this);
+        }
     }
 ];
 
@@ -119,15 +126,206 @@ async function standardUpdate(version) {
 
     if (version.images) {
         for (const [key, value] of Object.entries(version.images)) {
-            await kubectl.setImage(`deployment/${key} ${key}=ghcr.io/ellipsis-drive/${key}:${value}`);
-            await kubectl.rolloutRestart(`deployment ${key}`);
+            await setImage(`deployment/${key} ${key}=ghcr.io/ellipsis-drive/${key}:${value}`);
+            await rolloutRestart(`deployment ${key}`);
         }
     }
 
     if (version.queries) {
         for (const [key, value] of Object.entries(version.queries)) {
-            await kubectl.execQuery(key, value.join('\n'));
+            await execQuery(key, value.join('\n'));
         }
+    }
+}
+
+async function setImage(imageChange) {
+    await cmd.executeCommandSimple(`kubectl set image ${imageChange}`);
+}
+
+async function rolloutRestart(restart) {
+    await cmd.executeCommandSimple(`kubectl rollout restart ${restart}`);
+}
+
+async function execQuery(database, query) {
+    let secret = database === 'owl' ? 'owl-db-password' : 'pigeon-db-password';
+    await cmd.executeCommandSimple(`kubectl exec -i ${database}-1 -- env PGPASSWORD=$(kubectl get secret ${secret} -o jsonpath='{.data.password}' | base64 --decode) psql -h ${database}-rw -U ellipsis_app -d ellipsis -f -`, false, null, query);
+}
+
+async function execQuery(database, query) {
+    let secret = database === 'owl' ? 'owl-db-password' : 'pigeon-db-password';
+    await cmd.executeCommandSimple(`kubectl exec -i ${database}-1 -- env PGPASSWORD=$(kubectl get secret ${secret} -o jsonpath='{.data.password}' | base64 --decode) psql -h ${database}-rw -U ellipsis_app -d ellipsis -f -`, false, null, query);
+}
+
+async function getConfigMap(name) {
+    let configMap = await cmd.executeCommandSimple(`kubectl get configMap ${name} -o json`);
+
+    configMap = JSON.parse(configMap);
+
+    return configMap;
+}
+
+async function getSecret(name) {
+    let secret = await cmd.executeCommandSimple(`kubectl get secrets ${name} -o json`);
+
+    secret = JSON.parse(secret);
+
+    return secret;
+}
+
+async function editResource(opts) {
+    try {
+        await cmd.executeCommandSimple(`kubectl get pods`);
+    }
+    catch {
+        throw new Error('No kubernetes cluster exists, aborting editting');
+    }
+
+    let target = opts.target;
+    let kind = opts.kind;
+    let edits = isValid(opts.edits, 'jsonString') ? JSON.parse(opts.edits) : opts.edits;
+
+    if (!isValid(target, 'string')) {
+        throw new Error (`target must be a valid string`);
+    }
+
+    if (!isValid(kind, 'string')) {
+        throw new Error (`kind must be a valid string`);
+    }
+
+    if (!isValid(edits, 'array')) {
+        throw new Error (`edits must be a valid json array`);
+    }
+
+    console.log(`target ${target} of kind ${kind}`);
+
+    if (kind !== 'ConfigMap' && kind !== 'secret') {
+        throw new Error (`Can only edit targets of kind ConfigMap and secret`);
+    }
+
+    let isSecret = kind === 'secret';
+
+    let targetResource;
+    if (isSecret) {
+        targetResource = await getSecret(target);
+    }
+    else {
+        targetResource = await getConfigMap(target);
+    }
+
+    if (!targetResource) {
+        throw new Error (`invalid target resource to edit: ${targetResource}`);
+    }
+
+    if (!targetResource.data) {
+        targetResource.data = {};
+    }
+
+    for (let i = 0; i < edits.length; i++) {
+        if (!isValid(edits[i], 'object')) {
+        throw new Error (`edits[i] must be a valid json`);
+        }
+
+        let editAction = edits[i].action;
+        let targetKey = edits[i].target;
+        let value = edits[i].value;
+
+        if (!isValid(editAction, 'string')) {
+        throw new Error (`edits[i].action must be a valid string`);
+        }
+
+        if (!isValid(targetKey, 'string')) {
+        throw new Error (`edits[i].target must be a valid string`);
+        }
+
+        switch (editAction) {
+        case 'set': {
+            console.log(`${editAction} to ${target}`);
+
+            if (!isValid(value, 'string')) {
+            throw new Error (`edits[i].value must be a valid string`);
+            }
+
+            targetResource.data[targetKey] = isSecret ? stringToBase64(value) : value;
+            break;
+        }
+        case 'delete': {
+            console.log(`${editAction} to ${target}`);
+
+            if (!targetResource.data[targetKey]) {
+            throw new Error (`edits[i].target doesn't exists which conflicts with action ${editAction}`);
+            }
+
+            delete targetResource.data[targetKey];
+            break;
+        }
+        default:
+            throw new Error (`invalid edit action: ${editAction}`);
+            break;
+        }
+    }
+
+    await cmd.executeCommandSimple(`kubectl replace -f -`, false, null, JSON.stringify(targetResource));
+}
+
+function isValid(arg, type, optional) {
+    let defined = arg !== undefined && arg !== null;
+    let valid = false;
+
+    if (defined) {
+        if (!type) {
+            type = 'int';
+        }
+
+        switch (type) {
+            case 'int':
+            case 'integer':
+                valid = Number.isInteger(arg) && Number.isSafeInteger(arg);
+                break;
+            case 'float':
+                valid = typeof arg === 'number' && !Number.isNaN(arg) && arg < Number.MAX_VALUE && arg > -Number.MAX_VALUE;
+                break;
+            case 'string':
+                valid = typeof arg === 'string' || arg instanceof String;
+                break;
+            case 'object':
+                valid = !Array.isArray(arg) && typeof arg === 'object';
+                break;
+            case 'boolean':
+            case 'bool':
+                valid = typeof arg === 'boolean';
+                break;
+            case 'array':
+                valid = Array.isArray(arg);
+                break;
+            case 'uuid':
+                valid = typeof arg === 'string' || arg instanceof String;
+                if (valid) {
+                    valid = arg.match(v4) ? true : false;
+                }
+                break;
+            case 'date':
+                valid = moment(arg, moment.ISO_8601, true).isValid();
+                break;
+            case 'jsonString':
+                try {
+                    JSON.parse(arg);
+                    valid = true;
+                }
+                catch {
+                    valid = false;
+                }
+                break;
+        }
+    }
+
+    if (optional) {
+        return {
+            valid: !defined || valid,
+            defined: defined
+        };
+    }
+    else {
+        return valid;
     }
 }
 

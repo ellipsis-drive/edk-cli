@@ -54,6 +54,29 @@ async function ellipsisDrive() {
     ellipsisCluster.pull();
   });
 
+  const editConfigMap = program
+    .command('edit <kind> <target>')
+    .option('-s, --set <pairs...>', 'Variables to set (e.g., -s a=1 b=2)')
+    .option('-u, --unset <variables...>', 'Variables to unset')
+    .action(async (kind, target, options) => {
+      let setEdits = options.set ? options.set.map((x) => { return { action: "set", target: x.split('=')[0], value: x.split('=')[1] }}) : [];
+      let unsetEdits = options.unset ? options.unset.map((x) => { return { action: "delete", target: x } }) : [];
+
+      let editOpts = {
+        target: target,
+        kind: kind,
+        edits: [...setEdits, ...unsetEdits]
+      };
+
+      try {
+        await ellipsisCluster.edit(editOpts);
+      } catch (error) {
+        program.error(`Failed to edit: ${error.message}`, {
+          exitCode: 1
+        });
+      }
+    });
+
   program.parse();
 }
 

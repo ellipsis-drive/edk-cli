@@ -25,6 +25,13 @@ spec:
         - name: pigeon-updates
           key: updates.sql
 
+  managed:
+    roles:
+      - name: local_api
+        login: true
+        passwordSecret:
+          name: pigeon-db-password
+
   resources:
     requests:
       memory: "1024Mi"
