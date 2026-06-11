@@ -216,7 +216,7 @@ module.exports = {
     let dependents = await findDependentResources(targetResource);
 
     for (let i = 0; i < dependents.length; i++) {
-      await kubectl.rolloutRestart(`${dependents[i].kind} ${dependents[i].name}`)
+      // await kubectl.rolloutRestart(`${dependents[i].kind} ${dependents[i].name}`)
     }
   }
 }
