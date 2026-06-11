@@ -59,7 +59,6 @@ async function ellipsisDrive() {
     .option('-s, --set <pairs...>', 'Variables to set (e.g., -s a=1 b=2)')
     .option('-d, --delete <variables...>', 'Variables to delete')
     .action(async (target, options) => {
-      throw('test')
       console.log('target', target);
       console.log('options', options);
       let setEdits = options.set ? options.set.map((x) => { return { action: "set", target: x.split('=')[0], value: x.split('=')[1] }}) : [];
@@ -71,7 +70,13 @@ async function ellipsisDrive() {
         edits: [...setEdits, ...deleteEdits]
       };
 
-      await ellipsisCluster.edit(editOpts);
+      try {
+        await ellipsisCluster.edit(editOpts);
+      } catch (error) {
+        program.error(`Failed to edit: ${error.message}`, {
+          exitCode: 1
+        });
+      }
     });
 
   program.parse();
