@@ -131,16 +131,20 @@ module.exports = {
     let kind = opts.kind;
     let edits = isValid(opts.edits, 'jsonString') ? JSON.parse(opts.edits) : opts.edits;
 
-    if (!utilities.isValid(target, 'string')) {
+    if (!isValid(target, 'string')) {
       throw new Error (`target must be a valid string`);
     }
 
-    if (!utilities.isValid(kind, 'string')) {
+    if (!isValid(kind, 'string')) {
       throw new Error (`kind must be a valid string`);
     }
 
-    if (!utilities.isValid(edits, 'array')) {
+    if (!isValid(edits, 'array')) {
       throw new Error (`edits must be a valid json array`);
+    }
+
+    if (edits.length === 0) {
+      throw new Error(`No edits given to apply`);
     }
 
     console.log(`target ${target} of kind ${kind}`);
@@ -168,7 +172,7 @@ module.exports = {
     }
 
     for (let i = 0; i < edits.length; i++) {
-      if (!utilities.isValid(edits[i], 'object')) {
+      if (!isValid(edits[i], 'object')) {
         throw new Error (`edits[i] must be a valid json`);
       }
 
@@ -176,19 +180,19 @@ module.exports = {
       let targetKey = edits[i].target;
       let value = edits[i].value;
 
-      if (!utilities.isValid(editAction, 'string')) {
+      if (!isValid(editAction, 'string')) {
         throw new Error (`edits[i].action must be a valid string`);
       }
 
-      if (!utilities.isValid(targetKey, 'string')) {
+      if (!isValid(targetKey, 'string')) {
         throw new Error (`edits[i].target must be a valid string`);
       }
 
       switch (editAction) {
         case 'set': {
-          console.log(`${editAction} to ${target}`);
+          console.log(`${editAction} ${targetKey}`);
 
-          if (!utilities.isValid(value, 'string')) {
+          if (!isValid(value, 'string')) {
             throw new Error (`edits[i].value must be a valid string`);
           }
 
@@ -196,7 +200,7 @@ module.exports = {
           break;
         }
         case 'delete': {
-          console.log(`${editAction} to ${target}`);
+          console.log(`${editAction} ${targetKey}`);
 
           if (!targetResource.data[targetKey]) {
             throw new Error (`edits[i].target doesn't exists which conflicts with action ${editAction}`);
@@ -216,7 +220,7 @@ module.exports = {
     let dependents = await findDependentResources(targetResource);
 
     for (let i = 0; i < dependents.length; i++) {
-      // await kubectl.rolloutRestart(`${dependents[i].kind} ${dependents[i].name}`)
+      await kubectl.rolloutRestart(`${dependents[i].kind} ${dependents[i].name}`)
     }
   }
 }
