@@ -67,7 +67,7 @@ async function ellipsisDrive() {
       console.log('edits', [...setEdits, ...deleteEdits]);
       let editOpts = {
         target: target,
-        kind: 'ConfigMap',
+        kind: kind,
         edits: [...setEdits, ...deleteEdits]
       };
 
