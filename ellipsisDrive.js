@@ -59,9 +59,11 @@ async function ellipsisDrive() {
     .option('-s, --set <pairs...>', 'Variables to set (e.g., -s a=1 b=2)')
     .option('-d, --delete <variables...>', 'Variables to delete')
     .action(async (target, options) => {
-      let setEdits = options.set.map((x) => { return { action: "set", target: x.split('=')[0], value: x.split('=')[1] }});
-      let deleteEdits = options.set.map((x) => { return { action: "delete", target: x } });
-
+      console.log('target', target);
+      console.log('options', options);
+      let setEdits = options.set ? options.set.map((x) => { return { action: "set", target: x.split('=')[0], value: x.split('=')[1] }}) : [];
+      let deleteEdits = options.delete ? options.delete.map((x) => { return { action: "delete", target: x } }) : [];
+      console.log('edits', [...setEdits, ...deleteEdits]);
       let editOpts = {
         target: target,
         kind: 'ConfigMap',
