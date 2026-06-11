@@ -151,6 +151,27 @@ async function execQuery(database, query) {
     await cmd.executeCommandSimple(`kubectl exec -i ${database}-1 -- env PGPASSWORD=$(kubectl get secret ${secret} -o jsonpath='{.data.password}' | base64 --decode) psql -h ${database}-rw -U ellipsis_app -d ellipsis -f -`, false, null, query);
 }
 
+async function execQuery(database, query) {
+    let secret = database === 'owl' ? 'owl-db-password' : 'pigeon-db-password';
+    await cmd.executeCommandSimple(`kubectl exec -i ${database}-1 -- env PGPASSWORD=$(kubectl get secret ${secret} -o jsonpath='{.data.password}' | base64 --decode) psql -h ${database}-rw -U ellipsis_app -d ellipsis -f -`, false, null, query);
+}
+
+async function getConfigMap(name) {
+    let configMap = await cmd.executeCommandSimple(`kubectl get configMap ${name} -o json`);
+
+    configMap = JSON.parse(configMap);
+
+    return configMap;
+}
+
+async function getSecret(name) {
+    let secret = await cmd.executeCommandSimple(`kubectl get secrets ${name} -o json`);
+
+    secret = JSON.parse(secret);
+
+    return secret;
+}
+
 async function editResource(opts) {
     try {
         await cmd.executeCommandSimple(`kubectl get pods`);
@@ -185,10 +206,10 @@ async function editResource(opts) {
 
     let targetResource;
     if (isSecret) {
-        targetResource = await kubectl.getSecret(target);
+        targetResource = await getSecret(target);
     }
     else {
-        targetResource = await kubectl.getConfigMap(target);
+        targetResource = await getConfigMap(target);
     }
 
     if (!targetResource) {
