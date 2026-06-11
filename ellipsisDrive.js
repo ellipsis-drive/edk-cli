@@ -57,12 +57,12 @@ async function ellipsisDrive() {
   const editConfigMap = program
     .command('edit ConfigMap <target>')
     .option('-s, --set <pairs...>', 'Variables to set (e.g., -s a=1 b=2)')
-    .option('-d, --delete <variables...>', 'Variables to delete')
+    .option('-u, --unset <variables...>', 'Variables to unset')
     .action(async (target, options) => {
       console.log('target', target);
       console.log('options', options);
       let setEdits = options.set ? options.set.map((x) => { return { action: "set", target: x.split('=')[0], value: x.split('=')[1] }}) : [];
-      let deleteEdits = options.delete ? options.delete.map((x) => { return { action: "delete", target: x } }) : [];
+      let deleteEdits = options.unset ? options.unset.map((x) => { return { action: "delete", target: x } }) : [];
       console.log('edits', [...setEdits, ...deleteEdits]);
       let editOpts = {
         target: target,
