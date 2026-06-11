@@ -73,7 +73,6 @@ async function ellipsisDrive() {
       try {
         await ellipsisCluster.edit(editOpts);
       } catch (error) {
-        console.log(error)
         program.error(`Failed to edit: ${error.message}`, {
           exitCode: 1
         });

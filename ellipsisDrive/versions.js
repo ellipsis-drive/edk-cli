@@ -156,7 +156,7 @@ async function editResource(opts) {
         await cmd.executeCommandSimple(`kubectl get pods`);
     }
     catch {
-        throw('No kubernetes cluster exists, aborting editting');
+        throw new Error('No kubernetes cluster exists, aborting editting');
     }
 
     let target = opts.target;
@@ -164,21 +164,21 @@ async function editResource(opts) {
     let edits = isValid(opts.edits, 'jsonString') ? JSON.parse(opts.edits) : opts.edits;
 
     if (!utilities.isValid(target, 'string')) {
-        throw (`target must be a valid string`);
+        throw new Error (`target must be a valid string`);
     }
 
     if (!utilities.isValid(kind, 'string')) {
-        throw (`kind must be a valid string`);
+        throw new Error (`kind must be a valid string`);
     }
 
     if (!utilities.isValid(edits, 'array')) {
-        throw (`edits must be a valid json array`);
+        throw new Error (`edits must be a valid json array`);
     }
 
     console.log(`target ${target} of kind ${kind}`);
 
     if (kind !== 'ConfigMap' && kind !== 'secret') {
-        throw (`Can only edit targets of kind ConfigMap and secret`);
+        throw new Error (`Can only edit targets of kind ConfigMap and secret`);
     }
 
     let isSecret = kind === 'secret';
@@ -192,7 +192,7 @@ async function editResource(opts) {
     }
 
     if (!targetResource) {
-        throw (`invalid target resource to edit: ${targetResource}`);
+        throw new Error (`invalid target resource to edit: ${targetResource}`);
     }
 
     if (!targetResource.data) {
@@ -201,7 +201,7 @@ async function editResource(opts) {
 
     for (let i = 0; i < edits.length; i++) {
         if (!utilities.isValid(edits[i], 'object')) {
-        throw (`edits[i] must be a valid json`);
+        throw new Error (`edits[i] must be a valid json`);
         }
 
         let editAction = edits[i].action;
@@ -209,11 +209,11 @@ async function editResource(opts) {
         let value = edits[i].value;
 
         if (!utilities.isValid(editAction, 'string')) {
-        throw (`edits[i].action must be a valid string`);
+        throw new Error (`edits[i].action must be a valid string`);
         }
 
         if (!utilities.isValid(targetKey, 'string')) {
-        throw (`edits[i].target must be a valid string`);
+        throw new Error (`edits[i].target must be a valid string`);
         }
 
         switch (editAction) {
@@ -221,7 +221,7 @@ async function editResource(opts) {
             console.log(`${editAction} to ${target}`);
 
             if (!utilities.isValid(value, 'string')) {
-            throw (`edits[i].value must be a valid string`);
+            throw new Error (`edits[i].value must be a valid string`);
             }
 
             targetResource.data[targetKey] = isSecret ? stringToBase64(value) : value;
@@ -231,14 +231,14 @@ async function editResource(opts) {
             console.log(`${editAction} to ${target}`);
 
             if (!targetResource.data[targetKey]) {
-            throw (`edits[i].target doesn't exists which conflicts with action ${editAction}`);
+            throw new Error (`edits[i].target doesn't exists which conflicts with action ${editAction}`);
             }
 
             delete targetResource.data[targetKey];
             break;
         }
         default:
-            throw (`invalid edit action: ${editAction}`);
+            throw new Error (`invalid edit action: ${editAction}`);
             break;
         }
     }
