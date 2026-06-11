@@ -63,12 +63,12 @@ async function ellipsisDrive() {
       console.log('target', target);
       console.log('options', options);
       let setEdits = options.set ? options.set.map((x) => { return { action: "set", target: x.split('=')[0], value: x.split('=')[1] }}) : [];
-      let deleteEdits = options.unset ? options.unset.map((x) => { return { action: "delete", target: x } }) : [];
-      console.log('edits', [...setEdits, ...deleteEdits]);
+      let unsetEdits = options.unset ? options.unset.map((x) => { return { action: "delete", target: x } }) : [];
+      console.log('edits', [...setEdits, ...unsetEdits]);
       let editOpts = {
         target: target,
         kind: kind,
-        edits: [...setEdits, ...deleteEdits]
+        edits: [...setEdits, ...unsetEdits]
       };
 
       try {
