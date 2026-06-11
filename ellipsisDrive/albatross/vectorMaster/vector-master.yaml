@@ -32,10 +32,6 @@ spec:
               secretKeyRef:
                 name: rooster-db-password
                 key: password
-          - name: MIN_WORKERS
-            value: "0"
-          - name: MAX_WORKERS
-            value: "2"
           - name: INTERNAL_MAIL
             valueFrom:
               secretKeyRef:

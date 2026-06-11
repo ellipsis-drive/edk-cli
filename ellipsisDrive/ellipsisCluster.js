@@ -185,29 +185,11 @@ module.exports = {
       }
 
       switch (editAction) {
-        case 'add': {
+        case 'set': {
           console.log(`${editAction} to ${target}`);
 
           if (!utilities.isValid(value, 'string')) {
             throw (`edits[i].value must be a valid string`);
-          }
-
-          if (targetResource.data[targetKey]) {
-            throw (`edits[i].target already exists which conflicts with action ${editAction}`);
-          }
-
-          targetResource.data[targetKey] = isSecret ? stringToBase64(value) : value;
-          break;
-        }
-        case 'edit': {
-          console.log(`${editAction} to ${target}`);
-
-          if (!utilities.isValid(value, 'string')) {
-            throw (`edits[i].value must be a valid string`);
-          }
-
-          if (!targetResource.data[targetKey]) {
-            throw (`edits[i].target doesn't exists which conflicts with action ${editAction}`);
           }
 
           targetResource.data[targetKey] = isSecret ? stringToBase64(value) : value;

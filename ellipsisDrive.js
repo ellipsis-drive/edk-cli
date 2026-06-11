@@ -54,15 +54,22 @@ async function ellipsisDrive() {
     ellipsisCluster.pull();
   });
 
-  const edit = program.command('edit').action(async () => {
-    let editOpts = {
-      target: 'pigeon-db-password',
-      kind: 'secret',
-      edits: [{ action : "edit", target: "password", value: "foobarbaz"}]
-    };
+  const editConfigMap = program
+    .command('edit ConfigMap <target>')
+    .option('-s, --set <pairs...>', 'Variables to set (e.g., -s a=1 b=2)')
+    .option('-d, --delete <variables...>', 'Variables to delete')
+    .action(async (target, options) => {
+      let setEdits = options.set.map((x) => { return { action: "set", target: x.split('=')[0], value: x.split('=')[1] }});
+      let deleteEdits = options.set.map((x) => { return { action: "delete", target: x } });
 
-    await ellipsisCluster.edit(editOpts);
-  });
+      let editOpts = {
+        target: target,
+        kind: 'ConfigMap',
+        edits: [...setEdits, ...deleteEdits]
+      };
+
+      await ellipsisCluster.edit(editOpts);
+    });
 
   program.parse();
 }
