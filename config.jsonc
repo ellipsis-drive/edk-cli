@@ -1,7 +1,7 @@
 {
   // Hi
   "kubernetesVersion": "1.34",
-  "ellipsisDriveVersion": "1.2.2",
+  "ellipsisDriveVersion": "1.3.1",
   "cloudProvider": "aws",
 
   "clusterName": "Ellipsis-drive-kubernetes",
