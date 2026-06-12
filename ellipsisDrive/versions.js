@@ -118,6 +118,16 @@ const VERSIONS = [
             ]});
             await standardUpdate(this);
         }
+    },
+    {
+        version: '1.3.1',
+        images: {
+            'export-master': '1.1.1',
+            'import-master': '1.1.1'
+        },
+        upgrade: async function () {
+            await standardUpdate(this);
+        }
     }
 ];
 
